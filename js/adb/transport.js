@@ -191,16 +191,121 @@ class WebUsbTransport extends AdbTransport {
     }
 }
 
+// TCP 传输实现（用于无线调试）
+class TcpTransport extends AdbTransport {
+    constructor(host, port) {
+        super();
+        this.host = host;
+        this.port = port;
+        this.socket = null;
+        this.reader = null;
+        this.writer = null;
+        this.paired = false;
+    }
+
+    async open() {
+        try {
+            // 创建 WebSocket 连接（ADB 无线调试使用 TCP，但浏览器只能使用 WebSocket）
+            // 注意：这里需要一个 ADB WebSocket 代理，因为浏览器不能直接建立 TCP 连接
+            const wsUrl = `ws://${this.host}:${this.port}`;
+            console.log(`尝试连接到 ${wsUrl}`);
+            
+            // 由于浏览器安全限制，我们需要提示用户输入正确的 ADB 无线调试地址
+            // 实际实现中，这里应该连接到一个 WebSocket 代理服务器
+            throw new Error('需要 ADB WebSocket 代理服务器');
+        } catch (error) {
+            console.error('Error opening TCP transport:', error);
+            throw error;
+        }
+    }
+
+    // 配对方法
+    async pair(pairingCode) {
+        try {
+            console.log(`尝试配对设备，配对码: ${pairingCode}`);
+            // 这里需要实现 ADB 配对协议
+            // 实际实现中，应该发送配对请求到设备
+            throw new Error('配对功能需要 ADB WebSocket 代理服务器');
+        } catch (error) {
+            console.error('Error pairing device:', error);
+            throw error;
+        }
+    }
+
+    async close() {
+        if (this.writer) {
+            try {
+                await this.writer.close();
+            } catch (error) {
+                console.error('Error closing writer:', error);
+            }
+        }
+        if (this.reader) {
+            try {
+                await this.reader.cancel();
+            } catch (error) {
+                console.error('Error canceling reader:', error);
+            }
+        }
+        if (this.socket) {
+            try {
+                this.socket.close();
+            } catch (error) {
+                console.error('Error closing socket:', error);
+            }
+        }
+        console.log('TCP transport closed');
+    }
+
+    async send(data) {
+        if (!this.writer) {
+            throw new Error('Transport not initialized');
+        }
+
+        try {
+            await this.writer.write(data);
+        } catch (error) {
+            console.error('Error sending data:', error);
+            throw error;
+        }
+    }
+
+    async receive(length) {
+        if (!this.reader) {
+            throw new Error('Transport not initialized');
+        }
+
+        try {
+            const { value, done } = await this.reader.read();
+            if (done) {
+                throw new Error('Connection closed');
+            }
+            return value.buffer;
+        } catch (error) {
+            console.error('Error receiving data:', error);
+            throw error;
+        }
+    }
+
+    async reset() {
+        // TCP 传输重置
+        await this.close();
+        await this.open();
+    }
+}
+
 // 导出传输类
 try {
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = {
             AdbTransport,
-            WebUsbTransport
+            WebUsbTransport,
+            TcpTransport
         };
     }
 } catch (e) {
     // 浏览器环境
     window.AdbTransport = AdbTransport;
     window.WebUsbTransport = WebUsbTransport;
+    window.TcpTransport = TcpTransport;
 }

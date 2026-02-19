@@ -34,9 +34,22 @@ class AdbDevice {
                 if (authCallback) {
                     authCallback(response.arg0, response.data);
                 }
-                // 这里需要实现认证逻辑
-                // 暂时跳过认证，实际应用中需要处理
-                throw new Error('Authentication required');
+                // 认证类型：
+                // 1 = 令牌认证
+                // 2 = RSA 公钥认证
+                if (response.arg0 === 1) {
+                    // 令牌认证
+                    log('Token authentication required');
+                    // 这里需要实现令牌认证逻辑
+                    throw new Error('Token authentication required');
+                } else if (response.arg0 === 2) {
+                    // RSA 公钥认证
+                    log('RSA public key authentication required');
+                    // 这里需要实现 RSA 公钥认证逻辑
+                    throw new Error('RSA public key authentication required');
+                } else {
+                    throw new Error('Unknown authentication type: ' + response.arg0);
+                }
             }
 
             if (response.cmd !== 'CNXN') {
@@ -119,6 +132,79 @@ class AdbDevice {
      */
     async reboot(command = '') {
         return this.open('reboot:' + command);
+    }
+
+    /**
+     * 安装应用
+     * @param {string} apkPath - APK 文件路径
+     * @param {boolean} reinstall - 是否重新安装
+     * @param {boolean} grantPermissions - 是否自动授予权限
+     * @returns {Promise<AdbStream>}
+     */
+    async install(apkPath, reinstall = false, grantPermissions = false) {
+        let command = 'install';
+        if (reinstall) {
+            command += ' -r';
+        }
+        if (grantPermissions) {
+            command += ' -g';
+        }
+        return this.shell(`${command} ${apkPath}`);
+    }
+
+    /**
+     * 卸载应用
+     * @param {string} packageName - 包名
+     * @param {boolean} keepData - 是否保留数据
+     * @returns {Promise<AdbStream>}
+     */
+    async uninstall(packageName, keepData = false) {
+        let command = 'uninstall';
+        if (keepData) {
+            command += ' -k';
+        }
+        return this.shell(`${command} ${packageName}`);
+    }
+
+    /**
+     * 启动 Activity
+     * @param {string} component - 组件名 (包名/类名)
+     * @param {string} action - 动作
+     * @param {string} data - 数据 URI
+     * @returns {Promise<AdbStream>}
+     */
+    async startActivity(component, action = '', data = '') {
+        let command = 'am start';
+        if (action) {
+            command += ` -a ${action}`;
+        }
+        if (data) {
+            command += ` -d ${data}`;
+        }
+        command += ` ${component}`;
+        return this.shell(command);
+    }
+
+    /**
+     * 停止应用
+     * @param {string} packageName - 包名
+     * @returns {Promise<AdbStream>}
+     */
+    async forceStop(packageName) {
+        return this.shell(`am force-stop ${packageName}`);
+    }
+
+    /**
+     * 列出已安装的应用
+     * @param {boolean} system - 是否包含系统应用
+     * @returns {Promise<AdbStream>}
+     */
+    async listPackages(system = false) {
+        let command = 'pm list packages';
+        if (!system) {
+            command += ' -3';
+        }
+        return this.shell(command);
     }
 
     /**

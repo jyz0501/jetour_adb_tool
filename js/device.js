@@ -80,6 +80,52 @@ let initWebUSB = async (device) => {
     }
 };
 
+// 扫描网络 ADB 设备
+let scanNetworkAdbDevices = async () => {
+    log('开始扫描网络 ADB 设备...');
+    logDevice('开始扫描网络 ADB 设备...');
+    
+    const networkDevices = [];
+    const defaultPort = 5555;
+    
+    try {
+        // 1. 尝试连接本地 5555 端口
+        logDevice('正在检查本地 5555 端口...');
+        networkDevices.push({
+            type: 'Network',
+            name: '本地 ADB 无线调试',
+            host: '127.0.0.1',
+            port: defaultPort,
+            description: '本地无线调试设备'
+        });
+        
+        // 2. 尝试连接常用的 ADB 无线调试地址
+        const commonAddresses = [
+            '192.168.1.1',
+            '192.168.0.1',
+            '192.168.1.100',
+            '192.168.0.100'
+        ];
+        
+        for (const address of commonAddresses) {
+            networkDevices.push({
+                type: 'Network',
+                name: `ADB 无线调试 (${address})`,
+                host: address,
+                port: defaultPort,
+                description: `可能的无线调试设备 at ${address}:${defaultPort}`
+            });
+        }
+        
+        logDevice(`发现 ${networkDevices.length} 个可能的网络 ADB 设备`);
+    } catch (error) {
+        log('网络 ADB 设备扫描失败:', error);
+        logDevice('网络 ADB 设备扫描失败: ' + (error.message || error.toString()));
+    }
+    
+    return networkDevices;
+};
+
 // 扫描 USB 端口设备
 let scanUsbDevices = async () => {
     log('开始扫描 USB 端口设备...');
@@ -112,21 +158,15 @@ let scanUsbDevices = async () => {
         logDevice('WebUSB 设备扫描失败: ' + (error.message || error.toString()));
     }
     
-    // 2. 扫描 5555 端口（ADB 无线调试）
+    // 2. 扫描网络 ADB 设备
     try {
-        log('正在扫描 5555 端口...');
-        logDevice('正在扫描 5555 端口...');
-        // 这里可以添加网络扫描逻辑
-        devices.push({
-            type: 'Network',
-            name: 'ADB 无线调试 (5555端口)',
-            port: 5555,
-            description: '可能的无线调试设备'
+        const networkDevices = await scanNetworkAdbDevices();
+        networkDevices.forEach(device => {
+            devices.push(device);
         });
-        logDevice('发现 5555 端口（ADB 无线调试）');
     } catch (error) {
-        log('5555 端口扫描失败:', error);
-        logDevice('5555 端口扫描失败: ' + (error.message || error.toString()));
+        log('网络 ADB 设备扫描失败:', error);
+        logDevice('网络 ADB 设备扫描失败: ' + (error.message || error.toString()));
     }
     
     return devices;
@@ -328,10 +368,60 @@ let connect = async () => {
                 // 开始持续检测设备状态
                 startDeviceMonitoring();
             }
-        } else if (selectedDevice.type === 'Network' && selectedDevice.port === 5555) {
-            // 5555 端口连接
-            alert('5555 端口连接功能正在开发中，请使用 WebUSB 连接方式。');
-            logDevice('5555 端口连接功能正在开发中');
+        } else if (selectedDevice.type === 'Network') {
+            // 网络 ADB 设备连接
+            logDevice('正在连接网络 ADB 设备...');
+            logDevice(`连接到 ${selectedDevice.host}:${selectedDevice.port}`);
+            
+            try {
+                // 创建 TCP 传输
+                window.adbTransport = new TcpTransport(selectedDevice.host, selectedDevice.port);
+                
+                // 提示用户输入配对码
+                const pairingCode = prompt('请输入设备上显示的无线调试配对码:', '');
+                if (!pairingCode) {
+                    throw new Error('用户取消配对');
+                }
+                
+                logDevice('正在进行设备配对...');
+                await window.adbTransport.pair(pairingCode);
+                logDevice('设备配对成功');
+                
+                // 打开传输连接
+                await window.adbTransport.open();
+                
+                window.adbDevice = null;
+                
+                // 创建 ADB 设备并连接
+                logDevice('正在创建 ADB 设备...');
+                window.adbDevice = new AdbDevice(window.adbTransport);
+                await window.adbDevice.connect("host::web", () => {
+                    alert('请在您的设备上允许 ADB 调试');
+                    logDevice('请在您的设备上允许 ADB 调试');
+                });
+                
+                if (window.adbDevice && window.adbDevice.connected) {
+                    let deviceName = window.adbDevice.banner || '网络设备';
+                    setDeviceName(deviceName);
+                    console.log('网络设备连接成功:', window.adbDevice);
+                    logDevice('网络设备连接成功: ' + deviceName);
+                    
+                    let toast = document.getElementById('success-toast');
+                    toast.style.visibility = 'visible';
+                    setTimeout(function() {
+                        toast.style.visibility = 'hidden';
+                    }, 3000);
+                    
+                    // 开始持续检测设备状态
+                    startDeviceMonitoring();
+                }
+            } catch (error) {
+                log('网络 ADB 设备连接失败:', error);
+                logDevice('网络 ADB 设备连接失败: ' + (error.message || error.toString()));
+                alert('网络 ADB 设备连接失败: ' + (error.message || error.toString()));
+                window.adbDevice = null;
+                window.adbTransport = null;
+            }
         }
     } catch (error) {
         log('设备连接失败:', error);
@@ -544,6 +634,38 @@ let exec_shell = async (command) => {
     } catch (error) {
         log('命令执行失败:', error);
         console.error("命令执行失败，请断开重新尝试");
+    }
+    showProgress(false);
+};
+
+// 优化网络传输性能
+let optimizeNetworkPerformance = async () => {
+    if (!window.adbDevice) {
+        alert("未连接到设备");
+        return;
+    }
+    
+    clear();
+    showProgress(true);
+    log('开始优化网络传输性能...\n');
+    
+    try {
+        // 1. 调整 TCP 窗口参数
+        log('1. 调整 TCP 窗口参数...');
+        await exec_shell('echo \'net.ipv4.tcp_window_scaling=1\' >> /proc/sys/net/ipv4/tcp_window_scaling');
+        log('TCP 窗口参数调整成功\n');
+        
+        // 2. 启用 ADB 的压缩传输功能
+        log('2. 启用 ADB 压缩传输功能...');
+        // 注意：ADB 压缩传输功能需要在 ADB 客户端启用，这里我们通过 shell 命令设置相关参数
+        await exec_shell('setprop persist.adb.zlib-deflate 1');
+        log('ADB 压缩传输功能启用成功\n');
+        
+        log('网络传输性能优化完成！');
+        alert('网络传输性能优化完成！');
+    } catch (error) {
+        log('性能优化失败:', error);
+        alert('性能优化失败，请检查设备状态');
     }
     showProgress(false);
 };

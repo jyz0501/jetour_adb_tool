@@ -29,7 +29,7 @@ function clearDeviceLog() {
 }
 
 // 点击检测提示
-let initWebUSB = async () => {
+let initWebUSB = async (device) => {
     // 更详细的浏览器检测
     const isSupported = checkWebUSBSupport();
     if (!isSupported || !navigator.usb) {
@@ -45,8 +45,16 @@ let initWebUSB = async () => {
     clear();
     try {
         // 使用新的 WebUSB 传输
-        logDevice('正在请求 WebUSB 设备...');
-        window.adbTransport = await WebUsbTransport.requestDevice();
+        logDevice('正在初始化 WebUSB 设备...');
+        
+        if (device) {
+            // 使用用户已选择的设备
+            window.adbTransport = new WebUsbTransport(device);
+        } else {
+            // 请求新设备
+            window.adbTransport = await WebUsbTransport.requestDevice();
+        }
+        
         await window.adbTransport.open();
         log('WebUSB 传输初始化成功');
         logDevice('WebUSB 传输初始化成功');
@@ -143,34 +151,131 @@ let showDeviceSelection = (devices) => {
                 deviceInfo = `网络设备: ${device.name}`;
             }
             
-            content += `<div style="padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" onclick="selectDevice(${index})">`;
+            content += `<div style="padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" onclick="selectDevice(${index})" id="device-${index}">`;
             content += `<div style="font-weight: bold;">${deviceInfo}</div>`;
             content += '</div>';
         });
         content += '</div>';
         
         // 添加设备选择函数到全局
+        let selectedDeviceIndex = -1;
+        
         window.selectDevice = (index) => {
-            resolve(devices[index]);
-            closeModal();
-            delete window.selectDevice;
+            // 清除之前的选择
+            const deviceElements = document.querySelectorAll('[id^="device-"]');
+            deviceElements.forEach(element => {
+                element.style.border = '1px solid #ddd';
+                element.style.backgroundColor = '';
+            });
+            
+            // 选中当前设备
+            selectedDeviceIndex = index;
+            const selectedElement = document.getElementById(`device-${index}`);
+            if (selectedElement) {
+                selectedElement.style.border = '2px solid #007bff';
+                selectedElement.style.backgroundColor = '#e3f2fd';
+            }
         };
         
-        // 显示自定义弹窗
-        showModal('选择设备', content, {
-            showCancel: true,
-            cancelText: '取消',
-            confirmText: '刷新设备',
-            callback: function(confirmed) {
-                if (!confirmed) {
-                    reject(new Error('User canceled'));
-                } else {
-                    // 刷新设备列表
-                    reject(new Error('Refresh devices'));
+        // 添加刷新设备函数到全局
+        window.refreshDevices = async () => {
+            try {
+                // 显示加载状态
+                const modalBody = document.querySelector('.custom-modal-body');
+                if (modalBody) {
+                    modalBody.innerHTML = '<div style="text-align: center; padding: 20px;">正在刷新设备...</div>';
                 }
-                delete window.selectDevice;
+                
+                // 重新扫描设备
+                logDevice('开始刷新设备列表...');
+                const refreshedDevices = await scanUsbDevices();
+                
+                // 更新设备列表
+                let updatedContent = '<div style="max-height: 300px; overflow-y: auto;">';
+                refreshedDevices.forEach((device, index) => {
+                    let deviceInfo = '';
+                    if (device.type === 'WebUSB') {
+                        deviceInfo = `WebUSB 设备: ${device.name} (VID: ${device.vendorId}, PID: ${device.productId})`;
+                    } else if (device.type === 'Network') {
+                        deviceInfo = `网络设备: ${device.name}`;
+                    }
+                    
+                    updatedContent += `<div style="padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" onclick="selectDevice(${index})" id="device-${index}">`;
+                    updatedContent += `<div style="font-weight: bold;">${deviceInfo}</div>`;
+                    updatedContent += '</div>';
+                });
+                updatedContent += '</div>';
+                
+                // 更新弹窗内容
+                if (modalBody) {
+                    modalBody.innerHTML = updatedContent;
+                }
+                
+                // 更新设备列表引用
+                devices = refreshedDevices;
+                // 重置选中状态
+                selectedDeviceIndex = -1;
+                
+                logDevice('设备列表刷新完成');
+            } catch (error) {
+                logDevice('刷新设备列表失败: ' + (error.message || error.toString()));
+                alert('刷新设备列表失败，请重试');
             }
-        });
+        };
+        
+        // 创建自定义弹窗内容，包含所有按钮
+        const modalContent = `
+            <div class="custom-modal-content">
+                <div class="custom-modal-header">
+                    <h4 class="custom-modal-title">选择设备</h4>
+                </div>
+                <div class="custom-modal-body">
+                    ${content}
+                </div>
+                <div class="custom-modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                    <button class="custom-modal-btn custom-modal-btn-secondary" onclick="refreshDevices()">刷新设备</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="custom-modal-btn custom-modal-btn-secondary" onclick="closeModal()">取消</button>
+                        <button class="custom-modal-btn custom-modal-btn-primary" onclick="confirmDeviceSelection()">确定连接</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // 添加确认设备选择函数到全局
+        window.confirmDeviceSelection = () => {
+            if (selectedDeviceIndex === -1) {
+                // 没有选择设备，提示用户
+                alert('请先选择要连接的设备');
+            } else {
+                // 使用选中的设备
+                resolve(devices[selectedDeviceIndex]);
+                closeModal();
+                cleanup();
+            }
+        };
+        
+        // 清理函数
+        function cleanup() {
+            delete window.selectDevice;
+            delete window.refreshDevices;
+            delete window.confirmDeviceSelection;
+        }
+        
+        // 显示自定义弹窗
+        const modal = document.getElementById('customModal');
+        if (modal) {
+            modal.innerHTML = modalContent;
+            modal.style.display = 'block';
+        }
+        
+        // 确保弹窗关闭时清理全局函数
+        const originalCloseModal = window.closeModal;
+        window.closeModal = () => {
+            originalCloseModal();
+            reject(new Error('User canceled'));
+            cleanup();
+        };
     });
 };
 
@@ -192,7 +297,7 @@ let connect = async () => {
         if (selectedDevice.type === 'WebUSB') {
             // WebUSB 设备连接
             logDevice('正在连接 WebUSB 设备...');
-            const initialized = await initWebUSB();
+            const initialized = await initWebUSB(selectedDevice.device);
             if (!initialized || !window.adbTransport) {
                 logDevice('WebUSB 初始化失败');
                 return;

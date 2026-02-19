@@ -4,7 +4,7 @@
 function checkBrowserSupport() {
     const isSupported = checkWebUSBSupport();
     if (!isSupported || !navigator.usb) {
-        alert("检测到您的浏览器不支持，请根据顶部的 "警告提示" 更换指定浏览器使用。");
+        alert('检测到您的浏览器不支持，请根据顶部的 "警告提示" 更换指定浏览器使用。');
         return false;
     }
     return true;
@@ -15,7 +15,7 @@ let xnfhj = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
-    if (!adbDevice) {
+    if (!window.adbDevice) {
         alert("未连接到设备");
         return;
     }
@@ -59,7 +59,7 @@ let yjql = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
-    if (!adbDevice) {
+    if (!window.adbDevice) {
         alert("未连接到设备");
         return;
     }
@@ -131,7 +131,7 @@ let sfgj = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
-    if (!adbDevice) {
+    if (!window.adbDevice) {
         alert("未连接到设备");
         return;
     }
@@ -174,7 +174,7 @@ let yygj = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
-    if (!adbDevice) {
+    if (!window.adbDevice) {
         alert("未连接到设备");
         return;
     }
@@ -225,7 +225,7 @@ let qxg = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
-    if (!adbDevice) {
+    if (!window.adbDevice) {
         alert("未连接到设备");
         return;
     }
@@ -269,7 +269,7 @@ let wzagl = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
-    if (!adbDevice) {
+    if (!window.adbDevice) {
         alert("未连接到设备");
         return;
     }
@@ -313,7 +313,7 @@ let fhcdj = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
-    if (!adbDevice) {
+    if (!window.adbDevice) {
         alert("未连接到设备");
         return;
     }
@@ -357,7 +357,7 @@ let qzm = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
-    if (!adbDevice) {
+    if (!window.adbDevice) {
         alert("未连接到设备");
         return;
     }
@@ -399,7 +399,7 @@ let cdb = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
-    if (!adbDevice) {
+    if (!window.adbDevice) {
         alert("未连接到设备");
         return;
     }
@@ -438,7 +438,7 @@ let cdb = async () => {
 
 // 启动阿辉应用管家
 function startAhuiApp() {
-    if (!adbDevice) {
+    if (!window.adbDevice) {
         alert("未连接到设备");
         return;
     }
@@ -451,7 +451,7 @@ let loadPackageList = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
-    if (!adbDevice) {
+    if (!window.adbDevice) {
         alert("未连接到设备");
         return;
     }
@@ -464,7 +464,7 @@ let loadPackageList = async () => {
     showProgress(true);
     var packageContent = "";
     try {
-        let shell = await adbDevice.shell("pm list packages -3"); // 显示第三方应用
+        let shell = await window.adbDevice.shell("pm list packages -3"); // 显示第三方应用
         let r = await shell.receive();
         while (r.data != null) {
             let decoder = new TextDecoder('utf-8');
@@ -584,7 +584,7 @@ let installApkFile = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
-    if (!adbDevice) {
+    if (!window.adbDevice) {
         alert("未连接到设备");
         return;
     }
@@ -631,7 +631,7 @@ try {
             xnfhj,
             yjql,
             sfgj,
-            ahyygj,
+            yygj,
             qxg,
             wzagl,
             fhcdj,

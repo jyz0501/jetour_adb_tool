@@ -4,7 +4,7 @@
 function checkBrowserSupport() {
     const isSupported = checkWebUSBSupport();
     if (!isSupported || !navigator.usb) {
-        alert("检测到您的浏览器不支持，请根据顶部的 "警告提示" 更换指定浏览器使用。");
+        alert('检测到您的浏览器不支持，请根据顶部的 "警告提示" 更换指定浏览器使用。');
         return false;
     }
     return true;

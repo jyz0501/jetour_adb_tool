@@ -160,47 +160,17 @@ function checkWebUSBSupport() {
     return false;
 }
 
-// 显示浏览器下载弹窗
-function showEdgeDownloadPopup() {
-    const content = '您的浏览器不支持 WebUSB，请使用以下浏览器：<br><br>' +
-                    '<a href="https://www.microsoft.com/zh-cn/edge/download" target="_blank">1. Microsoft Edge 浏览器</a><br>' +
-                    '<a href="https://www.google.com/chrome/downloads/" target="_blank">2. Google Chrome 浏览器</a><br><br>' +
-                    '点击上方链接直接下载，或点击下方按钮选择浏览器下载。';
-    
-    showModal('浏览器支持提示', content, {
-        showCancel: true,
-        cancelText: '取消',
-        confirmText: '下载 Edge',
-        callback: function(confirmed) {
-            if (confirmed) {
-                window.open('https://www.microsoft.com/zh-cn/edge/download', '_blank');
-            }
-        }
-    });
-}
-
-// 导出函数
-try {
-    if (typeof module !== 'undefined' && module.exports) {
-        module.exports = {
-            log,
-            clear,
-            showProgress,
-            updateDownloadProgressText,
-            fetchWithProgress,
-            hardReload,
-            checkWebUSBSupport
-        };
-    }
-} catch (e) {
-    // 浏览器环境，不需要导出
-}
-
 // 自定义弹窗功能
 let modalCallback = null;
 
 // 显示自定义弹窗
 function showModal(title, content, options = {}) {
+    // 确保DOM元素已加载
+    if (typeof document === 'undefined') {
+        console.error('Document not available');
+        return;
+    }
+    
     const modal = document.getElementById('customModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
@@ -208,6 +178,8 @@ function showModal(title, content, options = {}) {
     
     if (!modal || !modalTitle || !modalBody || !modalFooter) {
         console.error('Modal elements not found');
+        // 回退到原生alert
+        alert(title + '\n\n' + content);
         return;
     }
     
@@ -279,4 +251,40 @@ function showConfirmWithLinks(title, content, callback) {
     showModal(title, content, {
         callback: callback
     });
+}
+
+// 显示浏览器下载弹窗
+function showEdgeDownloadPopup() {
+    const content = '您的浏览器不支持 WebUSB，请使用以下浏览器：<br><br>' +
+                    '<a href="https://www.microsoft.com/zh-cn/edge/download" target="_blank">1. Microsoft Edge 浏览器</a><br>' +
+                    '<a href="https://www.google.com/chrome/downloads/" target="_blank">2. Google Chrome 浏览器</a><br><br>' +
+                    '点击上方链接直接下载，或点击下方按钮选择浏览器下载。';
+    
+    showModal('浏览器支持提示', content, {
+        showCancel: true,
+        cancelText: '取消',
+        confirmText: '下载 Edge',
+        callback: function(confirmed) {
+            if (confirmed) {
+                window.open('https://www.microsoft.com/zh-cn/edge/download', '_blank');
+            }
+        }
+    });
+}
+
+// 导出函数
+try {
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = {
+            log,
+            clear,
+            showProgress,
+            updateDownloadProgressText,
+            fetchWithProgress,
+            hardReload,
+            checkWebUSBSupport
+        };
+    }
+} catch (e) {
+    // 浏览器环境，不需要导出
 }

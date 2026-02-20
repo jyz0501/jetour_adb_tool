@@ -117,7 +117,8 @@
             
             <div style="margin: 15px 0;">
                 <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
-                        <button class="btn btn-connect" id="connect-btn" onclick="showEdgeDownloadPopup(); connect()" style="background-color: #28a745; color: white;">连接设备</button>
+                        <button class="btn btn-connect" id="connect-btn" onclick="showEdgeDownloadPopup(); connect()" style="background-color: #28a745; color: white;">有线连接</button>
+                        <button class="btn btn-connect" id="wireless-connect-btn" onclick="showEdgeDownloadPopup(); wirelessConnect()" style="background-color: #17a2b8; color: white;">无线连接</button>
                         <button class="btn btn-disconnect" id="disconnect-btn" onclick="disconnect()" style="background-color: #dc3545; color: white;">断开连接</button>
                         <div style="flex: 1; text-align: right;">
                             <span style="margin-right: 8px;">🚗 </span>
@@ -180,7 +181,6 @@
                         <button class="btn btn-connect" onclick="exec_shell('monkey -p com.oversea.aslauncher -c android.intent.category.LAUNCHER 1')" style="flex-shrink: 0;">启动桌面</button>
                         <button class="btn btn-connect" onclick="exec_shell('monkey -p com.android.settings -c android.intent.category.LAUNCHER 1')" style="flex-shrink: 0;">启动设置</button>
                         <button class="btn btn-connect" onclick="exec_shell('am start -W -n com.hzsoft.sidebar/.MainActivity')" style="flex-shrink: 0;">启动侧边栏</button>
-                        <button class="btn btn-connect" onclick="optimizeNetworkPerformance()" style="flex-shrink: 0; background-color: #ff9800;">优化网络性能</button>
                     </div>
                     
                     <!-- 刷新应用列表 -->

@@ -128,13 +128,13 @@ let scanNetworkAdbDevices = async () => {
 
 // 扫描 USB 端口设备
 let scanUsbDevices = async () => {
-    log('开始扫描 USB 端口设备...');
-    logDevice('开始扫描 USB 端口设备...');
+    log('开始扫描有线 USB 设备...');
+    logDevice('开始扫描有线 USB 设备...');
     
     // 扫描逻辑
     const devices = [];
     
-    // 1. 扫描 WebUSB 设备
+    // 只扫描 WebUSB 设备（有线设备）
     try {
         const webusbDevices = await navigator.usb.getDevices();
         webusbDevices.forEach(device => {
@@ -158,17 +158,6 @@ let scanUsbDevices = async () => {
         logDevice('WebUSB 设备扫描失败: ' + (error.message || error.toString()));
     }
     
-    // 2. 扫描网络 ADB 设备
-    try {
-        const networkDevices = await scanNetworkAdbDevices();
-        networkDevices.forEach(device => {
-            devices.push(device);
-        });
-    } catch (error) {
-        log('网络 ADB 设备扫描失败:', error);
-        logDevice('网络 ADB 设备扫描失败: ' + (error.message || error.toString()));
-    }
-    
     return devices;
 };
 
@@ -186,14 +175,14 @@ let showDeviceSelection = (devices) => {
         devices.forEach((device, index) => {
             let deviceInfo = '';
             if (device.type === 'WebUSB') {
-                deviceInfo = `WebUSB 设备: ${device.name} (VID: ${device.vendorId}, PID: ${device.productId})`;
-            } else if (device.type === 'Network') {
-                deviceInfo = `网络设备: ${device.name}`;
+                deviceInfo = `USB 设备: ${device.name} (VID: ${device.vendorId}, PID: ${device.productId})`;
             }
             
-            content += `<div style="padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" onclick="selectDevice(${index})" id="device-${index}">`;
-            content += `<div style="font-weight: bold;">${deviceInfo}</div>`;
-            content += '</div>';
+            if (deviceInfo) {
+                content += `<div style="padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" onclick="selectDevice(${index})" id="device-${index}">`;
+                content += `<div style="font-weight: bold;">${deviceInfo}</div>`;
+                content += '</div>';
+            }
         });
         content += '</div>';
         
@@ -235,14 +224,14 @@ let showDeviceSelection = (devices) => {
                 refreshedDevices.forEach((device, index) => {
                     let deviceInfo = '';
                     if (device.type === 'WebUSB') {
-                        deviceInfo = `WebUSB 设备: ${device.name} (VID: ${device.vendorId}, PID: ${device.productId})`;
-                    } else if (device.type === 'Network') {
-                        deviceInfo = `网络设备: ${device.name}`;
+                        deviceInfo = `USB 设备: ${device.name} (VID: ${device.vendorId}, PID: ${device.productId})`;
                     }
                     
-                    updatedContent += `<div style="padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" onclick="selectDevice(${index})" id="device-${index}">`;
-                    updatedContent += `<div style="font-weight: bold;">${deviceInfo}</div>`;
-                    updatedContent += '</div>';
+                    if (deviceInfo) {
+                        updatedContent += `<div style="padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" onclick="selectDevice(${index})" id="device-${index}">`;
+                        updatedContent += `<div style="font-weight: bold;">${deviceInfo}</div>`;
+                        updatedContent += '</div>';
+                    }
                 });
                 updatedContent += '</div>';
                 
@@ -262,25 +251,6 @@ let showDeviceSelection = (devices) => {
                 alert('刷新设备列表失败，请重试');
             }
         };
-        
-        // 创建自定义弹窗内容，包含所有按钮
-        const modalContent = `
-            <div class="custom-modal-content">
-                <div class="custom-modal-header">
-                    <h4 class="custom-modal-title">选择设备</h4>
-                </div>
-                <div class="custom-modal-body">
-                    ${content}
-                </div>
-                <div class="custom-modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
-                    <button class="custom-modal-btn custom-modal-btn-secondary" onclick="refreshDevices()">刷新设备</button>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="custom-modal-btn custom-modal-btn-secondary" onclick="closeModal()">取消</button>
-                        <button class="custom-modal-btn custom-modal-btn-primary" onclick="confirmDeviceSelection()">确定连接</button>
-                    </div>
-                </div>
-            </div>
-        `;
         
         // 添加确认设备选择函数到全局
         window.confirmDeviceSelection = () => {
@@ -302,20 +272,40 @@ let showDeviceSelection = (devices) => {
             delete window.confirmDeviceSelection;
         }
         
-        // 显示自定义弹窗
-        const modal = document.getElementById('customModal');
-        if (modal) {
-            modal.innerHTML = modalContent;
-            modal.style.display = 'block';
-        }
+        // 使用原始的 showModal 函数显示设备选择弹窗
+        showModal('选择设备', content, {
+            showCancel: true,
+            cancelText: '取消',
+            confirmText: '确定连接',
+            callback: function(confirmed) {
+                if (confirmed) {
+                    if (selectedDeviceIndex === -1) {
+                        // 没有选择设备，提示用户
+                        alert('请先选择要连接的设备');
+                        // 重新显示弹窗
+                        showDeviceSelection(devices).then(resolve).catch(reject);
+                    } else {
+                        // 使用选中的设备
+                        resolve(devices[selectedDeviceIndex]);
+                        cleanup();
+                    }
+                } else {
+                    reject(new Error('User canceled'));
+                    cleanup();
+                }
+            }
+        });
         
-        // 确保弹窗关闭时清理全局函数
-        const originalCloseModal = window.closeModal;
-        window.closeModal = () => {
-            originalCloseModal();
-            reject(new Error('User canceled'));
-            cleanup();
-        };
+        // 添加刷新按钮到弹窗底部
+        const modalFooter = document.getElementById('modalFooter');
+        if (modalFooter) {
+            // 在取消按钮前添加刷新按钮
+            const refreshBtn = document.createElement('button');
+            refreshBtn.className = 'custom-modal-btn custom-modal-btn-secondary';
+            refreshBtn.textContent = '刷新设备';
+            refreshBtn.onclick = refreshDevices;
+            modalFooter.insertBefore(refreshBtn, modalFooter.firstChild);
+        }
     });
 };
 
@@ -333,10 +323,10 @@ let connect = async () => {
         const selectedDevice = await showDeviceSelection(devices);
         logDevice('已选择设备: ' + selectedDevice.name);
         
-        // 3. 根据设备类型连接
+        // 3. 连接 WebUSB 设备（有线连接）
         if (selectedDevice.type === 'WebUSB') {
             // WebUSB 设备连接
-            logDevice('正在连接 WebUSB 设备...');
+            logDevice('正在连接有线 USB 设备...');
             const initialized = await initWebUSB(selectedDevice.device);
             if (!initialized || !window.adbTransport) {
                 logDevice('WebUSB 初始化失败');
@@ -367,60 +357,6 @@ let connect = async () => {
                 
                 // 开始持续检测设备状态
                 startDeviceMonitoring();
-            }
-        } else if (selectedDevice.type === 'Network') {
-            // 网络 ADB 设备连接
-            logDevice('正在连接网络 ADB 设备...');
-            logDevice(`连接到 ${selectedDevice.host}:${selectedDevice.port}`);
-            
-            try {
-                // 创建 TCP 传输
-                window.adbTransport = new TcpTransport(selectedDevice.host, selectedDevice.port);
-                
-                // 提示用户输入配对码
-                const pairingCode = prompt('请输入设备上显示的无线调试配对码:', '');
-                if (!pairingCode) {
-                    throw new Error('用户取消配对');
-                }
-                
-                logDevice('正在进行设备配对...');
-                await window.adbTransport.pair(pairingCode);
-                logDevice('设备配对成功');
-                
-                // 打开传输连接
-                await window.adbTransport.open();
-                
-                window.adbDevice = null;
-                
-                // 创建 ADB 设备并连接
-                logDevice('正在创建 ADB 设备...');
-                window.adbDevice = new AdbDevice(window.adbTransport);
-                await window.adbDevice.connect("host::web", () => {
-                    alert('请在您的设备上允许 ADB 调试');
-                    logDevice('请在您的设备上允许 ADB 调试');
-                });
-                
-                if (window.adbDevice && window.adbDevice.connected) {
-                    let deviceName = window.adbDevice.banner || '网络设备';
-                    setDeviceName(deviceName);
-                    console.log('网络设备连接成功:', window.adbDevice);
-                    logDevice('网络设备连接成功: ' + deviceName);
-                    
-                    let toast = document.getElementById('success-toast');
-                    toast.style.visibility = 'visible';
-                    setTimeout(function() {
-                        toast.style.visibility = 'hidden';
-                    }, 3000);
-                    
-                    // 开始持续检测设备状态
-                    startDeviceMonitoring();
-                }
-            } catch (error) {
-                log('网络 ADB 设备连接失败:', error);
-                logDevice('网络 ADB 设备连接失败: ' + (error.message || error.toString()));
-                alert('网络 ADB 设备连接失败: ' + (error.message || error.toString()));
-                window.adbDevice = null;
-                window.adbTransport = null;
             }
         }
     } catch (error) {
@@ -475,6 +411,224 @@ let disconnect = async () => {
     } catch (error) {
         log('断开连接失败:', error);
         logDevice('断开连接失败: ' + (error.message || error.toString()));
+    }
+};
+
+// 显示无线设备选择弹窗
+let showWirelessDeviceSelection = (devices) => {
+    return new Promise((resolve, reject) => {
+        // 创建设备选择内容
+        let content = `
+            <div style="max-height: 300px; overflow-y: auto; margin-bottom: 15px;">
+                <h5 style="margin-top: 0; margin-bottom: 10px;">发现的无线设备：</h5>
+        `;
+        
+        if (devices.length === 0) {
+            content += '<div style="padding: 20px; text-align: center; color: #666;">未发现无线设备，请点击"扫描网络"按钮</div>';
+        } else {
+            devices.forEach((device, index) => {
+                content += `
+                    <div style="padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" onclick="selectWirelessDevice(${index})" id="wireless-device-${index}">
+                        <div style="font-weight: bold;">${device.name}</div>
+                        <div style="font-size: 12px; color: #666;">${device.host}:${device.port}</div>
+                        <div style="font-size: 12px; color: #999;">${device.description}</div>
+                    </div>
+                `;
+            });
+        }
+        
+        content += `
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <h5 style="margin-top: 0; margin-bottom: 10px;">自定义 IP 和端口：</h5>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="customIp" placeholder="IP 地址" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" value="192.168.1.100">
+                    <input type="number" id="customPort" placeholder="端口" style="width: 100px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" value="5555" min="1" max="65535">
+                </div>
+            </div>
+        `;
+        
+        // 添加设备选择函数到全局
+        let selectedDeviceIndex = -1;
+        
+        window.selectWirelessDevice = (index) => {
+            // 清除之前的选择
+            const deviceElements = document.querySelectorAll('[id^="wireless-device-"]');
+            deviceElements.forEach(element => {
+                element.style.border = '1px solid #ddd';
+                element.style.backgroundColor = '';
+            });
+            
+            // 选中当前设备
+            selectedDeviceIndex = index;
+            const selectedElement = document.getElementById(`wireless-device-${index}`);
+            if (selectedElement) {
+                selectedElement.style.border = '2px solid #007bff';
+                selectedElement.style.backgroundColor = '#e3f2fd';
+            }
+        };
+        
+        // 添加刷新设备函数到全局
+        window.refreshWirelessDevices = async () => {
+            try {
+                // 显示加载状态
+                const modalBody = document.querySelector('.custom-modal-body');
+                if (modalBody) {
+                    modalBody.innerHTML = '<div style="text-align: center; padding: 20px;">正在扫描网络设备...</div>';
+                }
+                
+                // 重新扫描设备
+                logDevice('开始扫描网络设备...');
+                const refreshedDevices = await scanNetworkAdbDevices();
+                
+                // 重新显示弹窗
+                showWirelessDeviceSelection(refreshedDevices).then(resolve).catch(reject);
+            } catch (error) {
+                logDevice('扫描网络设备失败: ' + (error.message || error.toString()));
+                alert('扫描网络设备失败，请重试');
+            }
+        };
+        
+        // 清理函数
+        function cleanup() {
+            delete window.selectWirelessDevice;
+            delete window.refreshWirelessDevices;
+        }
+        
+        // 使用 showModal 函数显示弹窗
+        showModal('无线设备连接', content, {
+            showCancel: true,
+            cancelText: '取消',
+            confirmText: '连接',
+            callback: function(confirmed) {
+                if (confirmed) {
+                    if (selectedDeviceIndex !== -1) {
+                        // 使用选中的设备
+                        resolve(devices[selectedDeviceIndex]);
+                        cleanup();
+                    } else {
+                        // 使用自定义 IP 和端口
+                        const customIp = document.getElementById('customIp').value;
+                        const customPort = parseInt(document.getElementById('customPort').value);
+                        
+                        if (!customIp || isNaN(customPort)) {
+                            alert('请输入有效的 IP 地址和端口');
+                            // 重新显示弹窗
+                            showWirelessDeviceSelection(devices).then(resolve).catch(reject);
+                        } else {
+                            resolve({
+                                type: 'Network',
+                                name: '自定义 IP 连接',
+                                host: customIp,
+                                port: customPort,
+                                description: '自定义 IP 和端口连接'
+                            });
+                            cleanup();
+                        }
+                    }
+                } else {
+                    reject(new Error('User canceled'));
+                    cleanup();
+                }
+            }
+        });
+        
+        // 添加扫描网络按钮到弹窗底部
+        const modalFooter = document.getElementById('modalFooter');
+        if (modalFooter) {
+            // 在取消按钮前添加扫描网络按钮
+            const scanBtn = document.createElement('button');
+            scanBtn.className = 'custom-modal-btn custom-modal-btn-secondary';
+            scanBtn.textContent = '扫描网络';
+            scanBtn.onclick = refreshWirelessDevices;
+            modalFooter.insertBefore(scanBtn, modalFooter.firstChild);
+        }
+    });
+};
+
+// 无线连接
+let wirelessConnect = async () => {
+    try {
+        clearDeviceLog();
+        logDevice('开始无线 ADB 连接...');
+        
+        // 1. 扫描网络设备
+        logDevice('正在扫描网络 ADB 设备...');
+        const networkDevices = await scanNetworkAdbDevices();
+        
+        // 2. 显示无线设备选择弹窗
+        logDevice('显示无线设备选择弹窗...');
+        const selectedDevice = await showWirelessDeviceSelection(networkDevices);
+        logDevice(`已选择设备: ${selectedDevice.name} (${selectedDevice.host}:${selectedDevice.port})`);
+        
+        // 3. 连接到选中的设备
+        const host = selectedDevice.host;
+        const port = selectedDevice.port;
+        
+        logDevice(`正在连接到 ${host}:${port}...`);
+        
+        try {
+            // 创建 TCP 传输
+            window.adbTransport = new TcpTransport(host, port);
+            
+            // 提示用户输入配对码
+            const pairingCode = prompt('请输入设备上显示的无线调试配对码:', '');
+            if (!pairingCode) {
+                throw new Error('用户取消配对');
+            }
+            
+            logDevice('正在进行设备配对...');
+            await window.adbTransport.pair(pairingCode);
+            logDevice('设备配对成功');
+            
+            // 打开传输连接
+            await window.adbTransport.open();
+            
+            window.adbDevice = null;
+            
+            // 创建 ADB 设备并连接
+            logDevice('正在创建 ADB 设备...');
+            window.adbDevice = new AdbDevice(window.adbTransport);
+            await window.adbDevice.connect("host::web", () => {
+                alert('请在您的设备上允许 ADB 调试');
+                logDevice('请在您的设备上允许 ADB 调试');
+            });
+            
+            if (window.adbDevice && window.adbDevice.connected) {
+                let deviceName = window.adbDevice.banner || '网络设备';
+                setDeviceName(deviceName);
+                console.log('网络设备连接成功:', window.adbDevice);
+                logDevice('网络设备连接成功: ' + deviceName);
+                
+                let toast = document.getElementById('success-toast');
+                toast.style.visibility = 'visible';
+                setTimeout(function() {
+                    toast.style.visibility = 'hidden';
+                }, 3000);
+                
+                // 开始持续检测设备状态
+                startDeviceMonitoring();
+            }
+        } catch (error) {
+            log('网络 ADB 设备连接失败:', error);
+            logDevice('网络 ADB 设备连接失败: ' + (error.message || error.toString()));
+            alert('网络 ADB 设备连接失败: ' + (error.message || error.toString()));
+            window.adbDevice = null;
+            window.adbTransport = null;
+        }
+    } catch (error) {
+        log('无线连接失败:', error);
+        logDevice('无线连接失败: ' + (error.message || error.toString()));
+        window.adbDevice = null;
+        window.adbTransport = null;
+        
+        if (error.message && error.message.indexOf('User canceled') != -1) {
+            // 用户取消连接，不显示错误
+            logDevice('用户取消连接');
+        } else {
+            alert('无线连接失败，请检查设备状态和网络连接。');
+        }
     }
 };
 

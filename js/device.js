@@ -711,20 +711,18 @@ let checkBrowserSupportAndConnect = async () => {
             console.log('检查已授权设备失败:', e);
         }
         
+        // 如果没有已授权设备，提示用户先连接设备
+        if (existingDevices.length === 0) {
+            logDevice('请先连接 USB 设备，然后刷新页面');
+            logDevice('或者确保设备已经通过浏览器授权');
+            alert('请先确保：\n1. USB 设备已连接电脑\n2. 已点击"允许"授权\n3. 刷新页面后再试');
+            return;
+        }
+        
         // 使用 webadb.js 连接设备
         try {
-            let webusb;
-            
-            if (existingDevices.length > 0) {
-                // 使用已授权的设备
-                logDevice('使用已授权设备连接...');
-                webusb = await Adb.open("WebUSB");
-            } else {
-                // 请求新设备（需要用户点击）
-                logDevice('请求用户选择设备...');
-                webusb = await Adb.open("WebUSB");
-            }
-            
+            logDevice('使用已授权设备连接...');
+            const webusb = await Adb.open("WebUSB");
             logDevice('WebUSB 已打开');
             
             // 连接到 ADB
@@ -750,12 +748,6 @@ let checkBrowserSupportAndConnect = async () => {
             
         } catch (e) {
             logDevice('连接失败: ' + e.message);
-            
-            // 如果是需要用户手势的错误，提示用户重新点击
-            if (e.message.includes('user gesture') || e.message.includes('permission')) {
-                logDevice('请重新点击"有线连接"按钮');
-            }
-            
             console.error('ADB connection error:', e);
         }
     } catch (error) {

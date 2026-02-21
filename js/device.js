@@ -775,6 +775,16 @@ let checkBrowserSupportAndConnect = async () => {
         } catch (e) {
             logDevice('连接失败: ' + e.message);
             console.error('ADB connection error:', e);
+            
+            // 针对常见错误提供解决方案
+            if (e.message && e.message.includes('Unable to claim interface')) {
+                alert('设备接口被占用！\n\n请在终端运行以下命令：\nadb kill-server\n\n然后重新点击"有线连接"按钮。');
+                logDevice('错误原因：USB 接口被其他程序占用');
+                logDevice('解决方案：请运行 adb kill-server');
+            } else if (e.message && e.message.includes('transferOut')) {
+                logDevice('错误原因：USB 传输错误，可能是连接不稳定');
+                logDevice('建议：检查 USB 线是否牢固，尝试更换 USB 端口');
+            }
         }
     } catch (error) {
         log('检查浏览器支持失败:', error);

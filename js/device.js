@@ -713,9 +713,13 @@ let checkBrowserSupportAndConnect = async () => {
                     // 方法1: 检查 window.TangoADB
                     if (typeof window.TangoADB !== 'undefined' && window.TangoADB && window.TangoADB.Adb) {
                         logDevice('从 window.TangoADB 获取成功');
+                        
+                        const DeviceManagerClass = window.TangoADB.AdbDaemonWebUsb?.AdbDaemonWebUsbDeviceManager;
+                        const manager = DeviceManagerClass?.BROWSER;
+                        
                         resolve({
                             Adb: window.TangoADB.Adb,
-                            AdbDaemonWebUsbDeviceManager: window.TangoADB.AdbDaemonWebUsb?.AdbDaemonWebUsbDeviceManager,
+                            AdbDaemonWebUsbDeviceManager: manager,
                             AdbCredentialWeb: window.TangoADB.AdbCredentialWeb
                         });
                         return;
@@ -724,9 +728,12 @@ let checkBrowserSupportAndConnect = async () => {
                     // 方法2: 检查独立全局变量
                     if (typeof window.Adb !== 'undefined' && typeof window.AdbDaemonWebUsb !== 'undefined') {
                         logDevice('从独立全局变量获取');
+                        const DeviceManagerClass = window.AdbDaemonWebUsb.AdbDaemonWebUsbDeviceManager;
+                        const manager = DeviceManagerClass?.BROWSER;
+                        
                         resolve({
                             Adb: window.Adb,
-                            AdbDaemonWebUsbDeviceManager: window.AdbDaemonWebUsb.AdbDaemonWebUsbDeviceManager,
+                            AdbDaemonWebUsbDeviceManager: manager,
                             AdbCredentialWeb: window.AdbCredentialWeb
                         });
                         return;
@@ -746,7 +753,7 @@ let checkBrowserSupportAndConnect = async () => {
         
         const tango = await waitForTango();
         
-        if (!tango) {
+        if (!tango || !tango.AdbDaemonWebUsbDeviceManager) {
             logDevice('错误: Tango ADB 库未加载');
             alert('Tango ADB 库未加载，请刷新页面重试');
             return;

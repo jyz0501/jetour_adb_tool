@@ -248,14 +248,14 @@
     </div>
     
     <!-- ADB 核心模块 -->
-    <!-- 选项1: 使用自研的 ADB 实现（当前） -->
-    <script src="js/adb/transport.js"></script>
-    <script src="js/adb/message.js"></script>
-    <script src="js/adb/device.js"></script>
-    <script src="js/adb/index.js"></script>
-
-    <!-- 选项2: 使用 @yume-chan/adb 库（需要先运行 npm run build） -->
-    <!-- <script src="dist/adb-bundle.js"></script> -->
+    <!-- 使用 webadb.js 库 -->
+    <script src="https://cdn.jsdelivr.net/gh/webadb/webadb.js@master/webadb.js"></script>
+    
+    <!-- 自研 ADB 模块（备用） -->
+    <!-- <script src="js/adb/transport.js"></script> -->
+    <!-- <script src="js/adb/message.js"></script> -->
+    <!-- <script src="js/adb/device.js"></script> -->
+    <!-- <script src="js/adb/index.js"></script> -->
 
     <!-- Custom JavaScript -->
     <script src="js/utils.js"></script>

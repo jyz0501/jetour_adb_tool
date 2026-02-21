@@ -461,9 +461,9 @@ let connect = async () => {
 
 // 断开连接
 let disconnect = async () => {
-    console.log('disconnect called, adbDevice:', window.adbDevice, 'adbTransport:', window.adbTransport);
+    console.log('disconnect called, adbClient:', window.adbClient);
     
-    if (!window.adbDevice && !window.adbTransport) {
+    if (!window.adbClient) {
         console.log('No device to disconnect');
         logDevice('没有设备需要断开');
         return;
@@ -471,33 +471,19 @@ let disconnect = async () => {
     
     const confirmed = confirm("是否断开连接？");
     if (!confirmed) {
-        return; // 用户点击了取消，则不执行操作
+        return;
     }
     
     try {
         logDevice('正在断开连接...');
-        console.log('Starting disconnect process...');
         
-        if (window.adbDevice) {
-            console.log('Disconnecting adbDevice...');
-            await window.adbDevice.disconnect();
-            window.adbDevice = null;
-            console.log('adbDevice disconnected');
-        } else if (window.adbTransport) {
-            console.log('Closing adbTransport...');
-            await window.adbTransport.close();
-            window.adbTransport = null;
-            console.log('adbTransport closed');
+        if (window.adbClient) {
+            await window.adbClient.close();
+            window.adbClient = null;
         }
         
-        console.log('Calling setDeviceName(null)...');
         setDeviceName(null);
-        console.log('setDeviceName completed');
-        
-        log('设备已断开连接');
         logDevice('===== 设备已断开连接 =====');
-        
-        // 停止设备监控
         stopDeviceMonitoring();
     } catch (error) {
         console.error('Disconnect error:', error);
@@ -709,77 +695,41 @@ let checkBrowserSupportAndConnect = async () => {
         if (!isSupported || !navigator.usb) {
             // 不支持，显示 Edge 下载弹窗
             showEdgeDownloadPopup();
-            // 直接返回，不继续执行后续连接逻辑
             return;
         }
         
-        // 先检查是否有已授权的设备
-        const devices = await navigator.usb.getDevices();
-        let device = null;
+        logDevice('使用 webadb.js 库连接设备...');
         
-        if (devices.length > 0) {
-            // 使用已连接的设备
-            device = devices[0];
-            logDevice('使用已授权的设备: ' + device.productName + ' VID:' + device.vendorId + ' PID:' + device.productId);
-        } else {
-            // 没有已授权设备，弹出浏览器原生选择对话框
-            logDevice('使用浏览器原生 WebUSB 连接...');
-            const filters = [
-                { classCode: 255, subclassCode: 66, protocolCode: 1 }, // ADB
-                { classCode: 255, subclassCode: 66, protocolCode: 3 }  // Fastboot
-            ];
+        // 使用 webadb.js 连接设备
+        try {
+            // 打开 WebUSB 设备
+            const webusb = await Adb.open("WebUSB");
+            logDevice('WebUSB 已打开');
             
-            try {
-                device = await navigator.usb.requestDevice({ filters });
-                logDevice('设备已选择: ' + device.productName + ' VID:' + device.vendorId + ' PID:' + device.productId);
-            } catch (e) {
-                if (e.name === 'NotFoundError') {
-                    logDevice('用户取消选择设备');
-                    return;
-                }
-                throw e;
-            }
-        }
-        
-        // 创建设备并初始化传输
-        window.adbTransport = new WebUsbTransport(device);
-        await window.adbTransport.open();
-        logDevice('WebUSB 传输已打开');
-        
-        // 等待设备准备好
-        logDevice('等待设备准备...');
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        window.adbDevice = new AdbDevice(window.adbTransport);
-        logDevice('发送 ADB 连接请求...');
-        
-        // 添加重试逻辑
-        let connected = false;
-        for (let attempt = 1; attempt <= 3; attempt++) {
-            try {
-                logDevice(`连接尝试 ${attempt}/3...`);
-                await window.adbDevice.connect("host::web", () => {
-                    logDevice('请在设备上允许 ADB 调试');
-                });
-                connected = window.adbDevice.connected;
-                if (connected) break;
-            } catch (e) {
-                logDevice(`尝试 ${attempt} 失败: ` + e.message);
-                if (attempt < 3) {
-                    logDevice('等待后重试...');
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                }
-            }
-        }
-        
-        if (window.adbDevice && window.adbDevice.connected) {
-            let deviceName = window.adbDevice.banner || '设备';
-            setDeviceName(deviceName);
+            // 连接到 ADB
+            logDevice('正在连接 ADB...');
+            const adb = await webusb.connectAdb("host::");
+            logDevice('ADB 已连接');
+            
+            // 保存连接对象到全局变量
+            window.adbClient = adb;
+            
+            // 获取设备信息
+            logDevice('获取设备信息...');
+            const shell = await adb.shell("getprop ro.product.model");
+            const model = await shell.receive();
+            const modelName = new TextDecoder().decode(model.data);
+            
+            setDeviceName(modelName.trim());
             logDevice('===== ADB 连接成功 =====');
-            logDevice('设备名称: ' + deviceName);
+            logDevice('设备型号: ' + modelName.trim());
+            
+            // 开始监控
             startDeviceMonitoring();
-        } else {
-            logDevice('连接失败，已尝试 3 次');
+            
+        } catch (e) {
+            logDevice('连接失败: ' + e.message);
+            console.error('ADB connection error:', e);
         }
     } catch (error) {
         log('检查浏览器支持失败:', error);

@@ -711,11 +711,37 @@ let checkBrowserSupportAndConnect = async () => {
             console.log('检查已授权设备失败:', e);
         }
         
-        // 如果没有已授权设备，提示用户先连接设备
+        // 如果没有已授权设备，尝试请求用户选择
         if (existingDevices.length === 0) {
-            logDevice('请先连接 USB 设备，然后刷新页面');
-            logDevice('或者确保设备已经通过浏览器授权');
-            alert('请先确保：\n1. USB 设备已连接电脑\n2. 已点击"允许"授权\n3. 刷新页面后再试');
+            logDevice('没有发现已授权设备，尝试请求设备选择...');
+            
+            // 使用 webadb.js 的 requestDevice 来让用户选择设备
+            // 这会触发浏览器原生设备选择弹窗
+            try {
+                const filters = [
+                    { classCode: 255, subclassCode: 66, protocolCode: 1 }, // ADB
+                ];
+                
+                logDevice('请在浏览器弹窗中选择您的设备...');
+                
+                // 尝试请求设备
+                const device = await navigator.usb.requestDevice({ filters: filters });
+                
+                if (device) {
+                    logDevice('用户已选择设备: ' + device.productName + ' (VID: ' + device.vendorId + ', PID: ' + device.productId + ')');
+                    logDevice('请在设备上点击"允许"授权');
+                    logDevice('授权成功后，请刷新页面或重新点击"有线连接"');
+                    return;
+                }
+            } catch (e) {
+                if (e.name === 'NotFoundError') {
+                    logDevice('用户取消了设备选择');
+                    return;
+                }
+                logDevice('请求设备失败: ' + e.message);
+            }
+            
+            logDevice('请先连接 USB 设备并授权后再试');
             return;
         }
         

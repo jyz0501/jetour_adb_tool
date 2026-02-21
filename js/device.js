@@ -944,6 +944,20 @@ let initDeviceDetection = async () => {
             } else {
                 logDevice('未发现已连接的 WebUSB 设备');
             }
+            
+            // 监听设备连接事件
+            navigator.usb.addEventListener('connect', (event) => {
+                logDevice('===== USB 设备已连接 =====');
+                logDevice(`设备: ${event.device.productName || 'USB设备'} (VID: ${event.device.vendorId}, PID: ${event.device.productId})`);
+                logDevice('请刷新页面或点击"有线连接"按钮');
+            });
+            
+            // 监听设备断开事件
+            navigator.usb.addEventListener('disconnect', (event) => {
+                logDevice('===== USB 设备已断开 =====');
+                logDevice(`设备: ${event.device.productName || 'USB设备'} (VID: ${event.device.vendorId}, PID: ${event.device.productId})`);
+            });
+            
         } else {
             logDevice('浏览器不支持 WebUSB');
         }

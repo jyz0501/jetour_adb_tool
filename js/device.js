@@ -698,12 +698,29 @@ let checkBrowserSupportAndConnect = async () => {
             return;
         }
         
-        logDevice('使用 webadb.js 库连接设备...');
+        logDevice('使用 Tango ADB (ya-webadb) 库连接设备...');
+        
+        // 检查 Tango ADB 是否加载成功
+        if (!window.TangoADB) {
+            logDevice('错误: Tango ADB 库未加载');
+            alert('Tango ADB 库未加载，请刷新页面重试');
+            return;
+        }
+        
+        const { AdbDaemonWebUsbDeviceManager, Adb, AdbCredentialWeb } = window.TangoADB;
+        
+        // 获取设备管理器
+        const manager = AdbDaemonWebUsbDeviceManager.BROWSER;
+        if (!manager) {
+            logDevice('错误: 浏览器不支持 WebUSB');
+            alert('您的浏览器不支持 WebUSB，请使用 Chrome 或 Edge 浏览器');
+            return;
+        }
         
         // 先检查是否有已授权的设备
         let existingDevices = [];
         try {
-            existingDevices = await navigator.usb.getDevices();
+            existingDevices = await manager.getDevices();
             if (existingDevices.length > 0) {
                 logDevice('发现 ' + existingDevices.length + ' 个已授权设备');
             }
@@ -715,22 +732,19 @@ let checkBrowserSupportAndConnect = async () => {
         if (existingDevices.length === 0) {
             logDevice('没有发现已授权设备，尝试请求设备选择...');
             
-            // 使用 webadb.js 的 requestDevice 来让用户选择设备
-            // 这会触发浏览器原生设备选择弹窗
             try {
-                const filters = [
-                    { classCode: 255, subclassCode: 66, protocolCode: 1 }, // ADB
-                ];
-                
                 logDevice('请在浏览器弹窗中选择您的设备...');
                 
-                // 尝试请求设备
-                const device = await navigator.usb.requestDevice({ filters: filters });
+                // 使用 Tango ADB 请求设备
+                const device = await manager.requestDevice();
                 
                 if (device) {
-                    logDevice('用户已选择设备: ' + device.productName + ' (VID: ' + device.vendorId + ', PID: ' + device.productId + ')');
+                    logDevice('用户已选择设备: ' + device.name);
                     logDevice('请在设备上点击"允许"授权');
                     logDevice('授权成功后，请刷新页面或重新点击"有线连接"');
+                    return;
+                } else {
+                    logDevice('用户取消了设备选择');
                     return;
                 }
             } catch (e) {
@@ -739,25 +753,33 @@ let checkBrowserSupportAndConnect = async () => {
                     return;
                 }
                 logDevice('请求设备失败: ' + e.message);
+                console.error(e);
             }
             
             logDevice('请先连接 USB 设备并授权后再试');
             return;
         }
         
-        // 使用 webadb.js 连接设备
+        // 使用已授权设备连接
         try {
             logDevice('使用已授权设备连接...');
-            const webusb = await Adb.open("WebUSB");
-            logDevice('WebUSB 已打开');
+            const webusbDevice = existingDevices[0];
+            logDevice('设备: ' + webusbDevice.name + ' (Serial: ' + webusbDevice.serial + ')');
             
-            // 连接到 ADB
-            logDevice('正在连接 ADB...');
-            const adb = await webusb.connectAdb("host::");
-            logDevice('ADB 已连接');
+            // 连接到 ADB daemon
+            logDevice('正在连接 ADB daemon...');
+            const connection = await webusbDevice.connect();
+            logDevice('ADB daemon 连接已建立');
+            
+            // 创建 ADB 客户端
+            logDevice('正在创建 ADB 客户端...');
+            const credentialManager = new AdbCredentialWeb.Manager();
+            const adb = new Adb(connection, credentialManager);
             
             // 保存连接对象到全局变量
             window.adbClient = adb;
+            window.adbDevice = webusbDevice;
+            window.adbTransport = connection;
             
             // 获取设备信息
             logDevice('获取设备信息...');
@@ -777,7 +799,7 @@ let checkBrowserSupportAndConnect = async () => {
             console.error('ADB connection error:', e);
             
             // 针对常见错误提供解决方案
-            if (e.message && e.message.includes('Unable to claim interface')) {
+            if (e.message && (e.message.includes('Unable to claim interface') || e.message.includes('Busy'))) {
                 alert('设备接口被占用！\n\n请在终端运行以下命令：\nadb kill-server\n\n然后重新点击"有线连接"按钮。');
                 logDevice('错误原因：USB 接口被其他程序占用');
                 logDevice('解决方案：请运行 adb kill-server');

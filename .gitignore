@@ -11,6 +11,10 @@ Thumbs.db
 # Build files
 build/
 dist/
+build-yume.js
+build-tango.js
+js/tango-entry.js
+js/lib/
 
 # Node.js files
 node_modules/

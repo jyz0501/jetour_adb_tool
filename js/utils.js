@@ -9,7 +9,6 @@ let log = (...args) => {
     } else {
         console.log.apply(console, args);
     }
-    window.location.hash = '#exec-result';
     let logElement = document.getElementById('log');
     if (logElement) {
         logElement.textContent = logElement.textContent + args.join(' ') + '\n';

@@ -1,5 +1,7 @@
 # 捷途大伦哥的应用管家
 
+**在线访问**: https://jyz0501.github.io/jetour_adb_tool/
+
 一个基于WebUSB的ADB工具，用于在浏览器中管理Android设备，支持应用安装、系统工具等功能。
 
 ## 功能特性

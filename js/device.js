@@ -417,13 +417,21 @@ let connect = async () => {
                 let deviceName = window.adbDevice.banner || '设备';
                 setDeviceName(deviceName);
                 console.log('设备连接成功:', window.adbDevice);
-                logDevice('设备连接成功: ' + deviceName);
+                logDevice('===== ADB 连接成功 =====');
+                logDevice('设备名称: ' + deviceName);
+                logDevice('最大数据包: ' + window.adbDevice.maxPayload);
+                logDevice('传输类型: ' + (window.adbTransport.constructor.name));
+                logDevice('连接时间: ' + new Date().toLocaleString());
                 
                 let toast = document.getElementById('success-toast');
                 toast.style.visibility = 'visible';
                 setTimeout(function() {
                     toast.style.visibility = 'hidden';
                 }, 3000);
+                
+                logDevice('');
+                logDevice('提示: 可在终端运行 "adb devices" 查看设备列表');
+                logDevice('');
                 
                 // 开始持续检测设备状态
                 startDeviceMonitoring();

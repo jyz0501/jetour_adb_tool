@@ -461,7 +461,11 @@ let connect = async () => {
 
 // 断开连接
 let disconnect = async () => {
+    console.log('disconnect called, adbDevice:', window.adbDevice, 'adbTransport:', window.adbTransport);
+    
     if (!window.adbDevice && !window.adbTransport) {
+        console.log('No device to disconnect');
+        logDevice('没有设备需要断开');
         return;
     }
     
@@ -472,21 +476,31 @@ let disconnect = async () => {
     
     try {
         logDevice('正在断开连接...');
+        console.log('Starting disconnect process...');
         
         if (window.adbDevice) {
+            console.log('Disconnecting adbDevice...');
             await window.adbDevice.disconnect();
             window.adbDevice = null;
+            console.log('adbDevice disconnected');
         } else if (window.adbTransport) {
+            console.log('Closing adbTransport...');
             await window.adbTransport.close();
             window.adbTransport = null;
+            console.log('adbTransport closed');
         }
+        
+        console.log('Calling setDeviceName(null)...');
         setDeviceName(null);
+        console.log('setDeviceName completed');
+        
         log('设备已断开连接');
-        logDevice('设备已断开连接');
+        logDevice('===== 设备已断开连接 =====');
         
         // 停止设备监控
         stopDeviceMonitoring();
     } catch (error) {
+        console.error('Disconnect error:', error);
         log('断开连接失败:', error);
         logDevice('断开连接失败: ' + (error.message || error.toString()));
     }
@@ -860,10 +874,18 @@ let stopDeviceMonitoring = () => {
 
 // 当前设备状态
 let setDeviceName = async (name) => {
+    console.log('setDeviceName called with:', name);
     if (!name) {
         name = '未连接';
     }
-    document.getElementById('device-status').textContent = name;
+    const statusElement = document.getElementById('device-status');
+    console.log('device-status element:', statusElement);
+    if (statusElement) {
+        statusElement.textContent = name;
+        console.log('device-status textContent set to:', name);
+    } else {
+        console.error('device-status element not found!');
+    }
     logDevice('设备状态更新: ' + name);
 };
 

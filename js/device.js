@@ -746,12 +746,31 @@ let checkBrowserSupportAndConnect = async () => {
         await window.adbTransport.open();
         logDevice('WebUSB 传输已打开');
         
+        // 等待设备准备好
+        logDevice('等待设备准备...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         window.adbDevice = new AdbDevice(window.adbTransport);
         logDevice('发送 ADB 连接请求...');
         
-        await window.adbDevice.connect("host::web", () => {
-            logDevice('请在设备上允许 ADB 调试');
-        });
+        // 添加重试逻辑
+        let connected = false;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+                logDevice(`连接尝试 ${attempt}/3...`);
+                await window.adbDevice.connect("host::web", () => {
+                    logDevice('请在设备上允许 ADB 调试');
+                });
+                connected = window.adbDevice.connected;
+                if (connected) break;
+            } catch (e) {
+                logDevice(`尝试 ${attempt} 失败: ` + e.message);
+                if (attempt < 3) {
+                    logDevice('等待后重试...');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+        }
         
         if (window.adbDevice && window.adbDevice.connected) {
             let deviceName = window.adbDevice.banner || '设备';
@@ -759,6 +778,8 @@ let checkBrowserSupportAndConnect = async () => {
             logDevice('===== ADB 连接成功 =====');
             logDevice('设备名称: ' + deviceName);
             startDeviceMonitoring();
+        } else {
+            logDevice('连接失败，已尝试 3 次');
         }
     } catch (error) {
         log('检查浏览器支持失败:', error);

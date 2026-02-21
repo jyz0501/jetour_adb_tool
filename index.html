@@ -22,28 +22,28 @@
         .custom-modal-content {
             background-color: white;
             margin: 15% auto;
-            padding: 20px;
+            padding: 15px;
             border-radius: 8px;
             width: 90%;
-            max-width: 500px;
+            max-width: 400px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         
         .custom-modal-header {
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
             border-bottom: 1px solid #eee;
         }
-        
+
         .custom-modal-title {
             margin: 0;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             color: #333;
         }
-        
+
         .custom-modal-body {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             line-height: 1.5;
         }
         
@@ -64,11 +64,11 @@
         }
         
         .custom-modal-btn {
-            padding: 8px 16px;
+            padding: 6px 12px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
         }
         
         .custom-modal-btn-primary {
@@ -105,29 +105,29 @@
         
         <hr style="margin: 15px 0; border: 1px solid #eee;">
         
-        <!-- 安装方式二：WebUSB方式 -->
-        <div style="margin: 10px 0;">
-            <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">安装方式二：WebUSB方式</h3>
-            <div class="warning" id="usb-warning">
-                注意！您的浏览器不支持WebUSB。<br>
-                请在Edge浏览器中打开
-            </div>
-            
-            <!-- Edge浏览器下载地址已隐藏，将在检测到非支持浏览器时弹窗显示 -->
-            
-            <div style="margin: 15px 0;">
-                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
-                        <button class="btn btn-connect" id="connect-btn" onclick="checkBrowserSupportAndConnect()" style="background-color: #28a745; color: white;">有线连接</button>
-                        <button class="btn btn-connect" id="wireless-connect-btn" onclick="showEdgeDownloadPopup(); wirelessConnect()" style="background-color: #17a2b8; color: white;">无线连接</button>
+            <!-- 安装方式二：WebUSB方式 -->
+            <div style="margin: 10px 0;">
+                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">安装方式二：WebUSB方式</h3>
+                <div class="warning" id="usb-warning">
+                    注意！您的浏览器不支持WebUSB。请在Edge浏览器中打开。
+                </div>
+
+                <!-- Edge浏览器下载地址已隐藏，将在检测到非支持浏览器时弹窗显示 -->
+
+                <div style="margin: 15px 0;">
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+                        <button class="btn btn-connect" id="connect-btn" onclick="checkBrowserSupportAndConnect()" style="background-color: #28a745; color: white;">有线连接（推荐）</button>
+                        <button class="btn btn-connect" id="wireless-connect-btn" onclick="showEdgeDownloadPopup(); wirelessConnect()" style="background-color: #17a2b8; color: white;" title="仅用于开启ADB无线调试端口，需USB连接">无线调试</button>
                         <button class="btn btn-disconnect" id="disconnect-btn" onclick="disconnect()" style="background-color: #dc3545; color: white;">断开连接</button>
                         <div style="flex: 1; text-align: right;">
                             <span style="margin-right: 8px;">🚗 </span>
                             <span id="device-status" style="font-weight: bold;">未连接</span>
                         </div>
                     </div>
-                <p style="font-size: 12px; color: #6c757d; margin: 0;">
-                    如显示"找不到兼容设备"，请重新拔插OTG线的车机端的USB口 或 检查adb通道是否被其它占用。
-                </p>
+                    <p style="font-size: 12px; color: #6c757d; margin: 0;">
+                        有线连接：使用Edge浏览器 + OTG线连接车机USB口。<br>
+                        无线调试：需先通过USB连接设备，然后使用系统工具中的"无线ADB"功能开启端口，供命令行adb使用（浏览器不支持直接TCP连接）。
+                    </p>
                 <!-- 设备情况日志 -->
                 <div style="margin-top: 10px; padding: 10px; background-color: #f8f9fa; border-radius: 4px; font-size: 12px; font-family: monospace; max-height: 100px; overflow-y: auto;">
                     <div style="font-weight: bold; margin-bottom: 5px; color: #333;">设备情况日志：</div>
@@ -246,11 +246,15 @@
     </div>
     
     <!-- ADB 核心模块 -->
+    <!-- 选项1: 使用自研的 ADB 实现（当前） -->
     <script src="js/adb/transport.js"></script>
     <script src="js/adb/message.js"></script>
     <script src="js/adb/device.js"></script>
     <script src="js/adb/index.js"></script>
-    
+
+    <!-- 选项2: 使用 @yume-chan/adb 库（需要先运行 npm run build） -->
+    <!-- <script src="dist/adb-bundle.js"></script> -->
+
     <!-- Custom JavaScript -->
     <script src="js/utils.js"></script>
     <script src="js/device.js"></script>
@@ -258,7 +262,7 @@
     <script src="js/system.js"></script>
     <!-- 移除main.js，因为它会导致无限递归 -->
     <!-- <script src="js/main.js"></script> -->
-    
+
     <!-- 页面加载完成后检查浏览器支持 -->
     <script>
         // 页面加载完成后检查浏览器是否支持WebUSB

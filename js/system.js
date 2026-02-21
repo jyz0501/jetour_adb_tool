@@ -10,8 +10,8 @@ function checkBrowserSupport() {
     return true;
 }
 
-// 开关无线ADB
-let wifiAdb = async (enable) => {
+// 开启无线ADB端口
+let wifiAdb = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
@@ -20,28 +20,40 @@ let wifiAdb = async (enable) => {
         return;
     }
     // 弹出确认对话框
-    const confirmed = confirm("是否开启无线端口？");
+    const confirmed = confirm("是否开启无线ADB端口？\n\n开启后，设备将在指定端口上监听ADB连接。\n注意：浏览器无法直接连接TCP端口，此功能仅供其他ADB工具使用。");
     if (!confirmed) {
         return; // 用户点击了取消，则不执行操作
     }
-    let port = document.getElementById('tcpip').value;
-    if (!enable) {
-        port = -1;
-    }
+
+    // 提示用户输入端口号，默认5555
+    const port = prompt("请输入端口号（默认5555）:", "5555");
     if (!port) {
-        alert("需要填写端口号");
+        return; // 用户点击了取消
+    }
+
+    const portNumber = parseInt(port);
+    if (isNaN(portNumber) || portNumber < 1024 || portNumber > 65535) {
+        alert("端口号无效，请输入1024-65535之间的端口号");
         return;
     }
+
     clear();
     showProgress(true);
+    log('正在开启无线ADB端口...\n');
     try {
-        const tcpipStream = await window.adbDevice.tcpip(port);
+        const tcpipStream = await window.adbDevice.tcpip(portNumber);
         await tcpipStream.close();
-        log('tcpip at ' + port);
-        alert('无线ADB已开启，端口号: ' + port);
+        log('✓ 无线ADB已开启，端口号: ' + portNumber);
+        log('✓ 设备现在可以通过网络连接');
+        log('\n注意：浏览器无法直接连接TCP端口。');
+        log('如需使用无线连接，请：');
+        log('1. 在同一台电脑上运行ADB命令行工具');
+        log('2. 使用命令：adb connect <设备IP>:' + portNumber);
+        alert('无线ADB已开启，端口号: ' + portNumber + '\n\n注意：浏览器无法直接连接TCP端口。\n请使用ADB命令行工具或其他支持网络ADB的工具连接。');
     } catch (error) {
-        log(error);
-        alert("端口开启失败，请断开重新尝试。");
+        log('✗ 开启失败: ' + (error.message || error));
+        console.error('wifiAdb error:', error);
+        alert("端口开启失败: " + (error.message || error));
     }
     showProgress(false);
 };

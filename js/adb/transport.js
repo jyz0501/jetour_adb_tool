@@ -192,44 +192,19 @@ class WebUsbTransport extends AdbTransport {
 }
 
 // TCP 传输实现（用于无线调试）
+// 注意：浏览器不支持直接TCP连接
+// 此类仅保留用于兼容性，实际使用中通过USB连接设备后，使用 AdbDevice.tcpip() 开启无线调试端口
+// 开启后的端口可供其他工具（如命令行 adb）使用，但浏览器无法直接连接
 class TcpTransport extends AdbTransport {
     constructor(host, port) {
         super();
         this.host = host;
         this.port = port;
-        this.socket = null;
-        this.reader = null;
-        this.writer = null;
-        this.paired = false;
     }
 
     async open() {
-        try {
-            // 创建 WebSocket 连接（ADB 无线调试使用 TCP，但浏览器只能使用 WebSocket）
-            // 注意：这里需要一个 ADB WebSocket 代理，因为浏览器不能直接建立 TCP 连接
-            const wsUrl = `ws://${this.host}:${this.port}`;
-            console.log(`尝试连接到 ${wsUrl}`);
-            
-            // 由于浏览器安全限制，我们需要提示用户输入正确的 ADB 无线调试地址
-            // 实际实现中，这里应该连接到一个 WebSocket 代理服务器
-            throw new Error('需要 ADB WebSocket 代理服务器');
-        } catch (error) {
-            console.error('Error opening TCP transport:', error);
-            throw error;
-        }
-    }
-
-    // 配对方法
-    async pair(pairingCode) {
-        try {
-            console.log(`尝试配对设备，配对码: ${pairingCode}`);
-            // 这里需要实现 ADB 配对协议
-            // 实际实现中，应该发送配对请求到设备
-            throw new Error('配对功能需要 ADB WebSocket 代理服务器');
-        } catch (error) {
-            console.error('Error pairing device:', error);
-            throw error;
-        }
+        // 浏览器无法直接建立TCP连接
+        throw new Error('浏览器不支持直接TCP连接。\n\n如需使用无线ADB：\n1. 先使用USB连接设备\n2. 通过"有线连接"连接设备\n3. 使用系统工具中的"无线ADB"功能开启端口\n4. 之后可使用命令行 adb connect <IP>:5555 连接');
     }
 
     async close() {
@@ -247,12 +222,8 @@ class TcpTransport extends AdbTransport {
                 console.error('Error canceling reader:', error);
             }
         }
-        if (this.socket) {
-            try {
-                this.socket.close();
-            } catch (error) {
-                console.error('Error closing socket:', error);
-            }
+        if (this.ws) {
+            this.ws.close();
         }
         console.log('TCP transport closed');
     }

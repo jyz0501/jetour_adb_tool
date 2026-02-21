@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADB 连接测试 - CDN版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        h2 {
+            margin: 20px 0 10px 0;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .button-group {
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .status-box {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #6c757d;
+        }
+
+        .status-connected {
+            background-color: #d4edda;
+            border-left-color: #28a745;
+        }
+
+        .status-disconnected {
+            background-color: #f8d7da;
+            border-left-color: #dc3545;
+        }
+
+        .log-box {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .log-success {
+            color: #28a745;
+        }
+
+        .log-error {
+            color: #dc3545;
+        }
+
+        .log-info {
+            color: #007bff;
+        }
+
+        .warning {
+            padding: 15px;
+            margin: 20px 0;
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            color: #856404;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 123, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #007bff;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔌 ADB 连接测试</h1>
+        <p>基于 @yume-chan/adb 的 WebUSB 连接测试</p>
+
+        <div class="warning">
+            ⚠️ <strong>注意事项：</strong><br>
+            1. 请使用 Chrome 或 Edge 浏览器（需要 WebUSB 支持）<br>
+            2. 确保设备已开启 USB 调试模式<br>
+            3. 使用支持 ADB 的数据线或 OTG 线连接设备<br>
+            4. 连接时需要在设备上允许 USB 调试
+        </div>
+
+        <div id="device-status" class="status-box status-disconnected">
+            <strong>设备状态：</strong>未连接
+        </div>
+
+        <div class="button-group">
+            <button id="connect-btn" class="btn-primary">连接设备</button>
+            <button id="test-info-btn" class="btn-success" disabled>获取设备信息</button>
+            <button id="test-shell-btn" class="btn-success" disabled>测试 Shell 命令</button>
+            <button id="disconnect-btn" class="btn-danger" disabled>断开连接</button>
+        </div>
+
+        <h2>设备信息</h2>
+        <div id="device-info" style="padding: 15px; background: #f8f9fa; border-radius: 4px; margin-bottom: 20px;">
+            暂无设备信息
+        </div>
+
+        <h2>日志输出</h2>
+        <div id="log" class="log-box">
+            <div class="log-entry">等待操作...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        // 检查浏览器支持（分层检测，失败即退出）
+        function checkBrowserSupport() {
+            const userAgent = navigator.userAgent;
+
+            // 第一层：检测 iOS 设备
+            const isIOS = /iPad|iPhone|iPod/.test(userAgent) ||
+                         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            if (isIOS) {
+                log('❌ iOS 设备不支持 WebUSB', 'error');
+                log('请使用 Windows/Mac 电脑 + Chrome/Edge 浏览器', 'error');
+                return false;
+            }
+
+            // 第二层：检测 WebUSB API 支持
+            if (!('usb' in navigator)) {
+                log('❌ 浏览器不支持 WebUSB API', 'error');
+                log('请使用 Chrome 或 Edge 浏览器', 'error');
+                return false;
+            }
+
+            // 第三层：检测浏览器类型
+            const isEdge = userAgent.indexOf('Edg') > -1;
+            const isChrome = userAgent.indexOf('Chrome') > -1 && userAgent.indexOf('Edg') === -1;
+            const isOpera = userAgent.indexOf('OPR') > -1;
+            const isSupportedBrowser = isEdge || isChrome || isOpera;
+
+            if (!isSupportedBrowser) {
+                log('❌ 您的浏览器类型不支持 WebUSB', 'error');
+                log('请使用 Chrome 或 Edge 浏览器', 'error');
+                return false;
+            }
+
+            // 第四层：检测浏览器版本
+            let isSupportedVersion = false;
+            let browserName = '';
+
+            if (isEdge) {
+                const edgeMatch = userAgent.match(/Edg\/(\d+)/);
+                if (edgeMatch) {
+                    const edgeVersion = parseInt(edgeMatch[1]);
+                    isSupportedVersion = edgeVersion >= 79;
+                    browserName = `Edge ${edgeVersion}`;
+                }
+            } else if (isChrome) {
+                const chromeMatch = userAgent.match(/Chrome\/(\d+)/);
+                if (chromeMatch) {
+                    const chromeVersion = parseInt(chromeMatch[1]);
+                    isSupportedVersion = chromeVersion >= 61;
+                    browserName = `Chrome ${chromeVersion}`;
+                }
+            } else if (isOpera) {
+                const operaMatch = userAgent.match(/OPR\/(\d+)/);
+                if (operaMatch) {
+                    const operaVersion = parseInt(operaMatch[1]);
+                    isSupportedVersion = operaVersion >= 48;
+                    browserName = `Opera ${operaVersion}`;
+                }
+            }
+
+            if (!isSupportedVersion) {
+                log(`❌ 浏览器版本过低: ${browserName || '未知'}`, 'error');
+                log('请更新到最新版本的 Chrome 或 Edge 浏览器', 'error');
+                return false;
+            }
+
+            // 所有检测都通过
+            log(`✓ 浏览器支持 WebUSB (${browserName})`, 'success');
+            return true;
+        }
+
+        // 日志输出
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${time}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        // 更新按钮状态
+        function updateButtons(connected) {
+            document.getElementById('connect-btn').disabled = connected;
+            document.getElementById('test-info-btn').disabled = !connected;
+            document.getElementById('test-shell-btn').disabled = !connected;
+            document.getElementById('disconnect-btn').disabled = !connected;
+
+            const statusBox = document.getElementById('device-status');
+            if (connected) {
+                statusBox.className = 'status-box status-connected';
+                statusBox.innerHTML = '<strong>设备状态：</strong>已连接';
+            } else {
+                statusBox.className = 'status-box status-disconnected';
+                statusBox.innerHTML = '<strong>设备状态：</strong>未连接';
+            }
+        }
+
+        // 显示加载状态
+        function setLoading(buttonId, loading) {
+            const btn = document.getElementById(buttonId);
+            if (loading) {
+                btn.disabled = true;
+                btn.innerHTML = '处理中<span class="loading"></span>';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = getButtonOriginalText(buttonId);
+            }
+        }
+
+        function getButtonOriginalText(buttonId) {
+            const map = {
+                'connect-btn': '连接设备',
+                'test-info-btn': '获取设备信息',
+                'test-shell-btn': '测试 Shell 命令',
+                'disconnect-btn': '断开连接'
+            };
+            return map[buttonId];
+        }
+
+        // 全局变量
+        let deviceManager = null;
+        let currentDevice = null;
+        let currentAdb = null;
+
+        // 连接设备
+        async function connectDevice() {
+            if (!checkBrowserSupport()) {
+                return;
+            }
+
+            setLoading('connect-btn', true);
+
+            try {
+                log('正在初始化...', 'info');
+
+                // 动态导入 @yume-chan/adb
+                const { AdbDaemonWebUsbDeviceManager } = await import('https://cdn.jsdelivr.net/npm/@yume-chan/adb-backend-webusb/+esm');
+                const { Adb } = await import('https://cdn.jsdelivr.net/npm/@yume-chan/adb/+esm');
+
+                log('✓ 模块加载成功', 'success');
+                log('正在请求设备...', 'info');
+
+                deviceManager = new AdbDaemonWebUsbDeviceManager();
+
+                // 请求设备权限
+                const device = await deviceManager.requestDevice({
+                    filters: [
+                        { classCode: 0xff, subclassCode: 0x42, protocolCode: 0x01 },
+                        { classCode: 0xff, subclassCode: 0x42, protocolCode: 0x03 }
+                    ]
+                });
+
+                log('✓ 设备选择成功', 'success');
+                log('正在连接...', 'info');
+
+                currentDevice = device;
+
+                // 连接设备
+                const transport = await device.connect();
+                currentAdb = new Adb({
+                    transport: transport
+                });
+
+                log('✓ 设备连接成功！', 'success');
+                updateButtons(true);
+
+            } catch (error) {
+                log('✗ 连接失败: ' + error.message, 'error');
+                console.error('连接错误:', error);
+
+                if (error.name === 'NotFoundError') {
+                    log('用户取消了设备选择', 'error');
+                }
+            } finally {
+                setLoading('connect-btn', false);
+            }
+        }
+
+        // 获取设备信息
+        async function getDeviceInfo() {
+            if (!currentAdb || !currentDevice) {
+                log('请先连接设备', 'error');
+                return;
+            }
+
+            setLoading('test-info-btn', true);
+
+            try {
+                log('正在获取设备信息...', 'info');
+
+                // 获取设备序列号
+                const serial = currentDevice.serial;
+
+                // 获取设备型号
+                const stream = await currentAdb.createStream('shell:getprop ro.product.model');
+                const reader = stream.readable.getReader();
+                let model = '';
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    model += new TextDecoder().decode(value);
+                }
+                reader.releaseLock();
+                await stream.close();
+
+                // 获取 Android 版本
+                const versionStream = await currentAdb.createStream('shell:getprop ro.build.version.release');
+                const versionReader = versionStream.readable.getReader();
+                let version = '';
+                while (true) {
+                    const { done, value } = await versionReader.read();
+                    if (done) break;
+                    version += new TextDecoder().decode(value);
+                }
+                versionReader.releaseLock();
+                await versionStream.close();
+
+                const info = `
+                    <strong>序列号：</strong>${serial}<br>
+                    <strong>设备型号：</strong>${model.trim()}<br>
+                    <strong>Android 版本：</strong>${version.trim()}
+                `;
+
+                document.getElementById('device-info').innerHTML = info;
+                log('✓ 设备信息获取成功', 'success');
+                log(`  型号: ${model.trim()}, Android: ${version.trim()}`, 'info');
+
+            } catch (error) {
+                log('✗ 获取设备信息失败: ' + error.message, 'error');
+                console.error(error);
+            } finally {
+                setLoading('test-info-btn', false);
+            }
+        }
+
+        // 测试 Shell 命令
+        async function testShellCommand() {
+            if (!currentAdb) {
+                log('请先连接设备', 'error');
+                return;
+            }
+
+            setLoading('test-shell-btn', true);
+
+            try {
+                log('正在执行 Shell 命令...', 'info');
+
+                // 执行多个命令
+                const commands = [
+                    'getprop ro.product.manufacturer',
+                    'getprop ro.product.model',
+                    'getprop ro.build.version.release',
+                    'getprop ro.build.version.sdk'
+                ];
+
+                for (const cmd of commands) {
+                    log(`执行: ${cmd}`, 'info');
+                    const stream = await currentAdb.createStream(`shell:${cmd}`);
+                    const reader = stream.readable.getReader();
+                    let output = '';
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        output += new TextDecoder().decode(value);
+                    }
+                    reader.releaseLock();
+                    await stream.close();
+                    log(`  结果: ${output.trim()}`, 'success');
+                }
+
+                log('✓ 所有命令执行完成', 'success');
+
+            } catch (error) {
+                log('✗ 命令执行失败: ' + error.message, 'error');
+                console.error(error);
+            } finally {
+                setLoading('test-shell-btn', false);
+            }
+        }
+
+        // 断开连接
+        async function disconnectDevice() {
+            setLoading('disconnect-btn', true);
+
+            try {
+                log('正在断开连接...', 'info');
+
+                // 注意：这里需要根据实际 API 调整
+                // 如果设备对象有 disconnect 或 close 方法
+                if (currentDevice && currentDevice.disconnect) {
+                    await currentDevice.disconnect();
+                }
+
+                currentDevice = null;
+                currentAdb = null;
+
+                document.getElementById('device-info').innerHTML = '暂无设备信息';
+                log('✓ 设备已断开', 'success');
+                updateButtons(false);
+
+            } catch (error) {
+                log('✗ 断开连接失败: ' + error.message, 'error');
+                console.error(error);
+            } finally {
+                setLoading('disconnect-btn', false);
+            }
+        }
+
+        // 绑定事件
+        document.getElementById('connect-btn').addEventListener('click', connectDevice);
+        document.getElementById('test-info-btn').addEventListener('click', getDeviceInfo);
+        document.getElementById('test-shell-btn').addEventListener('click', testShellCommand);
+        document.getElementById('disconnect-btn').addEventListener('click', disconnectDevice);
+
+        // 初始化
+        log('✓ 页面加载完成', 'success');
+        checkBrowserSupport();
+    </script>
+</body>
+</html>

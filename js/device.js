@@ -713,47 +713,57 @@ let checkBrowserSupportAndConnect = async () => {
             return;
         }
         
-        // 使用浏览器原生的 requestDevice 直接选择设备
-        logDevice('使用浏览器原生 WebUSB 连接...');
-        const filters = [
-            { classCode: 255, subclassCode: 66, protocolCode: 1 }, // ADB
-            { classCode: 255, subclassCode: 66, protocolCode: 3 }  // Fastboot
-        ];
+        // 先检查是否有已授权的设备
+        const devices = await navigator.usb.getDevices();
+        let device = null;
         
-        try {
-            const device = await navigator.usb.requestDevice({ filters });
-            logDevice('设备已选择: ' + device.productName + ' VID:' + device.vendorId + ' PID:' + device.productId);
+        if (devices.length > 0) {
+            // 使用已连接的设备
+            device = devices[0];
+            logDevice('使用已授权的设备: ' + device.productName + ' VID:' + device.vendorId + ' PID:' + device.productId);
+        } else {
+            // 没有已授权设备，弹出浏览器原生选择对话框
+            logDevice('使用浏览器原生 WebUSB 连接...');
+            const filters = [
+                { classCode: 255, subclassCode: 66, protocolCode: 1 }, // ADB
+                { classCode: 255, subclassCode: 66, protocolCode: 3 }  // Fastboot
+            ];
             
-            // 创建设备并初始化传输
-            window.adbTransport = new WebUsbTransport(device);
-            await window.adbTransport.open();
-            logDevice('WebUSB 传输已打开');
-            
-            window.adbDevice = new AdbDevice(window.adbTransport);
-            logDevice('发送 ADB 连接请求...');
-            
-            await window.adbDevice.connect("host::web", () => {
-                logDevice('请在设备上允许 ADB 调试');
-            });
-            
-            if (window.adbDevice && window.adbDevice.connected) {
-                let deviceName = window.adbDevice.banner || '设备';
-                setDeviceName(deviceName);
-                logDevice('===== ADB 连接成功 =====');
-                logDevice('设备名称: ' + deviceName);
-                startDeviceMonitoring();
+            try {
+                device = await navigator.usb.requestDevice({ filters });
+                logDevice('设备已选择: ' + device.productName + ' VID:' + device.vendorId + ' PID:' + device.productId);
+            } catch (e) {
+                if (e.name === 'NotFoundError') {
+                    logDevice('用户取消选择设备');
+                    return;
+                }
+                throw e;
             }
-        } catch (e) {
-            if (e.name === 'NotFoundError') {
-                logDevice('用户取消选择设备');
-            } else {
-                logDevice('连接失败: ' + e.message);
-                console.error('Connection error:', e);
-            }
+        }
+        
+        // 创建设备并初始化传输
+        window.adbTransport = new WebUsbTransport(device);
+        await window.adbTransport.open();
+        logDevice('WebUSB 传输已打开');
+        
+        window.adbDevice = new AdbDevice(window.adbTransport);
+        logDevice('发送 ADB 连接请求...');
+        
+        await window.adbDevice.connect("host::web", () => {
+            logDevice('请在设备上允许 ADB 调试');
+        });
+        
+        if (window.adbDevice && window.adbDevice.connected) {
+            let deviceName = window.adbDevice.banner || '设备';
+            setDeviceName(deviceName);
+            logDevice('===== ADB 连接成功 =====');
+            logDevice('设备名称: ' + deviceName);
+            startDeviceMonitoring();
         }
     } catch (error) {
         log('检查浏览器支持失败:', error);
-        alert('检查浏览器支持失败: ' + (error.message || error.toString()));
+        logDevice('连接失败: ' + (error.message || error.toString()));
+        console.error('Connection error:', error);
     }
 };
 

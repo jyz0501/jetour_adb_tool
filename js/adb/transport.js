@@ -104,8 +104,17 @@ class WebUsbTransport extends AdbTransport {
 
             // 声明接口
             console.log('Claiming interface...');
-            await this.device.claimInterface(match.interfaceNumber);
-            this._interfaceNumber = match.interfaceNumber;
+            try {
+                await this.device.claimInterface(match.interfaceNumber);
+                this._interfaceNumber = match.interfaceNumber;
+            } catch (claimError) {
+                console.error('Failed to claim interface:', claimError);
+                if (claimError.message && claimError.message.includes('Unable to claim interface')) {
+                    console.error('Interface is likely in use by another application (e.g., adb server, Android Studio)');
+                    console.error('Please close other USB debugging applications and run "adb kill-server" in terminal');
+                }
+                throw claimError;
+            }
 
             // 选择备用接口
             await this.device.selectAlternateInterface(match.interfaceNumber, match.alternateSetting);

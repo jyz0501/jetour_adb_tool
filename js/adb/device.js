@@ -21,6 +21,9 @@ class AdbDevice {
      * @returns {Promise<AdbDevice>}
      */
     async connect(banner = 'host::web', authCallback = null) {
+        let authAttempts = 0;
+        const maxAuthAttempts = 30;
+        
         try {
             // 发送连接消息
             const message = new AdbMessage('CNXN', 0x01000000, this.maxPayload, banner);
@@ -31,25 +34,31 @@ class AdbDevice {
 
             // 处理认证
             while (response.cmd === 'AUTH') {
+                authAttempts++;
+                if (authAttempts > maxAuthAttempts) {
+                    throw new Error('认证超时，请确保在设备上点击了"允许"');
+                }
+                
                 if (authCallback) {
                     authCallback(response.arg0, response.data);
                 }
+                
                 // 认证类型：
                 // 1 = 令牌认证
                 // 2 = RSA 公钥认证
                 if (response.arg0 === 1) {
-                    // 令牌认证
-                    log('Token authentication required');
-                    // 这里需要实现令牌认证逻辑
-                    throw new Error('Token authentication required');
+                    log('等待设备授权（令牌认证）...');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await message.send(this.transport);
                 } else if (response.arg0 === 2) {
-                    // RSA 公钥认证
-                    log('RSA public key authentication required');
-                    // 这里需要实现 RSA 公钥认证逻辑
-                    throw new Error('RSA public key authentication required');
+                    log('等待设备授权（公钥认证）...');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await message.send(this.transport);
                 } else {
                     throw new Error('Unknown authentication type: ' + response.arg0);
                 }
+                
+                response = await AdbMessage.receive(this.transport);
             }
 
             if (response.cmd !== 'CNXN') {

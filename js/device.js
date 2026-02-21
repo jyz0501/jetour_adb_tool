@@ -58,6 +58,9 @@ let initWebUSB = async (device) => {
             } else if (error.message.indexOf('was disconnected') != -1) {
                 alert('无法连接到此设备，请断开重新尝试。');
                 logDevice('设备已断开连接');
+            } else if (error.message.indexOf('Unable to claim interface') != -1) {
+                alert('设备接口被其他程序占用，请尝试以下步骤：\n\n1. 关闭电脑上运行的其他 ADB 工具（如 Android Studio、ADB Helper）\n2. 在终端运行 "adb kill-server" 断开所有连接\n3. 重新插拔 USB 线\n4. 刷新页面后重新连接');
+                logDevice('设备接口被其他程序占用');
             } else {
                 alert('初始化 WebUSB 失败: ' + error.message);
             }

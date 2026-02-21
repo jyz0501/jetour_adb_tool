@@ -152,12 +152,26 @@ class WebUsbTransport extends AdbTransport {
 
         try {
             console.log('Sending data, endpoint:', this.epOut, 'length:', data.byteLength);
+            console.log('Device state before transferOut:', {
+                opened: this.device.opened,
+                configuration: this.device.configuration,
+                interfaceNumber: this._interfaceNumber
+            });
+            
             const result = await this.device.transferOut(this.epOut, data);
             console.log('Send result:', result);
         } catch (error) {
+            console.error('========== TransferOut Error ==========');
             console.error('Error sending data:', error);
+            console.error('Error name:', error.name);
+            console.error('Error message:', error.message);
             console.error('Endpoint out:', this.epOut);
-            console.error('Device state:', this.device.opened, this.device.configuration);
+            console.error('Device state:', {
+                opened: this.device.opened,
+                configuration: this.device.configuration,
+                interfaceNumber: this._interfaceNumber
+            });
+            console.error('=========================================');
             
             // 尝试重新打开设备
             if (!this.device.opened) {

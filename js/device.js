@@ -724,12 +724,10 @@ let checkBrowserSupportAndConnect = async () => {
             const device = await navigator.usb.requestDevice({ filters });
             logDevice('设备已选择: ' + device.productName + ' VID:' + device.vendorId + ' PID:' + device.productId);
             
-            // 创建设备并连接
+            // 创建设备并初始化传输
             window.adbTransport = new WebUsbTransport(device);
-            const initialized = await initWebUSB(device);
-            if (!initialized) {
-                return;
-            }
+            await window.adbTransport.open();
+            logDevice('WebUSB 传输已打开');
             
             window.adbDevice = new AdbDevice(window.adbTransport);
             logDevice('发送 ADB 连接请求...');
@@ -750,6 +748,7 @@ let checkBrowserSupportAndConnect = async () => {
                 logDevice('用户取消选择设备');
             } else {
                 logDevice('连接失败: ' + e.message);
+                console.error('Connection error:', e);
             }
         }
     } catch (error) {

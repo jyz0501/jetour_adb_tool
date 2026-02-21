@@ -700,15 +700,20 @@ let checkBrowserSupportAndConnect = async () => {
         
         logDevice('使用 Tango ADB (ya-webadb) 库连接设备...');
         
-        // 检查 Tango ADB 是否加载成功
-        let Adb, AdbDaemonWebUsbDeviceManager, AdbCredentialWeb;
-        
-        // 打印所有全局变量用于调试
+        // 同步打印所有全局变量用于调试
         const allKeys = Object.keys(window).filter(k => k.toLowerCase().includes('adb') || k.toLowerCase().includes('tango') || k.toLowerCase().includes('stream'));
         logDevice('相关全局变量: ' + allKeys.join(', '));
         
+        // 强制同步检查
+        setTimeout(() => {
+            logDevice('[延迟检查] window.TangoADB: ' + (window.TangoADB ? '已加载' : '未定义'));
+        }, 100);
+        
+        // 检查 Tango ADB 是否加载成功
+        let Adb, AdbDaemonWebUsbDeviceManager, AdbCredentialWeb;
+        
         // 方法1: 检查 window.TangoADB
-        if (window.TangoADB) {
+        if (typeof window.TangoADB !== 'undefined' && window.TangoADB !== null) {
             logDevice('找到 window.TangoADB');
             Adb = window.TangoADB.Adb;
             AdbDaemonWebUsbDeviceManager = window.TangoADB.AdbDaemonWebUsb?.AdbDaemonWebUsbDeviceManager;
@@ -716,20 +721,16 @@ let checkBrowserSupportAndConnect = async () => {
             logDevice('从 window.TangoADB 获取 API');
         }
         // 方法2: 直接从全局变量获取
-        else if (window.Adb && window.AdbDaemonWebUsb) {
+        else if (typeof window.Adb !== 'undefined' && typeof window.AdbDaemonWebUsb !== 'undefined') {
             logDevice('找到 window.Adb 和 window.AdbDaemonWebUsb');
             Adb = window.Adb;
-            const DeviceManager = window.AdbDaemonWebUsb.AdbDaemonWebUsbDeviceManager || window.AdbDaemonWebUsb.AdbDaemonWebUsbDeviceManager?.BROWSER;
-            AdbDaemonWebUsbDeviceManager = DeviceManager;
+            AdbDaemonWebUsbDeviceManager = window.AdbDaemonWebUsb.AdbDaemonWebUsbDeviceManager || window.AdbDaemonWebUsb.AdbDaemonWebUsbDeviceManager?.BROWSER;
             AdbCredentialWeb = window.AdbCredentialWeb || { Manager: class { } };
             logDevice('从全局变量获取 API');
         }
         
         if (!Adb || !AdbDaemonWebUsbDeviceManager) {
             logDevice('错误: Tango ADB 库未加载');
-            logDevice('window.TangoADB: ' + (window.TangoADB ? '已加载' : '未定义'));
-            logDevice('window.Adb: ' + (window.Adb ? '已加载' : '未定义'));
-            logDevice('window.AdbDaemonWebUsb: ' + (window.AdbDaemonWebUsb ? '已加载' : '未定义'));
             alert('Tango ADB 库未加载，请刷新页面重试');
             return;
         }

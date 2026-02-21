@@ -48,6 +48,7 @@ class WebUsbTransport extends AdbTransport {
         this.device = device;
         this.epIn = null;
         this.epOut = null;
+        this._interfaceNumber = null;
     }
 
     /**
@@ -104,6 +105,7 @@ class WebUsbTransport extends AdbTransport {
             // 声明接口
             console.log('Claiming interface...');
             await this.device.claimInterface(match.interfaceNumber);
+            this._interfaceNumber = match.interfaceNumber;
 
             // 选择备用接口
             await this.device.selectAlternateInterface(match.interfaceNumber, match.alternateSetting);
@@ -140,9 +142,24 @@ class WebUsbTransport extends AdbTransport {
         }
 
         try {
-            await this.device.transferOut(this.epOut, data);
+            console.log('Sending data, endpoint:', this.epOut, 'length:', data.byteLength);
+            const result = await this.device.transferOut(this.epOut, data);
+            console.log('Send result:', result);
         } catch (error) {
             console.error('Error sending data:', error);
+            console.error('Endpoint out:', this.epOut);
+            console.error('Device state:', this.device.opened, this.device.configuration);
+            
+            // 尝试重新打开设备
+            if (!this.device.opened) {
+                console.log('Device not opened, trying to reopen...');
+                try {
+                    await this.device.open();
+                    await this.device.claimInterface(this._interfaceNumber);
+                } catch (reopenError) {
+                    console.error('Failed to reopen device:', reopenError);
+                }
+            }
             throw error;
         }
     }
@@ -174,12 +191,15 @@ class WebUsbTransport extends AdbTransport {
 
     // 私有方法：查找 ADB 接口
     _findAdbInterface() {
+        // 首先尝试查找标准 ADB 接口 (class 255, subclass 66, protocol 1)
         for (const configuration of this.device.configurations) {
             for (const iface of configuration.interfaces) {
                 for (const alternate of iface.alternates) {
+                    console.log(`Interface ${iface.interfaceNumber}: class=${alternate.interfaceClass}, subclass=${alternate.interfaceSubclass}, protocol=${alternate.interfaceProtocol}`);
                     if (alternate.interfaceClass === 255 &&
                         alternate.interfaceSubclass === 66 &&
                         alternate.interfaceProtocol === 1) {
+                        console.log('Found standard ADB interface');
                         return {
                             interfaceNumber: iface.interfaceNumber,
                             alternateSetting: alternate.alternateSetting,
@@ -189,6 +209,28 @@ class WebUsbTransport extends AdbTransport {
                 }
             }
         }
+        
+        // 备用：尝试查找批量传输接口
+        console.log('Standard ADB interface not found, trying bulk transfer interfaces...');
+        for (const configuration of this.device.configurations) {
+            for (const iface of configuration.interfaces) {
+                for (const alternate of iface.alternates) {
+                    // 查找有批量端点的接口
+                    const hasBulkIn = alternate.endpoints.some(e => e.type === 'bulk' && e.direction === 'in');
+                    const hasBulkOut = alternate.endpoints.some(e => e.type === 'bulk' && e.direction === 'out');
+                    
+                    if (hasBulkIn && hasBulkOut) {
+                        console.log('Found bulk transfer interface as fallback');
+                        return {
+                            interfaceNumber: iface.interfaceNumber,
+                            alternateSetting: alternate.alternateSetting,
+                            endpoints: alternate.endpoints
+                        };
+                    }
+                }
+            }
+        }
+        
         return null;
     }
 

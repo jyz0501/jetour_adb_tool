@@ -700,54 +700,64 @@ let checkBrowserSupportAndConnect = async () => {
         
         logDevice('使用 webadb.js 库连接设备...');
         
-        // 使用 webadb.js 连接设备（带重试机制）
-        const maxRetries = 3;
-        const retryDelay = 1000;
-        let lastError = null;
-        
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                logDevice(`连接尝试 ${attempt}/${maxRetries}...`);
-                
-                // 打开 WebUSB 设备
-                const webusb = await Adb.open("WebUSB");
-                logDevice('WebUSB 已打开');
-                
-                // 连接到 ADB
-                logDevice('正在连接 ADB...');
-                const adb = await webusb.connectAdb("host::");
-                logDevice('ADB 已连接');
-                
-                // 保存连接对象到全局变量
-                window.adbClient = adb;
-                
-                // 获取设备信息
-                logDevice('获取设备信息...');
-                const shell = await adb.shell("getprop ro.product.model");
-                const model = await shell.receive();
-                const modelName = new TextDecoder().decode(model.data);
-                
-                setDeviceName(modelName.trim());
-                logDevice('===== ADB 连接成功 =====');
-                logDevice('设备型号: ' + modelName.trim());
-                
-                // 开始监控
-                startDeviceMonitoring();
-                return;
-                
-            } catch (e) {
-                lastError = e;
-                logDevice(`尝试 ${attempt} 失败: ${e.message}`);
-                
-                if (attempt < maxRetries) {
-                    logDevice(`等待 ${retryDelay}ms 后重试...`);
-                    await new Promise(resolve => setTimeout(resolve, retryDelay));
-                }
+        // 先检查是否有已授权的设备
+        let existingDevices = [];
+        try {
+            existingDevices = await navigator.usb.getDevices();
+            if (existingDevices.length > 0) {
+                logDevice('发现 ' + existingDevices.length + ' 个已授权设备');
             }
+        } catch (e) {
+            console.log('检查已授权设备失败:', e);
         }
         
-        logDevice('连接失败，已尝试 ' + maxRetries + ' 次');
-        console.error('ADB connection error:', lastError);
+        // 使用 webadb.js 连接设备
+        try {
+            let webusb;
+            
+            if (existingDevices.length > 0) {
+                // 使用已授权的设备
+                logDevice('使用已授权设备连接...');
+                webusb = await Adb.open("WebUSB");
+            } else {
+                // 请求新设备（需要用户点击）
+                logDevice('请求用户选择设备...');
+                webusb = await Adb.open("WebUSB");
+            }
+            
+            logDevice('WebUSB 已打开');
+            
+            // 连接到 ADB
+            logDevice('正在连接 ADB...');
+            const adb = await webusb.connectAdb("host::");
+            logDevice('ADB 已连接');
+            
+            // 保存连接对象到全局变量
+            window.adbClient = adb;
+            
+            // 获取设备信息
+            logDevice('获取设备信息...');
+            const shell = await adb.shell("getprop ro.product.model");
+            const model = await shell.receive();
+            const modelName = new TextDecoder().decode(model.data);
+            
+            setDeviceName(modelName.trim());
+            logDevice('===== ADB 连接成功 =====');
+            logDevice('设备型号: ' + modelName.trim());
+            
+            // 开始监控
+            startDeviceMonitoring();
+            
+        } catch (e) {
+            logDevice('连接失败: ' + e.message);
+            
+            // 如果是需要用户手势的错误，提示用户重新点击
+            if (e.message.includes('user gesture') || e.message.includes('permission')) {
+                logDevice('请重新点击"有线连接"按钮');
+            }
+            
+            console.error('ADB connection error:', e);
+        }
     } catch (error) {
         log('检查浏览器支持失败:', error);
         logDevice('连接失败: ' + (error.message || error.toString()));

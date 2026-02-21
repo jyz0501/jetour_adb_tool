@@ -63,13 +63,19 @@ class AdbMessage {
         view.setUint32(16, checksum, true); // checksum
         view.setUint32(20, magic, true);   // magic
 
+        console.log('Sending ADB message:', this.cmd, 'arg0:', this.arg0, 'arg1:', this.arg1, 'length:', this.length);
+        
         // 发送头部
         await transport.send(header);
+        console.log('Header sent');
 
         // 发送数据
         if (this.length > 0) {
             await transport.send(this.data);
+            console.log('Data sent, length:', this.length);
         }
+        
+        console.log('ADB message sent successfully');
     }
 
     /**
@@ -79,6 +85,7 @@ class AdbMessage {
      */
     static async receive(transport) {
         // 接收头部
+        console.log('Waiting for ADB message header...');
         const header = await transport.receive(24);
         const view = new DataView(header);
 
@@ -89,16 +96,20 @@ class AdbMessage {
         const checksum = view.getUint32(16, true);
         const magic = view.getUint32(20, true);
 
+        console.log('Received header - cmd:', cmd, 'arg0:', arg0, 'arg1:', arg1, 'length:', length);
+
         // 验证 magic
         if ((cmd ^ magic) !== 0xffffffff) {
             throw new Error('Magic mismatch');
         }
 
         const cmdString = AdbMessage.decodeCommand(cmd);
+        console.log('Received ADB command:', cmdString);
 
         // 接收数据
         let data = null;
         if (length > 0) {
+            console.log('Receiving data, length:', length);
             data = await transport.receive(length);
 
             // 验证校验和
@@ -106,6 +117,7 @@ class AdbMessage {
             if (calculatedChecksum !== checksum) {
                 throw new Error('Checksum mismatch');
             }
+            console.log('Data received successfully');
         }
 
         return new AdbMessage(cmdString, arg0, arg1, data);

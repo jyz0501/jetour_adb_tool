@@ -382,6 +382,8 @@ let connect = async () => {
         if (selectedDevice.type === 'WebUSB') {
             // WebUSB 设备连接
             logDevice('正在连接有线 USB 设备...');
+            logDevice('设备信息: ' + selectedDevice.name + ' VID:' + selectedDevice.vendorId + ' PID:' + selectedDevice.productId);
+            
             const initialized = await initWebUSB(selectedDevice.device);
             if (!initialized || !window.adbTransport) {
                 logDevice('WebUSB 初始化失败');
@@ -393,10 +395,20 @@ let connect = async () => {
             // 创建 ADB 设备并连接
             logDevice('正在创建 ADB 设备...');
             window.adbDevice = new AdbDevice(window.adbTransport);
-            await window.adbDevice.connect("host::web", () => {
-                alert('请在您的设备上允许 ADB 调试');
-                logDevice('请在您的设备上允许 ADB 调试');
-            });
+            logDevice('发送 ADB 连接请求，等待设备授权...');
+            
+            try {
+                await window.adbDevice.connect("host::web", () => {
+                    alert('请在您的设备上允许 ADB 调试');
+                    logDevice('请在您的设备上允许 ADB 调试');
+                });
+            } catch (connectError) {
+                logDevice('ADB 连接错误: ' + connectError.message);
+                if (connectError.message.includes('authentication')) {
+                    logDevice('设备需要授权，请确保手机上点击了"允许"');
+                }
+                throw connectError;
+            }
             
             if (window.adbDevice && window.adbDevice.connected) {
                 let deviceName = window.adbDevice.banner || '设备';

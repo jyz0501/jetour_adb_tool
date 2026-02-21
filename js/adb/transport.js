@@ -77,20 +77,32 @@ class WebUsbTransport extends AdbTransport {
 
         try {
             // 打开设备
+            console.log('Opening USB device...');
             await this.device.open();
+            console.log('USB device opened');
             
             // 选择配置
             if (this.device.configuration === null) {
+                console.log('Selecting configuration 1...');
                 await this.device.selectConfiguration(1);
             }
 
             // 找到 ADB 接口
+            console.log('Looking for ADB interface...');
             const match = this._findAdbInterface();
             if (!match) {
+                console.error('ADB interface not found. Available interfaces:');
+                for (const config of this.device.configurations) {
+                    for (const iface of config.interfaces) {
+                        console.error(`  Interface ${iface.interfaceNumber}: class ${iface.interfaceClass}, subclass ${iface.interfaceSubclass}, protocol ${iface.interfaceProtocol}`);
+                    }
+                }
                 throw new Error('ADB interface not found');
             }
+            console.log('Found ADB interface:', match);
 
             // 声明接口
+            console.log('Claiming interface...');
             await this.device.claimInterface(match.interfaceNumber);
 
             // 选择备用接口
@@ -104,7 +116,7 @@ class WebUsbTransport extends AdbTransport {
                 throw new Error('ADB endpoints not found');
             }
 
-            console.log('WebUSB transport opened successfully');
+            console.log('WebUSB transport opened successfully. Endpoints:', this.epIn, this.epOut);
         } catch (error) {
             console.error('Error opening WebUSB transport:', error);
             throw error;

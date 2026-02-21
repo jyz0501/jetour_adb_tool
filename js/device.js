@@ -703,17 +703,24 @@ let checkBrowserSupportAndConnect = async () => {
         // 检查 Tango ADB 是否加载成功
         let Adb, AdbDaemonWebUsbDeviceManager, AdbCredentialWeb;
         
+        // 打印所有全局变量用于调试
+        const allKeys = Object.keys(window).filter(k => k.toLowerCase().includes('adb') || k.toLowerCase().includes('tango') || k.toLowerCase().includes('stream'));
+        logDevice('相关全局变量: ' + allKeys.join(', '));
+        
         // 方法1: 检查 window.TangoADB
         if (window.TangoADB) {
+            logDevice('找到 window.TangoADB');
             Adb = window.TangoADB.Adb;
-            AdbDaemonWebUsbDeviceManager = window.TangoADB.AdbDaemonWebUsb.AdbDaemonWebUsbDeviceManager;
+            AdbDaemonWebUsbDeviceManager = window.TangoADB.AdbDaemonWebUsb?.AdbDaemonWebUsbDeviceManager;
             AdbCredentialWeb = window.TangoADB.AdbCredentialWeb;
             logDevice('从 window.TangoADB 获取 API');
         }
         // 方法2: 直接从全局变量获取
-        else if (window.Adb && window.AdbDaemonWebUsb && window.AdbDaemonWebUsb.AdbDaemonWebUsbDeviceManager) {
+        else if (window.Adb && window.AdbDaemonWebUsb) {
+            logDevice('找到 window.Adb 和 window.AdbDaemonWebUsb');
             Adb = window.Adb;
-            AdbDaemonWebUsbDeviceManager = window.AdbDaemonWebUsb.AdbDaemonWebUsbDeviceManager;
+            const DeviceManager = window.AdbDaemonWebUsb.AdbDaemonWebUsbDeviceManager || window.AdbDaemonWebUsb.AdbDaemonWebUsbDeviceManager?.BROWSER;
+            AdbDaemonWebUsbDeviceManager = DeviceManager;
             AdbCredentialWeb = window.AdbCredentialWeb || { Manager: class { } };
             logDevice('从全局变量获取 API');
         }

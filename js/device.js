@@ -700,11 +700,28 @@ let checkBrowserSupportAndConnect = async () => {
         
         logDevice('使用 Tango ADB (ya-webadb) 库连接设备...');
         
+        // 调试：检查库加载情况
+        console.log('window.TangoADB:', window.TangoADB);
+        console.log('window.Adb:', window.Adb);
+        console.log('window.AdbDaemonWebUsbDeviceManager:', window.AdbDaemonWebUsbDeviceManager);
+        
         // 检查 Tango ADB 是否加载成功
         if (!window.TangoADB) {
-            logDevice('错误: Tango ADB 库未加载');
-            alert('Tango ADB 库未加载，请刷新页面重试');
-            return;
+            // 尝试从全局变量获取
+            if (window.Adb && window.AdbDaemonWebUsbDeviceManager) {
+                logDevice('从全局变量获取 Tango ADB');
+                window.TangoADB = {
+                    Adb: window.Adb,
+                    AdbDaemonWebUsbDeviceManager: window.AdbDaemonWebUsbDeviceManager,
+                    AdbCredentialWeb: window.AdbCredentialWeb || { Manager: class { } },
+                    StreamExtra: window.StreamExtra || {}
+                };
+            } else {
+                logDevice('错误: Tango ADB 库未加载');
+                logDevice('window 对象上的所有 keys: ' + Object.keys(window).filter(k => k.toLowerCase().includes('adb') || k.toLowerCase().includes('tango')).join(', '));
+                alert('Tango ADB 库未加载，请刷新页面重试');
+                return;
+            }
         }
         
         const { AdbDaemonWebUsbDeviceManager, Adb, AdbCredentialWeb } = window.TangoADB;

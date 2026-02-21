@@ -119,32 +119,72 @@ let scanUsbDevices = async () => {
     log('开始扫描有线 USB 设备...');
     logDevice('开始扫描有线 USB 设备...');
     
-    // 扫描逻辑
     const devices = [];
     
-    // 只扫描 WebUSB 设备（有线设备）
+    // 1. 先获取已授权的 WebUSB 设备
     try {
-        const webusbDevices = await navigator.usb.getDevices();
-        webusbDevices.forEach(device => {
+        const authorizedDevices = await navigator.usb.getDevices();
+        authorizedDevices.forEach(device => {
             devices.push({
                 type: 'WebUSB',
                 name: device.productName || 'USB设备',
                 vendorId: device.vendorId,
                 productId: device.productId,
-                device: device
+                device: device,
+                authorized: true
             });
         });
-        log(`发现 ${webusbDevices.length} 个 WebUSB 设备`);
-        logDevice(`发现 ${webusbDevices.length} 个 WebUSB 设备`);
-        
-        // 记录每个设备的详细信息
-        webusbDevices.forEach((device, index) => {
-            logDevice(`设备 ${index + 1}: ${device.productName || 'USB设备'} (VID: ${device.vendorId}, PID: ${device.productId})`);
-        });
+        log(`已发现 ${authorizedDevices.length} 个已授权 USB 设备`);
+        logDevice(`已发现 ${authorizedDevices.length} 个已授权 USB 设备`);
     } catch (error) {
-        log('WebUSB 设备扫描失败:', error);
-        logDevice('WebUSB 设备扫描失败: ' + (error.message || error.toString()));
+        log('获取已授权设备失败:', error);
+        logDevice('获取已授权设备失败: ' + (error.message || error.toString()));
     }
+    
+    // 2. 尝试请求新设备（让用户可以选择更多USB设备）
+    try {
+        // 使用宽泛的过滤器，扫描所有USB设备
+        const newDevice = await navigator.usb.requestDevice({
+            filters: [
+                { classCode: 255, subclassCode: 66, protocolCode: 1 }, // ADB
+                { classCode: 255, subclassCode: 66, protocolCode: 3 }, // Fastboot
+                { classCode: 255 }, // 全部 USB 设备
+            ]
+        });
+        
+        // 检查是否已存在
+        const exists = devices.some(d => 
+            d.vendorId === newDevice.vendorId && d.productId === newDevice.productId
+        );
+        
+        if (!exists) {
+            devices.push({
+                type: 'WebUSB',
+                name: newDevice.productName || 'USB设备',
+                vendorId: newDevice.vendorId,
+                productId: newDevice.productId,
+                device: newDevice,
+                authorized: false
+            });
+            log('发现新 USB 设备');
+            logDevice('发现新 USB 设备: ' + (newDevice.productName || 'USB设备'));
+        }
+    } catch (error) {
+        if (error.name !== 'NotFoundError') {
+            log('请求设备失败:', error);
+            logDevice('请求设备失败: ' + (error.message || error.toString()));
+        }
+        // NotFoundError 表示用户取消选择，正常情况不需要提示
+    }
+    
+    // 记录每个设备的详细信息
+    devices.forEach((device, index) => {
+        const authStatus = device.authorized ? '(已授权)' : '(待授权)';
+        logDevice(`设备 ${index + 1}: ${device.name} ${authStatus} (VID: ${device.vendorId}, PID: ${device.productId})`);
+    });
+    
+    log(`共发现 ${devices.length} 个 USB 设备`);
+    logDevice(`共发现 ${devices.length} 个 USB 设备`);
     
     return devices;
 };
@@ -170,8 +210,12 @@ let showDeviceSelection = (devices) => {
             // 有设备时显示设备列表
             devices.forEach((device, index) => {
                 let deviceInfo = '';
+                let authBadge = '';
                 if (device.type === 'WebUSB') {
-                    deviceInfo = `USB 设备: ${device.name} (VID: ${device.vendorId}, PID: ${device.productId})`;
+                    authBadge = device.authorized 
+                        ? '<span style="color: #4caf50; font-size: 11px;">✓ 已授权</span>' 
+                        : '<span style="color: #ff9800; font-size: 11px;">⚠ 待授权</span>';
+                    deviceInfo = `USB 设备: ${device.name} ${authBadge} (VID: ${device.vendorId}, PID: ${device.productId})`;
                 }
 
                 if (deviceInfo) {
@@ -234,8 +278,12 @@ let showDeviceSelection = (devices) => {
                     // 有设备时显示设备列表
                     refreshedDevices.forEach((device, index) => {
                         let deviceInfo = '';
+                        let authBadge = '';
                         if (device.type === 'WebUSB') {
-                            deviceInfo = `USB 设备: ${device.name} (VID: ${device.vendorId}, PID: ${device.productId})`;
+                            authBadge = device.authorized 
+                                ? '<span style="color: #4caf50; font-size: 11px;">✓ 已授权</span>' 
+                                : '<span style="color: #ff9800; font-size: 11px;">⚠ 待授权</span>';
+                            deviceInfo = `USB 设备: ${device.name} ${authBadge} (VID: ${device.vendorId}, PID: ${device.productId})`;
                         }
 
                         if (deviceInfo) {

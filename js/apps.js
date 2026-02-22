@@ -417,7 +417,7 @@ function startAhuiApp() {
         try {
             // 使用 Tango ADB 执行启动命令
             window.adbClient.subprocess.noneProtocol.spawnWaitText([
-                'am', 'start', '-n', 'com.yunpan.appmanage/com.yunpan.appmanage.ui.HomeActivity'
+                'monkey', '-p', 'com.yunpan.appmanage', '-c', 'android.intent.category.LAUNCHER', '1'
             ]).then(result => {
                 log(result);
                 showProgress(false);

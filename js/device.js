@@ -1133,8 +1133,18 @@ let push = async (filePath, blob) => {
             const arrayBuffer = await blob.arrayBuffer();
             const uint8Array = new Uint8Array(arrayBuffer);
             
-            // 使用 base64 编码传输
-            const base64Data = btoa(String.fromCharCode(...uint8Array));
+            // 使用 base64 编码传输（分段处理大数组，避免栈溢出）
+            let base64Data = '';
+            const chunkSize = 16384; // 16KB chunks
+            for (let i = 0; i < uint8Array.length; i += chunkSize) {
+                const chunk = uint8Array.subarray(i, i + chunkSize);
+                // 使用手动转换，避免扩展运算符导致的栈溢出
+                let chunkStr = '';
+                for (let j = 0; j < chunk.length; j++) {
+                    chunkStr += String.fromCharCode(chunk[j]);
+                }
+                base64Data += btoa(chunkStr);
+            }
             
             // 使用 shell 命令写入文件
             // 生成临时文件路径

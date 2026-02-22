@@ -725,15 +725,10 @@ let checkBrowserSupportAndConnect = async () => {
         } else if (window.Adb) {
             console.log('使用 window.Adb');
             console.log('window.Adb 内容:', window.Adb);
-            console.log('window.Adb 类型:', typeof window.Adb);
-            console.log('window.Adb 是函数吗:', typeof window.Adb === 'function');
-            console.log('window.Adb 有 authenticate 吗:', window.Adb.authenticate);
-            console.log('window.Adb() 是 Adb 类吗:', window.Adb().authenticate);
+            console.log('window.Adb.Adb:', window.Adb.Adb);
             
-            // 检查是否是函数包装器
-            if (typeof window.Adb === 'function') {
-                adbApi = window.Adb();
-            } else if (window.Adb.Adb) {
+            // window.Adb 是 esm_exports 对象，需要通过 .Adb 获取真正的类
+            if (window.Adb.Adb) {
                 adbApi = window.Adb.Adb;
             } else {
                 adbApi = window.Adb;

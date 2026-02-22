@@ -700,6 +700,19 @@ let checkBrowserSupportAndConnect = async () => {
         
         logDevice('使用 Tango ADB 连接设备...');
         
+        // 等待库加载
+        let attempts = 0;
+        while (!window.TangoADB && attempts < 50) {
+            await new Promise(r => setTimeout(r, 100));
+            attempts++;
+        }
+        
+        if (!window.TangoADB) {
+            logDevice('错误: Tango ADB 库未加载');
+            alert('Tango ADB 库未加载，请刷新页面');
+            return;
+        }
+        
         // 直接使用 Tango ADB 原生 API
         const DeviceManagerClass = window.TangoADB.AdbDaemonWebUsb.AdbDaemonWebUsbDeviceManager;
         const manager = DeviceManagerClass.BROWSER;

@@ -6099,6 +6099,12 @@ var TangoADB = (() => {
   _appName = new WeakMap();
 
   // js/tango-entry.js
+  // 直接导出到全局变量
+  window.Adb = esm_exports2;
+  window.AdbDaemonWebUsb = esm_exports3;
+  window.AdbCredentialWeb = esm_exports4;
+  window.StreamExtra = esm_exports;
+  // 保持兼容性
   window.TangoADB = {
     Adb: esm_exports2,
     AdbDaemonWebUsb: esm_exports3,

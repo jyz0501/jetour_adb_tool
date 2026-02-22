@@ -728,17 +728,10 @@ let checkBrowserSupportAndConnect = async () => {
             adbCredentialWeb = window.TangoADB.AdbCredentialWeb;
         } else if (window.Adb) {
             console.log('使用 window.Adb');
-            console.log('window.Adb 内容:', window.Adb);
-            console.log('window.Adb.Adb:', window.Adb.Adb);
-            
-            // window.Adb 是 esm_exports 对象，window.Adb.Adb 是一个类，直接使用不调用
-            if (window.Adb.Adb) {
-                adbApi = window.Adb.Adb;  // 直接使用类，不需要调用
-                console.log('获取到 Adb 类:', adbApi);
-                console.log('Adb.authenticate:', adbApi.authenticate);
-            } else {
-                adbApi = window.Adb;
-            }
+            // Adb 类直接可用
+            adbApi = window.Adb;
+            console.log('获取到 Adb 类:', adbApi);
+            console.log('Adb.authenticate:', adbApi.authenticate);
             adbDaemonWebUsb = window.AdbDaemonWebUsb;
             console.log('window.AdbDaemonWebUsb:', window.AdbDaemonWebUsb);
             console.log('window.AdbDaemonWebUsb.AdbDaemonWebUsbDeviceManager:', window.AdbDaemonWebUsb.AdbDaemonWebUsbDeviceManager);
@@ -817,6 +810,7 @@ let checkBrowserSupportAndConnect = async () => {
             
             // 获取所需的类
             const AdbCredentialStore = adbCredentialWeb.default;
+            const Adb = adbApi;
             const AdbDaemonTransport = adbApi.AdbDaemonTransport;
             
             // 直接使用设备的 connect 方法
@@ -826,14 +820,18 @@ let checkBrowserSupportAndConnect = async () => {
             // 创建凭据管理器
             const credentialStore = new AdbCredentialStore('Jetour ADB Tool');
             
-            // 使用 Adb.authenticate 创建 ADB 客户端
-            logDevice('正在创建 ADB 客户端...');
-            console.log('调用 adbApi.authenticate:', adbApi.authenticate);
-            const adb = await adbApi.authenticate({
+            // 使用 AdbDaemonTransport.authenticate 创建 transport
+            logDevice('正在创建 ADB 传输层...');
+            const transport = await AdbDaemonTransport.authenticate({
                 serial: webusbDevice.serial,
                 connection: connection,
                 credentialStore: credentialStore
             });
+            logDevice('ADB 传输层已创建');
+            
+            // 使用 new Adb(transport) 创建 ADB 客户端
+            logDevice('正在创建 ADB 客户端...');
+            const adb = new Adb(transport);
             logDevice('ADB 客户端已创建');
             
             // 保存连接对象到全局变量

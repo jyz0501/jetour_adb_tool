@@ -697,6 +697,7 @@ let checkBrowserSupportAndConnect = async () => {
             return;
         }
         
+        logDevice('请确认车机界面已点击"允许USB调试"');
         logDevice('使用 Tango ADB 连接设备...');
         
         // 详细调试

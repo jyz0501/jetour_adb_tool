@@ -700,6 +700,10 @@ let checkBrowserSupportAndConnect = async () => {
         
         logDevice('使用 Tango ADB 连接设备...');
         
+        // 调试：打印库状态
+        console.log('window.TangoADB:', window.TangoADB);
+        console.log('Object.keys(window):', Object.keys(window).filter(k => k.includes('Tango') || k.includes('Adb')));
+        
         // 等待库加载
         let attempts = 0;
         while (!window.TangoADB && attempts < 50) {

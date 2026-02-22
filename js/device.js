@@ -700,25 +700,33 @@ let checkBrowserSupportAndConnect = async () => {
         
         logDevice('使用 Tango ADB 连接设备...');
         
-        // 调试：打印库状态
-        console.log('window.TangoADB:', window.TangoADB);
-        console.log('Object.keys(window):', Object.keys(window).filter(k => k.includes('Tango') || k.includes('Adb')));
-        
-        // 等待库加载
+        // 等待库加载 - 直接检查原生变量
         let attempts = 0;
-        while (!window.TangoADB && attempts < 50) {
+        while (!window.Adb && !window.TangoADB && attempts < 50) {
             await new Promise(r => setTimeout(r, 100));
             attempts++;
         }
         
-        if (!window.TangoADB) {
+        // 获取 API
+        let adbApi, adbDaemonWebUsb, adbCredentialWeb;
+        
+        if (window.TangoADB) {
+            adbApi = window.TangoADB.Adb;
+            adbDaemonWebUsb = window.TangoADB.AdbDaemonWebUsb;
+            adbCredentialWeb = window.TangoADB.AdbCredentialWeb;
+        } else if (window.Adb) {
+            adbApi = window.Adb;
+            adbDaemonWebUsb = window.AdbDaemonWebUsb;
+            adbCredentialWeb = window.AdbCredentialWeb;
+        }
+        
+        if (!adbApi || !adbDaemonWebUsb) {
             logDevice('错误: Tango ADB 库未加载');
             alert('Tango ADB 库未加载，请刷新页面');
             return;
         }
         
-        // 直接使用 Tango ADB 原生 API
-        const DeviceManagerClass = window.TangoADB.AdbDaemonWebUsb.AdbDaemonWebUsbDeviceManager;
+        const DeviceManagerClass = adbDaemonWebUsb.AdbDaemonWebUsbDeviceManager;
         const manager = DeviceManagerClass.BROWSER;
         
         if (!manager) {
@@ -727,8 +735,8 @@ let checkBrowserSupportAndConnect = async () => {
             return;
         }
         
-        const Adb = window.TangoADB.Adb;
-        const AdbCredentialWeb = window.TangoADB.AdbCredentialWeb;
+        const Adb = adbApi;
+        const AdbCredentialWeb = adbCredentialWeb;
         logDevice('获取已授权设备...');
         
         // 先检查是否有已授权的设备
@@ -781,10 +789,10 @@ let checkBrowserSupportAndConnect = async () => {
             logDevice('正在创建 ADB 连接...');
             
             // 获取所需的类
-            const AdbDaemonWebUsbConnection = window.TangoADB.AdbDaemonWebUsb.AdbDaemonWebUsbConnection;
-            const AdbCredentialWeb = window.TangoADB.AdbCredentialWeb;
-            const AdbDaemonTransport = window.TangoADB.Adb.AdbDaemonTransport;
-            const Adb = window.TangoADB.Adb;
+            const AdbDaemonWebUsbConnection = adbDaemonWebUsb.AdbDaemonWebUsbConnection;
+            const AdbCredentialWeb = adbCredentialWeb;
+            const AdbDaemonTransport = adbApi.AdbDaemonTransport;
+            const Adb = adbApi;
             
             // 创建 WebUSB 连接
             const connection = await AdbDaemonWebUsbConnection.create(webusbDevice);

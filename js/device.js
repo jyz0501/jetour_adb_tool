@@ -1128,35 +1128,22 @@ let push = async (filePath, blob) => {
         try {
             log("正在推送 " + filePath + " ...");
             
-            // 使用 shell 命令推送文件
-            // 转换 blob 为 ArrayBuffer
-            const arrayBuffer = await blob.arrayBuffer();
-            const uint8Array = new Uint8Array(arrayBuffer);
-            
-            // 使用 base64 编码传输（分段处理大数组，避免栈溢出）
-            let base64Data = '';
-            const chunkSize = 16384; // 16KB chunks
-            for (let i = 0; i < uint8Array.length; i += chunkSize) {
-                const chunk = uint8Array.subarray(i, i + chunkSize);
-                // 使用手动转换，避免扩展运算符导致的栈溢出
-                let chunkStr = '';
-                for (let j = 0; j < chunk.length; j++) {
-                    chunkStr += String.fromCharCode(chunk[j]);
-                }
-                base64Data += btoa(chunkStr);
+            // 使用 sync 协议推送文件（支持大文件）
+            const sync = await window.adbClient.sync();
+            try {
+                // 推送文件
+                await sync.write({
+                    filename: filePath,
+                    file: blob,
+                    permission: 0o644
+                });
+                
+                log("推送成功: " + filePath);
+                showProgress(false);
+                return;
+            } finally {
+                await sync.close();
             }
-            
-            // 使用 shell 命令写入文件
-            // 生成临时文件路径
-            const tempFilePath = "/data/local/tmp/temp_upload_" + Date.now() + ".apk";
-            
-            // 使用 ; 连接多个命令：先写入临时文件，再移动到目标位置
-            const fullCommand = `echo '${base64Data}' | base64 -d > ${tempFilePath} ; chmod 0644 ${tempFilePath} ; mv ${tempFilePath} ${filePath}`;
-            await window.adbClient.subprocess.noneProtocol.spawnWaitText(fullCommand.split(' '));
-            
-            log("推送成功: " + filePath);
-            showProgress(false);
-            return;
         } catch (error) {
             console.error('Tango ADB push error:', error);
             log('推送失败: ' + (error.message || error.toString()));
@@ -1204,6 +1191,27 @@ let push = async (filePath, blob) => {
 
 // 执行命令
 let exec_shell = async (command) => {
+    // 检查是否有 Tango ADB 客户端
+    if (window.adbClient) {
+        clear();
+        showProgress(true);
+        log('开始执行指令: ' + command + '\n');
+        try {
+            // 使用 Tango ADB 的 subprocess.spawnWaitText
+            const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText(command.split(' '));
+            log(result);
+            showProgress(false);
+            return;
+        } catch (error) {
+            console.error('Tango ADB shell error:', error);
+            log('命令执行失败: ' + (error.message || error.toString()));
+            showProgress(false);
+            alert('命令执行失败，请断开重新尝试');
+            return;
+        }
+    }
+    
+    // 传统 ADB 设备
     if (!window.adbDevice) {
         alert("未连接到设备");
         return;

@@ -10,7 +10,7 @@ function checkBrowserSupport() {
     
     // 检查是否已连接设备
     if (!window.adbClient) {
-        alert('未连接到设备，请先点击"有线连接"按钮连接设备');
+        alert('未连接到设备，请先点击"开始连接"按钮连接设备');
         return false;
     }
     
@@ -435,7 +435,7 @@ function startAhuiApp() {
     }
     
     // 未连接设备
-    alert("未连接到设备，请先点击'有线连接'按钮连接设备");
+    alert("未连接到设备，请先点击'开始连接'按钮连接设备");
 }
 
 // 刷新应用列表

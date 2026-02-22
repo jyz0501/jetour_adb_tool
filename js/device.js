@@ -380,7 +380,7 @@ let connect = async () => {
         const selectedDevice = await showDeviceSelection(devices);
         logDevice('已选择设备: ' + selectedDevice.name);
         
-        // 3. 连接 WebUSB 设备（有线连接）
+        // 3. 连接 WebUSB 设备（开始连接）
         if (selectedDevice.type === 'WebUSB') {
             // WebUSB 设备连接
             logDevice('正在连接有线 USB 设备...');
@@ -857,11 +857,15 @@ let checkBrowserSupportAndConnect = async () => {
             logDevice('获取设备信息...');
             // 使用 noneProtocol.spawnWaitText
             const model = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.model"]);
+            const manufacturer = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.manufacturer"]);
+            const brand = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.brand"]);
             const modelName = model.trim();
             
             setDeviceName(modelName.trim());
             logDevice('===== ADB 连接成功 =====');
             logDevice('设备型号: ' + modelName.trim());
+            logDevice('设备厂商: ' + manufacturer.trim());
+            logDevice('设备品牌: ' + brand.trim());
             
             // 开始监控
             startDeviceMonitoring();
@@ -872,7 +876,7 @@ let checkBrowserSupportAndConnect = async () => {
             
             // 针对常见错误提供解决方案
             if (e.message && (e.message.includes('Unable to claim interface') || e.message.includes('Busy'))) {
-                alert('设备接口被占用！\n\n请在终端运行以下命令：\nadb kill-server\n\n然后重新点击"有线连接"按钮。');
+                alert('设备接口被占用！\n\n请在终端运行以下命令：\nadb kill-server\n\n然后重新点击"开始连接"按钮。');
                 logDevice('错误原因：USB 接口被其他程序占用');
                 logDevice('解决方案：请运行 adb kill-server');
             } else if (e.message && e.message.includes('transferOut')) {
@@ -929,7 +933,7 @@ let performWirelessConnect = async () => {
         logDevice('1. 浏览器无法直接连接TCP端口');
         logDevice('2. 无线ADB使用方式：');
         logDevice('   - 先使用USB连接设备');
-        logDevice('   - 点击"有线连接"连接设备');
+        logDevice('   - 点击"开始连接"连接设备');
         logDevice('   - 使用系统工具中的"无线ADB"功能开启端口');
         logDevice('   - 之后可使用命令行 adb connect <IP>:5555 连接');
 
@@ -985,7 +989,7 @@ let performWirelessConnect = async () => {
             logDevice('网络 ADB 设备连接失败: ' + (error.message || error.toString()));
 
             // 提供更友好的错误提示
-            alert('无法直接连接到网络ADB设备。\n\n原因：浏览器不支持TCP连接。\n\n解决方案：\n1. 使用USB有线连接\n2. 通过USB连接后使用"无线ADB"功能开启端口（供其他工具使用）');
+            alert('无法直接连接到网络ADB设备。\n\n原因：浏览器不支持TCP连接。\n\n解决方案：\n1. 使用USB开始连接\n2. 通过USB连接后使用"无线ADB"功能开启端口（供其他工具使用）');
 
             window.adbDevice = null;
             window.adbTransport = null;
@@ -1070,7 +1074,7 @@ let initDeviceDetection = async () => {
             navigator.usb.addEventListener('connect', (event) => {
                 logDevice('===== USB 设备已连接 =====');
                 logDevice(`设备: ${event.device.productName || 'USB设备'} (VID: ${event.device.vendorId}, PID: ${event.device.productId})`);
-                logDevice('请刷新页面或点击"有线连接"按钮');
+                logDevice('请刷新页面或点击"开始连接"按钮');
             });
             
             // 监听设备断开事件
@@ -1131,7 +1135,7 @@ let push = async (filePath, blob) => {
     }
     
     // 未连接设备
-    alert('未连接到设备，请先点击"有线连接"按钮连接设备');
+    alert('未连接到设备，请先点击"开始连接"按钮连接设备');
     showProgress(false);
 };
 
@@ -1158,14 +1162,14 @@ let exec_shell = async (command) => {
     }
     
     // 未连接设备
-    alert('未连接到设备，请先点击"有线连接"按钮连接设备');
+    alert('未连接到设备，请先点击"开始连接"按钮连接设备');
     showProgress(false);
 };
 
 // 优化网络传输性能
 let optimizeNetworkPerformance = async () => {
     if (!window.adbClient) {
-        alert('未连接到设备，请先点击"有线连接"按钮连接设备');
+        alert('未连接到设备，请先点击"开始连接"按钮连接设备');
         return;
     }
     
@@ -1213,7 +1217,7 @@ let execShellAndGetOutput = async (command) => {
     }
     
     // 未连接设备
-    alert('未连接到设备，请先点击"有线连接"按钮连接设备');
+    alert('未连接到设备，请先点击"开始连接"按钮连接设备');
     return "";
 };
 
@@ -1246,7 +1250,7 @@ let exec_command = async (args) => {
     }
     
     // 未连接设备
-    alert('未连接到设备，请先点击"有线连接"按钮连接设备');
+    alert('未连接到设备，请先点击"开始连接"按钮连接设备');
 };
 
 // 通过 WebRTC 获取本机局域网IP

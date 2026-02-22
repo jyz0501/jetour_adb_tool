@@ -281,7 +281,7 @@ class TcpTransport extends AdbTransport {
 
     async open() {
         // 浏览器无法直接建立TCP连接
-        throw new Error('浏览器不支持直接TCP连接。\n\n如需使用无线ADB：\n1. 先使用USB连接设备\n2. 通过"有线连接"连接设备\n3. 使用系统工具中的"无线ADB"功能开启端口\n4. 之后可使用命令行 adb connect <IP>:5555 连接');
+        throw new Error('浏览器不支持直接TCP连接。\n\n如需使用无线ADB：\n1. 先使用USB连接设备\n2. 通过"开始连接"连接设备\n3. 使用系统工具中的"无线ADB"功能开启端口\n4. 之后可使用命令行 adb connect <IP>:5555 连接');
     }
 
     async close() {

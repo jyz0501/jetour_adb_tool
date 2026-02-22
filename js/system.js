@@ -3,7 +3,7 @@
 // 开启无线ADB端口
 let wifiAdb = async () => {
     if (!window.adbClient) {
-        alert('未连接到设备，请先点击"有线连接"按钮连接设备');
+        alert('未连接到设备，请先点击"开始连接"按钮连接设备');
         return;
     }
     // 弹出确认对话框
@@ -52,7 +52,7 @@ let jcwlxz = async () => {
         return;
     }
     if (!window.adbClient) {
-        alert('未连接到设备，请先点击"有线连接"按钮连接设备');
+        alert('未连接到设备，请先点击"开始连接"按钮连接设备');
         return;
     }
 
@@ -92,7 +92,7 @@ let jcazxz = async () => {
         return;
     }
     if (!window.adbClient) {
-        alert('未连接到设备，请先点击"有线连接"按钮连接设备');
+        alert('未连接到设备，请先点击"开始连接"按钮连接设备');
         return;
     }
     let shellCommands = [

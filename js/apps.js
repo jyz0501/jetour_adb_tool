@@ -178,7 +178,7 @@ let yygj = async () => {
         let response = await fetch('https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B61.8.0%E5%85%AC%E7%AD%BE%E7%89%88.apk');
         let fileBlob = await response.blob();
         if (!(fileBlob instanceof Blob)) throw new Error('下载文件失败！！！');
-        let filePath = "/data/local/tmp/ahyygj.apk";
+        let filePath = "/data/local/tmp/yygj.apk";
         toast.style.opacity = '0';
         setTimeout(() => {
             toast.style.display = 'none';
@@ -189,9 +189,6 @@ let yygj = async () => {
         let installOutput = await execShellAndGetOutput("pm install -g -r " + filePath);
         if (installOutput.includes('Success')) {
             log('安装成功！');
-            // 暂时注释掉tcpip功能，因为新的adbDevice可能还没有实现这个方法
-            // await adbDevice.tcpip(5555);
-            // log('无线ADB已激活，端口号: 5555');
             alert("安装成功！");
         } else {
             log('安装失败！');
@@ -202,13 +199,46 @@ let yygj = async () => {
             alert("安装失败！");
         }
     } catch (error) {
-        log('安装失败！！！');
+        log('远程下载失败，将从设备选择APK文件');
         toast.style.opacity = '0';
         setTimeout(() => {
             toast.style.display = 'none';
         }, 500);
-        alert("安装失败！！！");
+        // 从设备选择APK文件
+        listDeviceApkFiles('/sdcard/Download', async (file) => {
+            await installFromDevice(file.path);
+        });
     }
+};
+
+// 从设备安装APK
+let installFromDevice = async (devicePath) => {
+    if (!window.adbClient) {
+        alert('请先连接设备');
+        return;
+    }
+    
+    clear();
+    showProgress(true);
+    log('正在安装 ' + devicePath + ' ...\n');
+    
+    try {
+        await exec_shell("setprop persist.sv.enable_adb_install 1");
+        let installOutput = await execShellAndGetOutput("pm install -g -r " + devicePath);
+        
+        if (installOutput.includes('Success')) {
+            log('安装成功！');
+            alert("安装成功！");
+        } else {
+            log('安装失败: ' + installOutput);
+            alert("安装失败！");
+        }
+    } catch (error) {
+        log('安装失败: ' + error.message);
+        alert("安装失败: " + error.message);
+    }
+    
+    showProgress(false);
 };
 
 // 一键安装应用 - 权限狗
@@ -601,6 +631,110 @@ let installApkFile = async () => {
     } finally {
         showProgress(false);
     }
+};
+
+// 列出设备上的APK文件
+let listDeviceApkFiles = async (directory, onSelect) => {
+    if (!window.adbClient) {
+        alert('请先连接设备');
+        return;
+    }
+    
+    clear();
+    showProgress(true);
+    log('正在扫描 ' + directory + ' 目录下的APK文件...\n');
+    
+    try {
+        const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText([
+            'ls', '-la', directory + '/*.apk'
+        ]);
+        
+        const lines = result.trim().split('\n').filter(line => line.endsWith('.apk'));
+        const files = lines.map(line => {
+            const parts = line.split(/\s+/);
+            const filename = parts[parts.length - 1];
+            return {
+                name: filename,
+                path: directory + '/' + filename,
+                size: parts[4]
+            };
+        });
+        
+        showProgress(false);
+        
+        if (files.length === 0) {
+            alert('未找到APK文件');
+            return;
+        }
+        
+        showApkFilePicker(files, directory, onSelect);
+        
+    } catch (error) {
+        showProgress(false);
+        alert('扫描失败: ' + error.message);
+    }
+};
+
+// 显示APK文件选择弹窗
+let showApkFilePicker = (files, currentDir, onSelect) => {
+    // 创建弹窗
+    const modal = document.createElement('div');
+    modal.id = 'apk-picker-modal';
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;justify-content:center;align-items:center;';
+    
+    const content = document.createElement('div');
+    content.style.cssText = 'background:#fff;border-radius:8px;padding:20px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto;';
+    
+    let html = '<h3 style="margin-top:0;">选择APK文件</h3>';
+    html += '<p style="color:#666;">当前目录: ' + currentDir + '</p>';
+    html += '<div style="display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;">';
+    html += '<button onclick="listDeviceApkFiles(\'/sdcard/Download\', window.currentApkSelectCallback)" style="padding:8px 12px;cursor:pointer;">下载</button>';
+    html += '<button onclick="listDeviceApkFiles(\'/sdcard\', window.currentApkSelectCallback)" style="padding:8px 12px;cursor:pointer;">存储根目录</button>';
+    html += '<button onclick="listDeviceApkFiles(\'/sdcard/Documents\', window.currentApkSelectCallback)" style="padding:8px 12px;cursor:pointer;">文档</button>';
+    html += '</div>';
+    html += '<div style="margin-bottom:15px;">';
+    html += '<input type="text" id="custom-apk-path" placeholder="输入其他目录路径" style="width:60%;padding:8px;">';
+    html += '<button onclick="var path=document.getElementById(\'custom-apk-path\').value;if(path)listDeviceApkFiles(path, window.currentApkSelectCallback)" style="padding:8px 12px;cursor:pointer;">跳转</button>';
+    html += '</div>';
+    html += '<div id="apk-file-list" style="max-height:300px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;">';
+    
+    files.forEach((file, index) => {
+        html += '<div onclick="window.selectApkFile(' + index + ')" style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px;" onmouseover="this.style.background=#f5f5f5" onmouseout="this.style.background=#fff">';
+        html += '<span style="font-size:20px;">📦</span>';
+        html += '<div><div style="font-weight:bold;">' + file.name + '</div>';
+        html += '<div style="color:#999;font-size:12px;">' + file.path + '</div></div>';
+        html += '</div>';
+    });
+    
+    html += '</div>';
+    html += '<div style="margin-top:15px;text-align:right;">';
+    html += '<button onclick="document.getElementById(\'apk-picker-modal\').remove()" style="padding:8px 16px;cursor:pointer;margin-right:10px;">取消</button>';
+    html += '<button id="confirm-apk-btn" onclick="window.confirmApkSelect()" disabled style="padding:8px 16px;cursor:pointer;background:#28a745;color:#fff;border:none;border-radius:4px;">确定</button>';
+    html += '</div>';
+    
+    content.innerHTML = html;
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+    
+    // 存储文件和回调
+    window.apkFileList = files;
+    window.currentApkSelectCallback = onSelect;
+    
+    // 全局选择函数
+    window.selectApkFile = (index) => {
+        document.querySelectorAll('#apk-file-list > div').forEach(d => d.style.background = '#fff');
+        document.querySelectorAll('#apk-file-list > div')[index].style.background = '#e3f2fd';
+        window.selectedApkIndex = index;
+        document.getElementById('confirm-apk-btn').disabled = false;
+    };
+    
+    window.confirmApkSelect = () => {
+        if (window.selectedApkIndex !== undefined && window.currentApkSelectCallback) {
+            const file = window.apkFileList[window.selectedApkIndex];
+            modal.remove();
+            window.currentApkSelectCallback(file);
+        }
+    };
 };
 
 // 导出函数

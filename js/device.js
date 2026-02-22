@@ -4,6 +4,43 @@
 // 全局变量
 window.adbDevice = null;
 window.adbTransport = null;
+window.tangoReady = false;
+window.tangoApi = null;
+
+// 等待 Tango ADB 库加载
+const waitForTangoLib = () => {
+    return new Promise((resolve) => {
+        let attempts = 0;
+        const maxAttempts = 50;
+        
+        const check = () => {
+            attempts++;
+            
+            if (typeof window.TangoADB !== 'undefined' && window.TangoADB && window.TangoADB.Adb) {
+                window.tangoReady = true;
+                window.tangoApi = window.TangoADB;
+                console.log('Tango ADB 库已加载');
+                resolve(true);
+                return;
+            }
+            
+            if (attempts < maxAttempts) {
+                setTimeout(check, 100);
+            } else {
+                console.log('Tango ADB 库加载超时');
+                resolve(false);
+            }
+        };
+        
+        check();
+    });
+};
+
+// 页面加载时等待库加载
+window.addEventListener('load', async () => {
+    console.log('等待 Tango ADB 库加载...');
+    await waitForTangoLib();
+});
 
 // 设备日志记录
 function logDevice(message) {
@@ -700,75 +737,30 @@ let checkBrowserSupportAndConnect = async () => {
         
         logDevice('使用 Tango ADB (ya-webadb) 库连接设备...');
         
-        // 使用轮询等待库加载完成
-        const waitForTango = () => {
-            return new Promise((resolve) => {
-                let attempts = 0;
-                const maxAttempts = 20;
-                
-                const check = () => {
-                    attempts++;
-                    logDevice('检查库加载... (' + attempts + ')');
-                    
-                    // 方法1: 检查 window.TangoADB
-                    if (typeof window.TangoADB !== 'undefined' && window.TangoADB && window.TangoADB.Adb) {
-                        logDevice('从 window.TangoADB 获取成功');
-                        
-                        const DeviceManagerClass = window.TangoADB.AdbDaemonWebUsb?.AdbDaemonWebUsbDeviceManager;
-                        const manager = DeviceManagerClass?.BROWSER;
-                        
-                        resolve({
-                            Adb: window.TangoADB.Adb,
-                            AdbDaemonWebUsbDeviceManager: manager,
-                            AdbCredentialWeb: window.TangoADB.AdbCredentialWeb
-                        });
-                        return;
-                    }
-                    
-                    // 方法2: 检查独立全局变量
-                    if (typeof window.Adb !== 'undefined' && typeof window.AdbDaemonWebUsb !== 'undefined') {
-                        logDevice('从独立全局变量获取');
-                        const DeviceManagerClass = window.AdbDaemonWebUsb.AdbDaemonWebUsbDeviceManager;
-                        const manager = DeviceManagerClass?.BROWSER;
-                        
-                        resolve({
-                            Adb: window.Adb,
-                            AdbDaemonWebUsbDeviceManager: manager,
-                            AdbCredentialWeb: window.AdbCredentialWeb
-                        });
-                        return;
-                    }
-                    
-                    if (attempts < maxAttempts) {
-                        setTimeout(check, 100);
-                    } else {
-                        logDevice('库加载超时');
-                        resolve(null);
-                    }
-                };
-                
-                check();
-            });
-        };
-        
-        const tango = await waitForTango();
-        
-        if (!tango || !tango.AdbDaemonWebUsbDeviceManager) {
-            logDevice('错误: Tango ADB 库未加载');
-            alert('Tango ADB 库未加载，请刷新页面重试');
-            return;
+        // 使用页面加载时已准备好的库
+        if (!window.tangoReady || !window.tangoApi) {
+            logDevice('等待库加载...');
+            const ready = await waitForTangoLib();
+            if (!ready) {
+                logDevice('错误: Tango ADB 库未加载');
+                alert('Tango ADB 库未加载，请刷新页面重试');
+                return;
+            }
         }
         
-        const { Adb, AdbDaemonWebUsbDeviceManager, AdbCredentialWeb } = tango;
-        logDevice('Tango ADB API 准备就绪');
+        const tangoApi = window.tangoApi;
+        const DeviceManagerClass = tangoApi.AdbDaemonWebUsb?.AdbDaemonWebUsbDeviceManager;
+        const manager = DeviceManagerClass?.BROWSER;
         
-        // 获取设备管理器
-        const manager = AdbDaemonWebUsbDeviceManager.BROWSER;
         if (!manager) {
             logDevice('错误: 浏览器不支持 WebUSB');
             alert('您的浏览器不支持 WebUSB，请使用 Chrome 或 Edge 浏览器');
             return;
         }
+        
+        const Adb = tangoApi.Adb;
+        const AdbCredentialWeb = tangoApi.AdbCredentialWeb;
+        logDevice('Tango ADB API 准备就绪');
         
         // 先检查是否有已授权的设备
         let existingDevices = [];

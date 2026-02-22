@@ -6100,7 +6100,15 @@ var TangoADB = (() => {
 
   // js/tango-entry.js
   // 直接导出类而不是 exports 对象
-  window.Adb = Adb;
+  window.Adb = {
+    Adb: Adb,
+    AdbDaemonTransport: AdbDaemonTransport,
+    AdbAuthType: AdbAuthType,
+    AdbFeature: AdbFeature,
+    AdbCommand: AdbCommand,
+    AdbBanner: AdbBanner,
+    AdbPacket: AdbPacket
+  };
   // AdbDaemonWebUsb 是从 esm_exports3 导出的命名空间
   window.AdbDaemonWebUsb = {
     AdbDaemonWebUsbConnection: AdbDaemonWebUsbConnection,

@@ -810,8 +810,12 @@ let checkBrowserSupportAndConnect = async () => {
             
             // 获取所需的类
             const AdbCredentialStore = adbCredentialWeb.default;
-            const Adb = adbApi;
-            const AdbDaemonTransport = adbApi.AdbDaemonTransport;
+            // Adb 是一个命名空间
+            const AdbNamespace = adbApi;
+            const Adb = AdbNamespace.Adb;
+            const AdbDaemonTransport = AdbNamespace.AdbDaemonTransport;
+            console.log('AdbDaemonTransport:', AdbDaemonTransport);
+            console.log('AdbDaemonTransport.authenticate:', AdbDaemonTransport?.authenticate);
             
             // 直接使用设备的 connect 方法
             const connection = await webusbDevice.connect();

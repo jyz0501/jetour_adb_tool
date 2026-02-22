@@ -719,6 +719,10 @@ let checkBrowserSupportAndConnect = async () => {
         
         if (window.TangoADB) {
             console.log('使用 window.TangoADB');
+            console.log('window.TangoADB:', window.TangoADB);
+            console.log('window.TangoADB.Adb:', window.TangoADB.Adb);
+            console.log('window.TangoADB.AdbDaemonWebUsb:', window.TangoADB.AdbDaemonWebUsb);
+            console.log('window.TangoADB.AdbCredentialWeb:', window.TangoADB.AdbCredentialWeb);
             adbApi = window.TangoADB.Adb;
             adbDaemonWebUsb = window.TangoADB.AdbDaemonWebUsb;
             adbCredentialWeb = window.TangoADB.AdbCredentialWeb;
@@ -736,7 +740,10 @@ let checkBrowserSupportAndConnect = async () => {
                 adbApi = window.Adb;
             }
             adbDaemonWebUsb = window.AdbDaemonWebUsb;
+            console.log('window.AdbDaemonWebUsb:', window.AdbDaemonWebUsb);
+            console.log('window.AdbDaemonWebUsb.AdbDaemonWebUsbDeviceManager:', window.AdbDaemonWebUsb.AdbDaemonWebUsbDeviceManager);
             adbCredentialWeb = window.AdbCredentialWeb;
+            console.log('window.AdbCredentialWeb:', window.AdbCredentialWeb);
         } else {
             console.log('未找到任何 API');
         }

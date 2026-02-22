@@ -1130,20 +1130,16 @@ let push = async (filePath, blob) => {
             
             // 使用 sync 协议推送文件（支持大文件）
             const sync = await window.adbClient.sync();
-            try {
-                // 推送文件
-                await sync.write({
-                    filename: filePath,
-                    file: blob,
-                    permission: 0o644
-                });
-                
-                log("推送成功: " + filePath);
-                showProgress(false);
-                return;
-            } finally {
-                await sync.close();
-            }
+            // 推送文件
+            await sync.write({
+                filename: filePath,
+                file: blob,
+                permission: 0o644
+            });
+            
+            log("推送成功: " + filePath);
+            showProgress(false);
+            return;
         } catch (error) {
             console.error('Tango ADB push error:', error);
             log('推送失败: ' + (error.message || error.toString()));

@@ -164,7 +164,7 @@ let sfgj = async () => {
     }
 };
 
-// 一键安装应用 - 大伦应用管家
+// 一键安装应用 - 应用管家
 let yygj = async () => {
     if (!checkBrowserSupport()) {
         return;
@@ -174,10 +174,10 @@ let yygj = async () => {
     toast.style.opacity = '1';
     toast.style.display = 'block';
     try {
-        // 使用本地APK文件
-        let response = await fetch('apk/应用管家1.8.3.apk');
+        // 从远程URL下载APK
+        let response = await fetch('https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B61.8.0%E5%85%AC%E7%AD%BE%E7%89%88.apk');
         let fileBlob = await response.blob();
-        if (!(fileBlob instanceof Blob)) throw new Error('读取文件失败！！！');
+        if (!(fileBlob instanceof Blob)) throw new Error('下载文件失败！！！');
         let filePath = "/data/local/tmp/ahyygj.apk";
         toast.style.opacity = '0';
         setTimeout(() => {

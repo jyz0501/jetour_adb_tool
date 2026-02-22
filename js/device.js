@@ -700,6 +700,13 @@ let checkBrowserSupportAndConnect = async () => {
         
         logDevice('使用 Tango ADB 连接设备...');
         
+        // 详细调试
+        console.log('点击时检查:');
+        console.log('  window.TangoADB:', window.TangoADB);
+        console.log('  window.Adb:', window.Adb);
+        console.log('  window.AdbDaemonWebUsb:', window.AdbDaemonWebUsb);
+        console.log('  window keys with Adb:', Object.keys(window).filter(k => k.toLowerCase().includes('adb')));
+        
         // 等待库加载 - 直接检查原生变量
         let attempts = 0;
         while (!window.Adb && !window.TangoADB && attempts < 50) {
@@ -711,13 +718,17 @@ let checkBrowserSupportAndConnect = async () => {
         let adbApi, adbDaemonWebUsb, adbCredentialWeb;
         
         if (window.TangoADB) {
+            console.log('使用 window.TangoADB');
             adbApi = window.TangoADB.Adb;
             adbDaemonWebUsb = window.TangoADB.AdbDaemonWebUsb;
             adbCredentialWeb = window.TangoADB.AdbCredentialWeb;
         } else if (window.Adb) {
+            console.log('使用 window.Adb');
             adbApi = window.Adb;
             adbDaemonWebUsb = window.AdbDaemonWebUsb;
             adbCredentialWeb = window.AdbCredentialWeb;
+        } else {
+            console.log('未找到任何 API');
         }
         
         if (!adbApi || !adbDaemonWebUsb) {

@@ -417,7 +417,7 @@ function startAhuiApp() {
         try {
             // 使用 Tango ADB 执行启动命令
             window.adbClient.subprocess.noneProtocol.spawnWaitText([
-                'am', 'start', '-n', 'com.oneplus.launcher/com.oneplus.launcher.Launcher'
+                'am', 'start', '-n', 'com.mcar.auto/com.mcar.auto'
             ]).then(result => {
                 log(result);
                 showProgress(false);

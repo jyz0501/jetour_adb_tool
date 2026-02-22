@@ -183,7 +183,7 @@
                     <!-- 常用应用启动按钮 -->
                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
                         <button class="btn btn-connect" onclick="startAhuiApp()" style="flex-shrink: 0; background-color: #28a745;">启动应用管家</button>
-                        <button class="btn btn-connect" onclick="exec_shell('monkey -p com.oversea.aslauncher -c android.intent.category.LAUNCHER 1')" style="flex-shrink: 0;">启动桌面</button>
+                        <button class="btn btn-connect" onclick="exec_shell('am start -n com.mcar.auto/com.mcar.auto')" style="flex-shrink: 0;">启动氢桌面</button>
                         <button class="btn btn-connect" onclick="exec_shell('monkey -p com.android.settings -c android.intent.category.LAUNCHER 1')" style="flex-shrink: 0;">启动设置</button>
                         <button class="btn btn-connect" onclick="exec_shell('am start -W -n com.hzsoft.sidebar/.MainActivity')" style="flex-shrink: 0;">启动侧边栏</button>
                     </div>

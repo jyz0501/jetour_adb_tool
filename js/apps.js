@@ -185,7 +185,7 @@ let yygj = async () => {
         }, 500);
         await exec_shell("setprop persist.sv.enable_adb_install 1");
         await push(filePath, fileBlob);
-        log('正在安装 大伦应用管家 ...');
+        log('正在安装 应用管家 ...');
         let installOutput = await execShellAndGetOutput("pm install -g -r " + filePath);
         if (installOutput.includes('Success')) {
             log('安装成功！');

@@ -1003,9 +1003,12 @@ let startDeviceMonitoring = () => {
     // 每5秒检测一次设备状态
     deviceMonitoringInterval = setInterval(async () => {
         try {
-            if (window.adbDevice && window.adbDevice.connected) {
-                // 可以执行一些简单的命令来检测设备是否仍然响应
-                // 例如，获取设备状态
+            // 检测 window.adbClient (Tango ADB) 或 window.adbDevice
+            if (window.adbClient) {
+                // 尝试执行一个简单命令来检测连接
+                await window.adbClient.getAdbDaemonVersion();
+                logDevice('设备状态: 已连接');
+            } else if (window.adbDevice && window.adbDevice.connected) {
                 logDevice('设备状态: 已连接');
             } else {
                 logDevice('设备状态: 已断开');
@@ -1013,7 +1016,7 @@ let startDeviceMonitoring = () => {
                 stopDeviceMonitoring();
             }
         } catch (error) {
-            logDevice('设备监控失败: ' + (error.message || error.toString()));
+            logDevice('设备状态: 已断开');
             setDeviceName(null);
             stopDeviceMonitoring();
         }

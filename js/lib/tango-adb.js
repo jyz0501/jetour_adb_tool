@@ -6101,18 +6101,36 @@ var TangoADB = (() => {
   // js/tango-entry.js
   // 直接导出类而不是 exports 对象
   window.Adb = Adb;
-  window.AdbDaemonWebUsb = AdbDaemonWebUsb;
-  window.AdbCredentialWeb = AdbCredentialWeb;
+  // AdbDaemonWebUsb 是从 esm_exports3 导出的命名空间
+  window.AdbDaemonWebUsb = {
+    AdbDaemonWebUsbConnection: AdbDaemonWebUsbConnection,
+    AdbDaemonWebUsbDevice: AdbDaemonWebUsbDevice,
+    AdbDaemonWebUsbDeviceManager: AdbDaemonWebUsbDeviceManager,
+    AdbDaemonWebUsbDeviceObserver: AdbDaemonWebUsbDeviceObserver,
+    AdbDefaultInterfaceFilter: AdbDefaultInterfaceFilter,
+    findUsbEndpoints: findUsbEndpoints,
+    findUsbInterface: findUsbInterface,
+    getSerialNumber: getSerialNumber,
+    isErrorName: isErrorName,
+    isUsbInterfaceFilter: isUsbInterfaceFilter,
+    matchFilter: matchFilter,
+    matchFilters: matchFilters,
+    mergeDefaultAdbInterfaceFilter: mergeDefaultAdbInterfaceFilter
+  };
+  window.AdbCredentialWeb = {
+    default: AdbWebCredentialStore
+  };
   window.StreamExtra = esm_exports;
   // 保持兼容性
   window.TangoADB = {
     Adb: Adb,
-    AdbDaemonWebUsb: AdbDaemonWebUsb,
-    AdbCredentialWeb: AdbCredentialWeb,
+    AdbDaemonWebUsb: window.AdbDaemonWebUsb,
+    AdbCredentialWeb: window.AdbCredentialWeb,
     StreamExtra: esm_exports
   };
   console.log("Tango ADB loaded:", Object.keys(window.TangoADB));
   console.log("Adb class:", Adb);
   console.log("Adb.authenticate:", Adb.authenticate);
+  console.log("AdbDaemonWebUsb:", window.AdbDaemonWebUsb);
 })();
 //# sourceMappingURL=tango-adb.js.map

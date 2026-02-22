@@ -757,7 +757,6 @@ let checkBrowserSupportAndConnect = async () => {
             return;
         }
         
-        const Adb = adbApi;
         const AdbCredentialWeb = adbCredentialWeb;
         logDevice('获取已授权设备...');
         
@@ -813,7 +812,6 @@ let checkBrowserSupportAndConnect = async () => {
             // 获取所需的类
             const AdbCredentialStore = adbCredentialWeb.default;
             const AdbDaemonTransport = adbApi.AdbDaemonTransport;
-            const Adb = adbApi;
             
             // 直接使用设备的 connect 方法
             const connection = await webusbDevice.connect();
@@ -824,7 +822,8 @@ let checkBrowserSupportAndConnect = async () => {
             
             // 使用 Adb.authenticate 创建 ADB 客户端
             logDevice('正在创建 ADB 客户端...');
-            const adb = await Adb.authenticate({
+            console.log('调用 adbApi.authenticate:', adbApi.authenticate);
+            const adb = await adbApi.authenticate({
                 serial: webusbDevice.serial,
                 connection: connection,
                 credentialStore: credentialStore

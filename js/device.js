@@ -819,15 +819,30 @@ let checkBrowserSupportAndConnect = async () => {
             const webusbDevice = existingDevices[0];
             logDevice('设备: ' + webusbDevice.name + ' (Serial: ' + webusbDevice.serial + ')');
             
-            // 连接到 ADB daemon
-            logDevice('正在连接 ADB daemon...');
-            const connection = await webusbDevice.connect();
-            logDevice('ADB daemon 连接已建立');
+            // 使用 Tango ADB 的 API 创建连接
+            logDevice('正在创建 ADB 连接...');
+            
+            // 获取所需的类
+            const AdbDaemonWebUsbConnection = window.TangoADB.AdbDaemonWebUsb.AdbDaemonWebUsbConnection;
+            const AdbCredentialWeb = window.TangoADB.AdbCredentialWeb;
+            const AdbDaemonTransport = window.TangoADB.Adb.AdbDaemonTransport;
+            const Adb = window.TangoADB.Adb;
+            
+            // 创建 WebUSB 连接
+            const connection = await AdbDaemonWebUsbConnection.create(webusbDevice);
+            logDevice('WebUSB 连接已建立');
+            
+            // 创建凭据管理器
+            const credentialStore = new AdbCredentialWeb('Jetour ADB Tool');
+            
+            // 创建传输层
+            const transport = new AdbDaemonTransport(connection, credentialStore);
+            logDevice('ADB 传输层已创建');
             
             // 创建 ADB 客户端
             logDevice('正在创建 ADB 客户端...');
-            const credentialManager = new AdbCredentialWeb.Manager();
-            const adb = new Adb(connection, credentialManager);
+            const adb = await Adb.authenticate(transport);
+            logDevice('ADB 客户端已创建');
             
             // 保存连接对象到全局变量
             window.adbClient = adb;

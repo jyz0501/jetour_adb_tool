@@ -1148,40 +1148,8 @@ let push = async (filePath, blob) => {
         }
     }
     
-    // 传统 ADB 设备
-    if (!window.adbDevice) {
-        alert("未连接到设备");
-        return;
-    }
-    
-    clear();
-    showProgress(true);
-    try {
-        log("正在推送 " + filePath + " ...");
-        
-        // 转换 blob 为 ArrayBuffer
-        const arrayBuffer = await blob.arrayBuffer();
-        
-        // 使用新的 sync 协议推送
-        const syncStream = await window.adbDevice.sync();
-        try {
-            // 这里需要实现完整的 sync 协议
-            // 暂时使用简单的 shell 命令推送
-            const shellStream = await window.adbDevice.shell(`cat > ${filePath} && chmod 0644 ${filePath}`);
-            try {
-                await shellStream.send(arrayBuffer);
-                await shellStream.close();
-                log("推送成功！");
-            } finally {
-                await shellStream.close();
-            }
-        } finally {
-            await syncStream.close();
-        }
-    } catch (error) {
-        log('推送失败:', error);
-        alert("推送失败，请断开重新尝试。");
-    }
+    // 未连接设备
+    alert('未连接到设备，请先点击"有线连接"按钮连接设备');
     showProgress(false);
 };
 
@@ -1202,47 +1170,20 @@ let exec_shell = async (command) => {
             console.error('Tango ADB shell error:', error);
             log('命令执行失败: ' + (error.message || error.toString()));
             showProgress(false);
-            alert('命令执行失败，请断开重新尝试');
+            alert('命令执行失败，请检查命令是否正确');
             return;
         }
     }
     
-    // 传统 ADB 设备
-    if (!window.adbDevice) {
-        alert("未连接到设备");
-        return;
-    }
-    if (!command) {
-        return;
-    }
-    
-    clear();
-    showProgress(true);
-    log('开始执行指令: ' + command + '\n');
-    
-    try {
-        const shellStream = await window.adbDevice.shell(command);
-        try {
-            let data;
-            while ((data = await shellStream.receive()) !== null) {
-                const decoder = new TextDecoder('utf-8');
-                const txt = decoder.decode(data);
-                log(txt);
-            }
-        } finally {
-            await shellStream.close();
-        }
-    } catch (error) {
-        log('命令执行失败:', error);
-        console.error("命令执行失败，请断开重新尝试");
-    }
+    // 未连接设备
+    alert('未连接到设备，请先点击"有线连接"按钮连接设备');
     showProgress(false);
 };
 
 // 优化网络传输性能
 let optimizeNetworkPerformance = async () => {
-    if (!window.adbDevice) {
-        alert("未连接到设备");
+    if (!window.adbClient) {
+        alert('未连接到设备，请先点击"有线连接"按钮连接设备');
         return;
     }
     
@@ -1289,39 +1230,41 @@ let execShellAndGetOutput = async (command) => {
         }
     }
     
-    // 传统 ADB 设备
-    if (!window.adbDevice) {
-        alert("未连接到设备");
-        return "";
-    }
-    if (!command) {
-        return "";
-    }
-    
-    let output = "";
-    try {
-        const shellStream = await window.adbDevice.shell(command);
-        try {
-            let data;
-            while ((data = await shellStream.receive()) !== null) {
-                const decoder = new TextDecoder('utf-8');
-                const txt = decoder.decode(data);
-                output += txt;
-                log(txt); // 同时输出到日志
-            }
-        } finally {
-            await shellStream.close();
-        }
-    } catch (error) {
-        log('命令执行失败:', error);
-        throw error;
-    }
-    return output;
+    // 未连接设备
+    alert('未连接到设备，请先点击"有线连接"按钮连接设备');
+    return "";
 };
 
 // 手动执行命令
 let exec_command = async (args) => {
-    exec_shell(document.getElementById('shell').value);
+    const command = document.getElementById('shell').value;
+    if (!command) {
+        alert('请输入命令');
+        return;
+    }
+    
+    // 检查是否有 Tango ADB 客户端
+    if (window.adbClient) {
+        clear();
+        showProgress(true);
+        log('开始执行指令: ' + command + '\n');
+        try {
+            // 使用 Tango ADB 的 subprocess.spawnWaitText
+            const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText(command.split(' '));
+            log(result);
+            showProgress(false);
+            return;
+        } catch (error) {
+            console.error('Tango ADB shell error:', error);
+            log('命令执行失败: ' + (error.message || error.toString()));
+            showProgress(false);
+            alert('命令执行失败，请检查命令是否正确');
+            return;
+        }
+    }
+    
+    // 未连接设备
+    alert('未连接到设备，请先点击"有线连接"按钮连接设备');
 };
 
 // 通过 WebRTC 获取本机局域网IP

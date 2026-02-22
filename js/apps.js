@@ -7,16 +7,19 @@ function checkBrowserSupport() {
         alert('检测到您的浏览器不支持，请根据顶部的 "警告提示" 更换指定浏览器使用。');
         return false;
     }
+    
+    // 检查是否已连接设备
+    if (!window.adbClient) {
+        alert('未连接到设备，请先点击"有线连接"按钮连接设备');
+        return false;
+    }
+    
     return true;
 }
 
 // 一键安装应用 - 虚拟返回键
 let xnfhj = async () => {
     if (!checkBrowserSupport()) {
-        return;
-    }
-    if (!window.adbDevice) {
-        alert("未连接到设备");
         return;
     }
     clear();
@@ -57,10 +60,6 @@ let xnfhj = async () => {
 // 一键安装应用 - 一键清理
 let yjql = async () => {
     if (!checkBrowserSupport()) {
-        return;
-    }
-    if (!window.adbDevice) {
-        alert("未连接到设备");
         return;
     }
     clear();
@@ -129,10 +128,6 @@ let yjql = async () => {
 // 一键安装应用 - 沙发管家HD
 let sfgj = async () => {
     if (!checkBrowserSupport()) {
-        return;
-    }
-    if (!window.adbDevice) {
-        alert("未连接到设备");
         return;
     }
     clear();
@@ -221,10 +216,6 @@ let qxg = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
-    if (!window.adbDevice) {
-        alert("未连接到设备");
-        return;
-    }
     clear();
     let toast = document.getElementById('downloading-toast');
     toast.style.opacity = '1';
@@ -263,10 +254,6 @@ let qxg = async () => {
 // 一键安装应用 - 无障碍管理器
 let wzagl = async () => {
     if (!checkBrowserSupport()) {
-        return;
-    }
-    if (!window.adbDevice) {
-        alert("未连接到设备");
         return;
     }
     clear();
@@ -309,10 +296,6 @@ let fhcdj = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
-    if (!window.adbDevice) {
-        alert("未连接到设备");
-        return;
-    }
     clear();
     let toast = document.getElementById('downloading-toast');
     toast.style.opacity = '1';
@@ -351,10 +334,6 @@ let fhcdj = async () => {
 // 一键安装应用 - 氢桌面
 let qzm = async () => {
     if (!checkBrowserSupport()) {
-        return;
-    }
-    if (!window.adbDevice) {
-        alert("未连接到设备");
         return;
     }
     clear();
@@ -428,23 +407,40 @@ let cdb = async () => {
     }
 };
 
-// 启动阿辉应用管家
+// 启动应用管家
 function startAhuiApp() {
-    if (!window.adbDevice) {
-        alert("未连接到设备");
+    // 检查是否有 Tango ADB 客户端
+    if (window.adbClient) {
+        clear();
+        showProgress(true);
+        log('开始启动应用管家...\n');
+        try {
+            // 使用 Tango ADB 执行启动命令
+            window.adbClient.subprocess.noneProtocol.spawnWaitText([
+                'am', 'start', '-n', 'com.yunpan.appmanage.ui.HomeActivity'
+            ]).then(result => {
+                log(result);
+                showProgress(false);
+            }).catch(error => {
+                console.error('启动应用管家失败:', error);
+                log('启动失败: ' + (error.message || error.toString()));
+                showProgress(false);
+            });
+        } catch (error) {
+            console.error('启动应用管家失败:', error);
+            log('启动失败: ' + (error.message || error.toString()));
+            showProgress(false);
+        }
         return;
     }
-    exec_shell('pm list packages | grep com.ahcjzsdzb && am start -n com.ahcjzsdzb/com.yunpan.appmanage.ui.HomeActivity || ' +
-               'pm list packages | grep com.ahcjzs && am start -n com.ahcjzs/com.yunpan.appmanage.ui.HomeActivity');
+    
+    // 未连接设备
+    alert("未连接到设备，请先点击'有线连接'按钮连接设备");
 }
 
 // 刷新应用列表
 let loadPackageList = async () => {
     if (!checkBrowserSupport()) {
-        return;
-    }
-    if (!window.adbDevice) {
-        alert("未连接到设备");
         return;
     }
     // 弹出确认对话框
@@ -456,14 +452,9 @@ let loadPackageList = async () => {
     showProgress(true);
     var packageContent = "";
     try {
-        let shell = await window.adbDevice.shell("pm list packages -3"); // 显示第三方应用
-        let r = await shell.receive();
-        while (r.data != null) {
-            let decoder = new TextDecoder('utf-8');
-            packageContent += decoder.decode(r.data);
-            r = await shell.receive();
-        }
-        await shell.close();
+        // 使用 Tango ADB 执行命令获取包列表
+        const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText(["pm", "list", "packages", "-3"]);
+        packageContent = result;
     } catch (error) {
         log(error);
     }
@@ -574,10 +565,6 @@ function initFileInput() {
 // 安装自选apk
 let installApkFile = async () => {
     if (!checkBrowserSupport()) {
-        return;
-    }
-    if (!window.adbDevice) {
-        alert("未连接到设备");
         return;
     }
     const input = document.getElementById('apkFile');

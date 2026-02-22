@@ -727,9 +727,9 @@ let checkBrowserSupportAndConnect = async () => {
             console.log('window.Adb 内容:', window.Adb);
             console.log('window.Adb.Adb:', window.Adb.Adb);
             
-            // window.Adb 是 esm_exports 对象，需要通过 .Adb() 调用 getter 获取真正的类
+            // window.Adb 是 esm_exports 对象，window.Adb.Adb 是一个类，直接使用不调用
             if (window.Adb.Adb) {
-                adbApi = window.Adb.Adb();  // 调用 getter 函数
+                adbApi = window.Adb.Adb;  // 直接使用类，不需要调用
                 console.log('获取到 Adb 类:', adbApi);
                 console.log('Adb.authenticate:', adbApi.authenticate);
             } else {

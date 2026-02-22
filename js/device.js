@@ -38,6 +38,7 @@ const waitForTangoLib = () => {
 
 // 页面加载时等待库加载
 window.addEventListener('load', async () => {
+    console.log('===== 版本 2025.02.22-1 =====');
     console.log('等待 Tango ADB 库加载...');
     await waitForTangoLib();
 });

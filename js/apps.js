@@ -407,27 +407,27 @@ let cdb = async () => {
     }
 };
 
-// 启动氢桌面
+// 启动应用管家
 function startAhuiApp() {
     // 检查是否有 Tango ADB 客户端
     if (window.adbClient) {
         clear();
         showProgress(true);
-        log('开始启动氢桌面...\n');
+        log('开始启动应用管家...\n');
         try {
             // 使用 Tango ADB 执行启动命令
             window.adbClient.subprocess.noneProtocol.spawnWaitText([
-                'am', 'start', '-n', 'com.mcar.auto/com.mcar.auto'
+                'am', 'start', '-n', 'com.yunpan.appmanage.ui.HomeActivity'
             ]).then(result => {
                 log(result);
                 showProgress(false);
             }).catch(error => {
-                console.error('启动氢桌面失败:', error);
+                console.error('启动应用管家失败:', error);
                 log('启动失败: ' + (error.message || error.toString()));
                 showProgress(false);
             });
         } catch (error) {
-            console.error('启动氢桌面失败:', error);
+            console.error('启动应用管家失败:', error);
             log('启动失败: ' + (error.message || error.toString()));
             showProgress(false);
         }

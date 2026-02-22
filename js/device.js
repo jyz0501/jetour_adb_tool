@@ -8,6 +8,15 @@ window.adbTransport = null;
 // 设备日志记录
 function logDevice(message) {
     console.log(message);
+    const importantKeywords = ['连接', '成功', '失败', '断开', '授权', '允许', '错误', '请在'];
+    const isImportant = importantKeywords.some(keyword => message.includes(keyword));
+    if (isImportant) {
+        const logElement = document.getElementById('device-log');
+        if (logElement) {
+            logElement.textContent += message + '\n';
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+    }
 }
 
 // 清除设备日志

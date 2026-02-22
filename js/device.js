@@ -1,51 +1,9 @@
 // 设备管理相关功能
-// 参考 Tango ADB 的架构设计
+// 使用 Tango ADB 原生 API
 
 // 全局变量
 window.adbDevice = null;
 window.adbTransport = null;
-window.tangoReady = false;
-window.tangoApi = null;
-
-// 等待 Tango ADB 库加载
-const waitForTangoLib = () => {
-    return new Promise((resolve) => {
-        let attempts = 0;
-        const maxAttempts = 50;
-        
-        const check = () => {
-            attempts++;
-            
-            if (typeof window.TangoADB !== 'undefined' && window.TangoADB && window.TangoADB.Adb) {
-                window.tangoReady = true;
-                window.tangoApi = window.TangoADB;
-                console.log('Tango ADB 库已加载');
-                resolve(true);
-                return;
-            }
-            
-            if (attempts < maxAttempts) {
-                setTimeout(check, 100);
-            } else {
-                console.log('Tango ADB 库加载超时');
-                resolve(false);
-            }
-        };
-        
-        check();
-    });
-};
-
-// 页面加载时等待库加载
-window.addEventListener('load', async () => {
-    console.log('===== 版本 2025.02.22-1 =====');
-    logDevice('===== 版本 2025.02.22-1 =====');
-    console.log('等待 Tango ADB 库加载...');
-    await waitForTangoLib();
-    if (window.tangoReady) {
-        logDevice('Tango ADB 库已就绪');
-    }
-});
 
 // 设备日志记录
 function logDevice(message) {
@@ -740,27 +698,11 @@ let checkBrowserSupportAndConnect = async () => {
             return;
         }
         
-        logDevice('使用 Tango ADB (ya-webadb) 库连接设备...');
+        logDevice('使用 Tango ADB 连接设备...');
         
-        // 添加到设备日志
-        logDevice('步骤1: 检查库状态 - tangoReady=' + window.tangoReady);
-        
-        // 使用页面加载时已准备好的库
-        if (!window.tangoReady || !window.tangoApi) {
-            logDevice('等待库加载...');
-            const ready = await waitForTangoLib();
-            if (!ready) {
-                logDevice('错误: Tango ADB 库未加载');
-                alert('Tango ADB 库未加载，请刷新页面重试');
-                return;
-            }
-        }
-        
-        logDevice('步骤2: 库已就绪，获取设备管理器');
-        
-        const tangoApi = window.tangoApi;
-        const DeviceManagerClass = tangoApi.AdbDaemonWebUsb?.AdbDaemonWebUsbDeviceManager;
-        const manager = DeviceManagerClass?.BROWSER;
+        // 直接使用 Tango ADB 原生 API
+        const DeviceManagerClass = window.TangoADB.AdbDaemonWebUsb.AdbDaemonWebUsbDeviceManager;
+        const manager = DeviceManagerClass.BROWSER;
         
         if (!manager) {
             logDevice('错误: 浏览器不支持 WebUSB');
@@ -768,9 +710,9 @@ let checkBrowserSupportAndConnect = async () => {
             return;
         }
         
-        const Adb = tangoApi.Adb;
-        const AdbCredentialWeb = tangoApi.AdbCredentialWeb;
-        logDevice('Tango ADB API 准备就绪');
+        const Adb = window.TangoADB.Adb;
+        const AdbCredentialWeb = window.TangoADB.AdbCredentialWeb;
+        logDevice('获取已授权设备...');
         
         // 先检查是否有已授权的设备
         let existingDevices = [];
@@ -785,18 +727,15 @@ let checkBrowserSupportAndConnect = async () => {
         
         // 如果没有已授权设备，尝试请求用户选择
         if (existingDevices.length === 0) {
-            logDevice('没有发现已授权设备，尝试请求设备选择...');
+            logDevice('没有已授权设备，弹出浏览器设备选择框...');
             
             try {
-                logDevice('请在浏览器弹窗中选择您的设备...');
-                
-                // 使用 Tango ADB 请求设备
                 const device = await manager.requestDevice();
                 
                 if (device) {
-                    logDevice('用户已选择设备: ' + device.name);
-                    logDevice('请在设备上点击"允许"授权');
-                    logDevice('授权成功后，请刷新页面或重新点击"有线连接"');
+                    logDevice('用户已选择设备: ' + device.productName);
+                    logDevice('请在车机上点击"允许USB调试"');
+                    logDevice('授权成功后，重新点击"有线连接"');
                     return;
                 } else {
                     logDevice('用户取消了设备选择');

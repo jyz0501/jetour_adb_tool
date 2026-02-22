@@ -727,12 +727,11 @@ let checkBrowserSupportAndConnect = async () => {
             console.log('window.Adb 内容:', window.Adb);
             console.log('window.Adb.Adb:', window.Adb.Adb);
             
-            // window.Adb 是 esm_exports 对象，需要通过 .Adb 获取真正的类
+            // window.Adb 是 esm_exports 对象，需要通过 .Adb() 调用 getter 获取真正的类
             if (window.Adb.Adb) {
-                adbApi = window.Adb.Adb;
+                adbApi = window.Adb.Adb();  // 调用 getter 函数
                 console.log('获取到 Adb 类:', adbApi);
                 console.log('Adb.authenticate:', adbApi.authenticate);
-                console.log('Adb 方法列表:', Object.getOwnPropertyNames(Object.getPrototypeOf(adbApi)));
             } else {
                 adbApi = window.Adb;
             }

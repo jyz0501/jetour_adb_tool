@@ -39,8 +39,12 @@ const waitForTangoLib = () => {
 // 页面加载时等待库加载
 window.addEventListener('load', async () => {
     console.log('===== 版本 2025.02.22-1 =====');
+    logDevice('===== 版本 2025.02.22-1 =====');
     console.log('等待 Tango ADB 库加载...');
     await waitForTangoLib();
+    if (window.tangoReady) {
+        logDevice('Tango ADB 库已就绪');
+    }
 });
 
 // 设备日志记录
@@ -738,6 +742,9 @@ let checkBrowserSupportAndConnect = async () => {
         
         logDevice('使用 Tango ADB (ya-webadb) 库连接设备...');
         
+        // 添加到设备日志
+        logDevice('步骤1: 检查库状态 - tangoReady=' + window.tangoReady);
+        
         // 使用页面加载时已准备好的库
         if (!window.tangoReady || !window.tangoApi) {
             logDevice('等待库加载...');
@@ -748,6 +755,8 @@ let checkBrowserSupportAndConnect = async () => {
                 return;
             }
         }
+        
+        logDevice('步骤2: 库已就绪，获取设备管理器');
         
         const tangoApi = window.tangoApi;
         const DeviceManagerClass = tangoApi.AdbDaemonWebUsb?.AdbDaemonWebUsbDeviceManager;

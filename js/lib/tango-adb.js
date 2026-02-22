@@ -6099,18 +6099,20 @@ var TangoADB = (() => {
   _appName = new WeakMap();
 
   // js/tango-entry.js
-  // 直接导出到全局变量
-  window.Adb = esm_exports2;
-  window.AdbDaemonWebUsb = esm_exports3;
-  window.AdbCredentialWeb = esm_exports4;
+  // 直接导出类而不是 exports 对象
+  window.Adb = Adb;
+  window.AdbDaemonWebUsb = AdbDaemonWebUsb;
+  window.AdbCredentialWeb = AdbCredentialWeb;
   window.StreamExtra = esm_exports;
   // 保持兼容性
   window.TangoADB = {
-    Adb: esm_exports2,
-    AdbDaemonWebUsb: esm_exports3,
-    AdbCredentialWeb: esm_exports4,
+    Adb: Adb,
+    AdbDaemonWebUsb: AdbDaemonWebUsb,
+    AdbCredentialWeb: AdbCredentialWeb,
     StreamExtra: esm_exports
   };
   console.log("Tango ADB loaded:", Object.keys(window.TangoADB));
+  console.log("Adb class:", Adb);
+  console.log("Adb.authenticate:", Adb.authenticate);
 })();
 //# sourceMappingURL=tango-adb.js.map

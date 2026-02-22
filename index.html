@@ -123,10 +123,10 @@
                         <!-- 无线调试功能暂时禁用
                         <button class="btn btn-connect" id="wireless-connect-btn" onclick="showEdgeDownloadPopup(); wirelessConnect()" style="background-color: #17a2b8; color: white;" title="仅用于开启ADB无线调试端口，需USB连接">无线调试</button>
                         -->
-                        <div style="flex: 1; text-align: right;">
-                            <span style="margin-right: 8px;">🚗 </span>
-                            <span id="device-status" style="font-weight: bold;">未连接</span>
-                        </div>
+                        <span style="margin-left: 10px; font-weight: bold; color: #28a745;">
+                            <span id="device-status">未连接</span>
+                            <span id="device-name" style="margin-left: 5px; color: #666;"></span>
+                        </span>
                     </div>
                     <p style="font-size: 12px; color: #6c757d; margin: 0;">
                         有线连接：使用Edge浏览器 + OTG线连接车机USB口。<br>

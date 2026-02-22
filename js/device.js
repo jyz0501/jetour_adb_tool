@@ -1035,19 +1035,13 @@ let stopDeviceMonitoring = () => {
 
 // 当前设备状态
 let setDeviceName = async (name) => {
-    console.log('setDeviceName called with:', name);
     if (!name) {
         name = '未连接';
     }
     const statusElement = document.getElementById('device-status');
-    console.log('device-status element:', statusElement);
     if (statusElement) {
         statusElement.textContent = name;
-        console.log('device-status textContent set to:', name);
-    } else {
-        console.error('device-status element not found!');
     }
-    logDevice('设备状态更新: ' + name);
 };
 
 // 初始化设备检测

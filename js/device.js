@@ -800,7 +800,7 @@ let checkBrowserSupportAndConnect = async () => {
             logDevice('正在创建 ADB 连接...');
             
             // 获取所需的类
-            const AdbCredentialWeb = adbCredentialWeb;
+            const AdbCredentialStore = adbCredentialWeb.default;
             const AdbDaemonTransport = adbApi.AdbDaemonTransport;
             const Adb = adbApi;
             
@@ -809,7 +809,7 @@ let checkBrowserSupportAndConnect = async () => {
             logDevice('WebUSB 连接已建立');
             
             // 创建凭据管理器
-            const credentialStore = new AdbCredentialWeb('Jetour ADB Tool');
+            const credentialStore = new AdbCredentialStore('Jetour ADB Tool');
             
             // 创建传输层
             const transport = new AdbDaemonTransport(connection, credentialStore);

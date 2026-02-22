@@ -697,7 +697,7 @@ let checkBrowserSupportAndConnect = async () => {
             return;
         }
         
-        logDevice('请确认车机界面已点击"允许USB调试"');
+        alert('请确认车机界面已点击"允许USB调试"');
         logDevice('使用 Tango ADB 连接设备...');
         
         // 详细调试
@@ -786,8 +786,8 @@ let checkBrowserSupportAndConnect = async () => {
                         logDevice(`设备序列号: ${device.serial || '未知'}`);
                         logDevice(`设备制造商: ${device.device.manufacturerName || '未知'}`);
                     }
-                    logDevice('请在车机上点击"允许USB调试"');
-                    logDevice('授权成功后，重新点击"有线连接"');
+                    alert('请在车机上点击"允许USB调试"');
+                    logDevice('授权成功后，重新点击"开始连接"');
                     return;
                 } else {
                     logDevice('用户取消了设备选择');

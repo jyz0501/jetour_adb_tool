@@ -1,22 +1,9 @@
 // 系统工具相关功能
 
-// 检查浏览器支持
-function checkBrowserSupport() {
-    const isSupported = checkWebUSBSupport();
-    if (!isSupported || !navigator.usb) {
-        alert('检测到您的浏览器不支持，请根据顶部的 "警告提示" 更换指定浏览器使用。');
-        return false;
-    }
-    return true;
-}
-
 // 开启无线ADB端口
 let wifiAdb = async () => {
-    if (!checkBrowserSupport()) {
-        return;
-    }
-    if (!window.adbDevice) {
-        alert("未连接到设备");
+    if (!window.adbClient) {
+        alert('未连接到设备，请先点击"有线连接"按钮连接设备');
         return;
     }
     // 弹出确认对话框
@@ -41,8 +28,9 @@ let wifiAdb = async () => {
     showProgress(true);
     log('正在开启无线ADB端口...\n');
     try {
-        const tcpipStream = await window.adbDevice.tcpip(portNumber);
-        await tcpipStream.close();
+        // 使用 Tango ADB 执行 tcpip 命令
+        const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['tcpip', portNumber.toString()]);
+        log(result);
         log('✓ 无线ADB已开启，端口号: ' + portNumber);
         log('✓ 设备现在可以通过网络连接');
         log('\n注意：浏览器无法直接连接TCP端口。');
@@ -58,40 +46,13 @@ let wifiAdb = async () => {
     showProgress(false);
 };
 
-// 激活大伦车机助手
-let jhyygj = async () => {
-    if (!checkBrowserSupport()) {
-        return;
-    }
-    if (!window.adbDevice) {
-        alert("未连接到设备");
-        return;
-    }
-    let shellForceStop = "am force-stop com.ahcjzs";
-    let port = 5555;
-    clear();
-    showProgress(true);
-    try {
-        // 先停止指定应用
-        await exec_shell(shellForceStop);
-        const tcpipStream = await window.adbDevice.tcpip(port);
-        await tcpipStream.close();
-        log('tcpip at ' + port);
-        alert("激活成功");
-    } catch (error) {
-        log(error);
-        alert("激活失败，请断开重新尝试。");
-    }
-    showProgress(false);
-};
-
 // 解除网络防火墙
 let jcwlxz = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
-    if (!window.adbDevice) {
-        alert("未连接到设备");
+    if (!window.adbClient) {
+        alert('未连接到设备，请先点击"有线连接"按钮连接设备');
         return;
     }
 
@@ -130,8 +91,8 @@ let jcazxz = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
-    if (!window.adbDevice) {
-        alert("未连接到设备");
+    if (!window.adbClient) {
+        alert('未连接到设备，请先点击"有线连接"按钮连接设备');
         return;
     }
     let shellCommands = [
@@ -163,7 +124,6 @@ try {
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = {
             wifiAdb,
-            jhyygj,
             jcwlxz,
             jcazxz
         };

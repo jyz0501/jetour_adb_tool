@@ -800,13 +800,12 @@ let checkBrowserSupportAndConnect = async () => {
             logDevice('正在创建 ADB 连接...');
             
             // 获取所需的类
-            const AdbDaemonWebUsbConnection = adbDaemonWebUsb.AdbDaemonWebUsbConnection;
             const AdbCredentialWeb = adbCredentialWeb;
             const AdbDaemonTransport = adbApi.AdbDaemonTransport;
             const Adb = adbApi;
             
-            // 创建 WebUSB 连接
-            const connection = await AdbDaemonWebUsbConnection.create(webusbDevice);
+            // 直接使用设备的 connect 方法
+            const connection = await webusbDevice.connect();
             logDevice('WebUSB 连接已建立');
             
             // 创建凭据管理器

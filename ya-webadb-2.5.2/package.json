@@ -1,0 +1,12 @@
+{
+    "name": "@tango-adb/monorepo",
+    "private": true,
+    "scripts": {
+        "build": "pnpm recursive run build",
+        "test": "pnpm recursive run test",
+        "lint": "pnpm recursive --no-sort --workspace-concurrency=Infinity run lint"
+    },
+    "devDependencies": {
+        "@changesets/cli": "^2.29.6"
+    }
+}

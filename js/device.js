@@ -1137,8 +1137,12 @@ let push = async (filePath, blob) => {
             const base64Data = btoa(String.fromCharCode(...uint8Array));
             
             // 使用 shell 命令写入文件
-            const writeCommand = `echo '${base64Data}' | base64 -d > ${filePath} && chmod 0644 ${filePath}`;
-            await window.adbClient.subprocess.noneProtocol.spawnWaitText(writeCommand.split(' '));
+            // 生成临时文件路径
+            const tempFilePath = "/data/local/tmp/temp_upload_" + Date.now() + ".apk";
+            
+            // 使用 ; 连接多个命令：先写入临时文件，再移动到目标位置
+            const fullCommand = `echo '${base64Data}' | base64 -d > ${tempFilePath} ; chmod 0644 ${tempFilePath} ; mv ${tempFilePath} ${filePath}`;
+            await window.adbClient.subprocess.noneProtocol.spawnWaitText(fullCommand.split(' '));
             
             log("推送成功: " + filePath);
             showProgress(false);

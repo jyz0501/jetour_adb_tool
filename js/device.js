@@ -7,17 +7,7 @@ window.adbTransport = null;
 
 // 设备日志记录
 function logDevice(message) {
-    const timestamp = new Date().toLocaleTimeString();
-    const logEntry = `[${timestamp}] ${message}\n`;
-    
-    const deviceLogElement = document.getElementById('device-log');
-    if (deviceLogElement) {
-        deviceLogElement.textContent += logEntry;
-        deviceLogElement.scrollTop = deviceLogElement.scrollHeight;
-    }
-    
-    // 同时输出到控制台，方便调试
-    console.log(`[Device] ${message}`);
+    console.log(message);
 }
 
 // 清除设备日志
@@ -1004,38 +994,20 @@ let deviceMonitoringInterval = null;
 
 // 开始持续检测设备状态
 let startDeviceMonitoring = () => {
-    // 清除之前的监控
     stopDeviceMonitoring();
-    
-    // 每5秒检测一次设备状态
     deviceMonitoringInterval = setInterval(async () => {
         try {
-            // 检测 window.adbClient (Tango ADB) 或 window.adbDevice
             if (window.adbClient) {
-                // 尝试执行一个简单命令来检测连接
-                // 使用 subprocess.spawnWaitText 执行一个简单命令
-                try {
-                    await window.adbClient.subprocess.noneProtocol.spawnWaitText(["echo", "test"]);
-                    logDevice('设备状态: 已连接');
-                } catch (cmdError) {
-                    // 命令执行失败，说明连接已断开
-                    throw cmdError;
-                }
-            } else if (window.adbDevice && window.adbDevice.connected) {
-                logDevice('设备状态: 已连接');
+                await window.adbClient.subprocess.noneProtocol.spawnWaitText(["echo", "test"]);
             } else {
-                logDevice('设备状态: 已断开');
                 setDeviceName(null);
                 stopDeviceMonitoring();
             }
         } catch (error) {
-            logDevice('设备状态: 已断开');
             setDeviceName(null);
             stopDeviceMonitoring();
         }
     }, 5000);
-    
-    logDevice('开始持续监控设备状态');
 };
 
 // 停止设备状态监控

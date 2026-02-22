@@ -811,13 +811,13 @@ let checkBrowserSupportAndConnect = async () => {
             // 创建凭据管理器
             const credentialStore = new AdbCredentialStore('Jetour ADB Tool');
             
-            // 创建传输层
-            const transport = new AdbDaemonTransport(connection, credentialStore);
-            logDevice('ADB 传输层已创建');
-            
-            // 创建 ADB 客户端
+            // 使用 Adb.authenticate 创建 ADB 客户端
             logDevice('正在创建 ADB 客户端...');
-            const adb = await Adb.authenticate(transport);
+            const adb = await Adb.authenticate({
+                serial: webusbDevice.serial,
+                connection: connection,
+                credentialStore: credentialStore
+            });
             logDevice('ADB 客户端已创建');
             
             // 保存连接对象到全局变量

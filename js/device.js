@@ -1121,6 +1121,37 @@ if (typeof window !== 'undefined') {
 
 // 推送应用
 let push = async (filePath, blob) => {
+    // 检查是否有 Tango ADB 客户端
+    if (window.adbClient) {
+        clear();
+        showProgress(true);
+        try {
+            log("正在推送 " + filePath + " ...");
+            
+            // 使用 shell 命令推送文件
+            // 转换 blob 为 ArrayBuffer
+            const arrayBuffer = await blob.arrayBuffer();
+            const uint8Array = new Uint8Array(arrayBuffer);
+            
+            // 使用 base64 编码传输
+            const base64Data = btoa(String.fromCharCode(...uint8Array));
+            
+            // 使用 shell 命令写入文件
+            const writeCommand = `echo '${base64Data}' | base64 -d > ${filePath} && chmod 0644 ${filePath}`;
+            await window.adbClient.subprocess.noneProtocol.spawnWaitText(writeCommand.split(' '));
+            
+            log("推送成功: " + filePath);
+            showProgress(false);
+            return;
+        } catch (error) {
+            console.error('Tango ADB push error:', error);
+            log('推送失败: ' + (error.message || error.toString()));
+            showProgress(false);
+            throw error;
+        }
+    }
+    
+    // 传统 ADB 设备
     if (!window.adbDevice) {
         alert("未连接到设备");
         return;
@@ -1224,6 +1255,23 @@ let optimizeNetworkPerformance = async () => {
 
 // 执行命令并返回输出
 let execShellAndGetOutput = async (command) => {
+    // 检查是否有 Tango ADB 客户端
+    if (window.adbClient) {
+        let output = "";
+        try {
+            // 使用 Tango ADB 的 subprocess.spawnWaitText
+            const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText(command.split(' '));
+            output = result;
+            log(output); // 同时输出到日志
+            return output;
+        } catch (error) {
+            console.error('Tango ADB shell error:', error);
+            log('执行命令失败: ' + (error.message || error.toString()));
+            return "";
+        }
+    }
+    
+    // 传统 ADB 设备
     if (!window.adbDevice) {
         alert("未连接到设备");
         return "";

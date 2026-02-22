@@ -174,10 +174,6 @@ let yygj = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
-    if (!window.adbDevice) {
-        alert("未连接到设备");
-        return;
-    }
     clear();
     let toast = document.getElementById('downloading-toast');
     toast.style.opacity = '1';
@@ -397,10 +393,6 @@ let qzm = async () => {
 // 一键安装应用 - 侧边栏
 let cdb = async () => {
     if (!checkBrowserSupport()) {
-        return;
-    }
-    if (!window.adbDevice) {
-        alert("未连接到设备");
         return;
     }
     clear();

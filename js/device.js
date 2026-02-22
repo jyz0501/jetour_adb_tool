@@ -778,7 +778,14 @@ let checkBrowserSupportAndConnect = async () => {
                 const device = await manager.requestDevice();
                 
                 if (device) {
-                    logDevice('用户已选择设备: ' + device.productName);
+                    // 显示详细的设备信息
+                    logDevice(`用户已选择设备: ${device.productName || '未知'}`);
+                    if (device.device) {
+                        logDevice(`设备PID: ${device.device.productId}`);
+                        logDevice(`设备VID: ${device.device.vendorId}`);
+                        logDevice(`设备序列号: ${device.serial || '未知'}`);
+                        logDevice(`设备制造商: ${device.device.manufacturerName || '未知'}`);
+                    }
                     logDevice('请在车机上点击"允许USB调试"');
                     logDevice('授权成功后，重新点击"有线连接"');
                     return;
@@ -1006,8 +1013,14 @@ let startDeviceMonitoring = () => {
             // 检测 window.adbClient (Tango ADB) 或 window.adbDevice
             if (window.adbClient) {
                 // 尝试执行一个简单命令来检测连接
-                await window.adbClient.getAdbDaemonVersion();
-                logDevice('设备状态: 已连接');
+                // 使用 subprocess.spawnWaitText 执行一个简单命令
+                try {
+                    await window.adbClient.subprocess.noneProtocol.spawnWaitText(["echo", "test"]);
+                    logDevice('设备状态: 已连接');
+                } catch (cmdError) {
+                    // 命令执行失败，说明连接已断开
+                    throw cmdError;
+                }
             } else if (window.adbDevice && window.adbDevice.connected) {
                 logDevice('设备状态: 已连接');
             } else {

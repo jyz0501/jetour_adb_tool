@@ -826,10 +826,13 @@ let checkBrowserSupportAndConnect = async () => {
             
             // 使用 AdbDaemonTransport.authenticate 创建 transport
             logDevice('正在创建 ADB 传输层...');
+            // 使用 ADB_DEFAULT_AUTHENTICATORS
+            const ADB_DEFAULT_AUTHENTICATORS = adbApi.ADB_DEFAULT_AUTHENTICATORS;
             const transport = await AdbDaemonTransport.authenticate({
                 serial: webusbDevice.serial,
                 connection: connection,
-                credentialStore: credentialStore
+                credentialStore: credentialStore,
+                authenticators: ADB_DEFAULT_AUTHENTICATORS
             });
             logDevice('ADB 传输层已创建');
             
@@ -845,9 +848,9 @@ let checkBrowserSupportAndConnect = async () => {
             
             // 获取设备信息
             logDevice('获取设备信息...');
-            const shell = await adb.shell("getprop ro.product.model");
-            const model = await shell.receive();
-            const modelName = new TextDecoder().decode(model.data);
+            // 使用 noneProtocol.spawnWaitText
+            const model = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.model"]);
+            const modelName = model.trim();
             
             setDeviceName(modelName.trim());
             logDevice('===== ADB 连接成功 =====');

@@ -897,7 +897,6 @@ let checkBrowserSupportAndConnect = async () => {
             
             // 针对常见错误提供解决方案
             if (e.message && (e.message.includes('Unable to claim interface') || e.message.includes('Busy') || e.message.includes('already in used'))) {
-                alert('设备接口被占用！\n\n请执行以下步骤：\n1. 刷新页面\n2. 重新插拔 USB 线\n3. 在车机上重新点击"允许"\n4. 点击"开始连接"');
                 logDevice('错误原因：USB 接口被其他程序占用');
                 logDevice('解决方案：请刷新页面并重新连接');
             } else if (e.message && e.message.includes('transferOut')) {

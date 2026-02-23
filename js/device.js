@@ -1043,33 +1043,13 @@ let deviceMonitoringInterval = null;
 // 开始持续检测设备状态
 let startDeviceMonitoring = () => {
     stopDeviceMonitoring();
-    logDevice('===== 开始监控设备状态 =====');
     deviceMonitoringInterval = setInterval(async () => {
         try {
-            if (window.adbClient) {
-                const bootCompleted = await window.adbClient.subprocess.noneProtocol.spawnWaitText(["getprop", "sys.boot_completed"]);
-                const batteryLevel = await window.adbClient.subprocess.noneProtocol.spawnWaitText(["dumpsys", "battery", "-s", "15"]);
-                const cpuUsage = await window.adbClient.subprocess.noneProtocol.spawnWaitText(["top", "-n", "1", "-b"]);
-                const uptime = await window.adbClient.subprocess.noneProtocol.spawnWaitText(["getprop", "sys.uptime"]);
-                
-                const batteryMatch = batteryLevel.match(/level: (\d+)/);
-                const battery = batteryMatch ? batteryMatch[1] + '%' : 'N/A';
-                const cpuMatch = cpuUsage.match(/CPU usage.*?(\d+)/);
-                const cpu = cpuMatch ? cpuMatch[1] + '%' : 'N/A';
-                
-                logDevice('===== 设备状态监控 =====');
-                logDevice('📱 启动状态: ' + (bootCompleted.trim() === '1' ? '已启动 ✅' : '启动中...'));
-                logDevice('🔋 电池电量: ' + battery);
-                logDevice('⏱️ 运行时间: ' + uptime.trim());
-                logDevice('🖥️ CPU: ' + cpu);
-                logDevice('=======================');
-            } else {
-                logDevice('❌ 设备已断开连接');
+            if (!window.adbClient) {
                 setDeviceName(null);
                 stopDeviceMonitoring();
             }
         } catch (error) {
-            logDevice('⚠️ 设备连接异常: ' + error.message);
             setDeviceName(null);
             stopDeviceMonitoring();
         }
@@ -1081,7 +1061,6 @@ let stopDeviceMonitoring = () => {
     if (deviceMonitoringInterval) {
         clearInterval(deviceMonitoringInterval);
         deviceMonitoringInterval = null;
-        logDevice('停止监控设备状态');
     }
 };
 

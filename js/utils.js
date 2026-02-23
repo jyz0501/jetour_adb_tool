@@ -105,7 +105,7 @@ function checkWebUSBSupport() {
     const isOpera = userAgent.indexOf('OPR') > -1;
     const isSupportedBrowser = isEdge || isChrome || isOpera;
     
-    console.log('Browser detection:', { userAgent, isEdge, isChrome, isOpera });
+    console.log('Browser detection:', { userAgent, isEdge, isChrome, isOpera, isSupportedBrowser });
 
     if (!isSupportedBrowser) {
         usbWarning.innerHTML = '⚠️ 您的浏览器类型不支持 WebUSB<br>请使用 Chrome 或 Edge 浏览器<br><br>当前UA: ' + userAgent;

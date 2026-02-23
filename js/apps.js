@@ -173,38 +173,61 @@ let yygj = async () => {
     showProgress(true);
     log('正在从车机下载应用管家...\n');
     
+    const downloadUrl = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B61.8.0%E5%85%AC%E7%AD%BE%E7%89%88.apk';
+    const savePath = '/data/local/tmp/yygj.apk';
+    
     try {
-        const downloadUrl = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B61.8.0%E5%85%AC%E7%AD%BE%E7%89%88.apk';
-        const savePath = '/data/local/tmp/yygj.apk';
-        
-        // 先设置安装权限
         await exec_shell("setprop persist.sv.enable_adb_install 1");
         
-        // 使用车机上的 wget 或 curl 下载
+        // 使用车机上的 wget 或 curl 下载（带进度显示）
+        let downloadSuccess = false;
+        
+        // 启动下载命令
+        const downloadCommand = 'wget -O ' + savePath + ' "' + downloadUrl + '" || curl -L -o ' + savePath + ' "' + downloadUrl + '"';
+        
+        // 启动下载
+        const downloadPromise = exec_shell(downloadCommand);
+        
+        // 启动进度监控
+        const progressInterval = setInterval(async () => {
+            try {
+                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText([
+                    'ls', '-l', savePath
+                ]);
+                const sizeMatch = sizeResult.match(/(\d+)\s/);
+                if (sizeMatch) {
+                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
+                }
+            } catch (e) {
+                // 文件还不存在
+            }
+        }, 1000);
+        
         try {
-            await exec_shell('wget -O ' + savePath + ' "' + downloadUrl + '"');
-        } catch (wgetError) {
-            log('wget 失败，尝试 curl...');
-            await exec_shell('curl -L -o ' + savePath + ' "' + downloadUrl + '"');
+            await downloadPromise;
+            downloadSuccess = true;
+        } finally {
+            clearInterval(progressInterval);
         }
         
-        log('下载完成，正在安装...\n');
-        let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
-        
-        if (installOutput.includes('Success')) {
-            log('安装成功！');
-            alert("安装成功！");
-        } else {
-            log('安装失败: ' + installOutput);
-            // 安装失败，从设备选择
-            listDeviceApkFiles('/sdcard/Download', async (file) => {
-                await installFromDevice(file.path);
-            });
+        if (downloadSuccess) {
+            log('\n下载完成，正在安装...\n');
+            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+            
+            if (installOutput.includes('Success')) {
+                log('安装成功！');
+                alert("安装成功！");
+            } else {
+                log('安装失败: ' + installOutput);
+                listDeviceApkFiles('/sdcard/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
         }
     } catch (error) {
         log('下载失败: ' + error.message);
         log('请在车机浏览器中手动下载 APK，然后从设备选择安装');
-        // 从设备选择APK文件
         listDeviceApkFiles('/sdcard/Download', async (file) => {
             await installFromDevice(file.path);
         });

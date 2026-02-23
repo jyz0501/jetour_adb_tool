@@ -1124,12 +1124,23 @@ let push = async (filePath, blob) => {
         try {
             log("正在推送 " + filePath + " ...");
             
-            // 使用 sync 协议推送文件（支持大文件）
+            // 将 Blob 转换为 Uint8Array
+            const arrayBuffer = await blob.arrayBuffer();
+            const uint8Array = new Uint8Array(arrayBuffer);
+            
+            // 创建 ReadableStream
+            const readableStream = new ReadableStream({
+                start(controller) {
+                    controller.enqueue(uint8Array);
+                    controller.close();
+                }
+            });
+            
+            // 使用 sync 协议推送文件
             const sync = await window.adbClient.sync();
-            // 推送文件
             await sync.write({
                 filename: filePath,
-                file: blob,
+                file: readableStream,
                 permission: 0o644
             });
             

@@ -17,17 +17,14 @@ function checkBrowserSupport() {
     return true;
 }
 
-// 一键安装应用 - 虚拟返回键
-let xnfhj = async () => {
+// 通用车机下载安装函数
+let downloadAndInstall = async (appName, downloadUrl, savePath) => {
     if (!checkBrowserSupport()) {
         return;
     }
     clear();
     showProgress(true);
-    log('正在从车机下载虚拟返回键...\n');
-    
-    const downloadUrl = 'https://file.vju.cc/%E8%99%9A%E6%8B%9F%E8%BF%94%E5%9B%9E%E9%94%AE/%E8%99%9A%E6%8B%9F%E8%BF%94%E5%9B%9E%E9%94%AE.apk';
-    const savePath = '/data/local/tmp/xnfhj.apk';
+    log('正在从车机下载 ' + appName + '...\n');
     
     try {
         await exec_shell("setprop persist.sv.enable_adb_install 1");
@@ -56,9 +53,10 @@ let xnfhj = async () => {
         if (downloadSuccess) {
             log('\n下载完成，正在安装...\n');
             let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+            
             if (installOutput.includes('Success')) {
                 log('安装成功！');
-                alert("安装成功！");
+                alert(appName + " 安装成功！");
             } else {
                 log('安装失败: ' + installOutput);
                 listDeviceApkFiles('/sdcard/Download', async (file) => {
@@ -76,55 +74,19 @@ let xnfhj = async () => {
     showProgress(false);
 };
 
-// 一键安装应用 - 一键清理
-let yjql = async () => {
-    if (!checkBrowserSupport()) {
-        return;
-    }
-    clear();
-    log('请选择一键清理APK文件');
-    listDeviceApkFiles('/sdcard/Download', async (file) => {
-        await installFromDevice(file.path);
-    });
+// 一键安装应用 - 虚拟返回键
+let xnfhj = async () => {
+    await downloadAndInstall('虚拟返回键', 'https://file.vju.cc/%E8%99%9A%E6%8B%9F%E8%BF%94%E5%9B%9E%E9%94%AE/%E8%99%9A%E6%8B%9F%E8%BF%94%E5%9B%9E%E9%94%AE.apk', '/data/local/tmp/xnfhj.apk');
 };
 
-// 一键安装应用 - 沙发管家HD
+// 一键安装应用 - 一键清理
+let yjql = async () => {
+    await downloadAndInstall('一键清理', '', '/data/local/tmp/yjql.apk');
+};
+
+// 一键安装应用 - 沙发管家
 let sfgj = async () => {
-    if (!checkBrowserSupport()) {
-        return;
-    }
-    clear();
-    let toast = document.getElementById('downloading-toast');
-    toast.style.opacity = '1';
-    toast.style.display = 'block';
-    try {
-        // 使用本地APK文件
-        let response = await fetch('apk/沙发管家4.9.54.apk');
-        let fileBlob = await response.blob();
-        if (!fileBlob) throw new Error('读取文件失败！！！');
-        
-        let filePath = "/data/local/tmp/sfgj.apk";
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 500);
-        await push(filePath, fileBlob);
-        log('正在安装 沙发管家HD ...');
-        let installOutput = await execShellAndGetOutput("pm install -g -r " + filePath);
-        if (installOutput.includes('Success')) {
-            log('安装成功！');
-            alert("安装成功！");
-        } else {
-            throw new Error('安装失败');
-        }
-    } catch (error) {
-        log('安装失败！！！');
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 500);
-        alert("安装失败！！！");
-    }
+    await downloadAndInstall('沙发管家', '', '/data/local/tmp/sfgj.apk');
 };
 
 // 一键安装应用 - 应用管家
@@ -231,62 +193,27 @@ let installFromDevice = async (devicePath) => {
 
 // 一键安装应用 - 权限狗
 let qxg = async () => {
-    if (!checkBrowserSupport()) {
-        return;
-    }
-    clear();
-    log('请选择权限狗APK文件');
-    listDeviceApkFiles('/sdcard/Download', async (file) => {
-        await installFromDevice(file.path);
-    });
+    await downloadAndInstall('权限狗', '', '/data/local/tmp/qxg.apk');
 };
 
 // 一键安装应用 - 无障碍管理器
 let wzagl = async () => {
-    if (!checkBrowserSupport()) {
-        return;
-    }
-    clear();
-    log('请选择无障碍管理器APK文件');
-    listDeviceApkFiles('/sdcard/Download', async (file) => {
-        await installFromDevice(file.path);
-    });
+    await downloadAndInstall('无障碍管理器', '', '/data/local/tmp/wzagl.apk');
 };
 
 // 一键安装应用 - 返回菜单键
 let fhcdj = async () => {
-    if (!checkBrowserSupport()) {
-        return;
-    }
-    clear();
-    log('请选择返回菜单键APK文件');
-    listDeviceApkFiles('/sdcard/Download', async (file) => {
-        await installFromDevice(file.path);
-    });
+    await downloadAndInstall('返回菜单键', '', '/data/local/tmp/fhcdj.apk');
 };
 
 // 一键安装应用 - 氢桌面
 let qzm = async () => {
-    if (!checkBrowserSupport()) {
-        return;
-    }
-    clear();
-    log('请选择氢桌面APK文件');
-    listDeviceApkFiles('/sdcard/Download', async (file) => {
-        await installFromDevice(file.path);
-    });
+    await downloadAndInstall('氢桌面', '', '/data/local/tmp/qzm.apk');
 };
 
 // 一键安装应用 - 侧边栏
 let cdb = async () => {
-    if (!checkBrowserSupport()) {
-        return;
-    }
-    clear();
-    log('请选择侧边栏APK文件');
-    listDeviceApkFiles('/sdcard/Download', async (file) => {
-        await installFromDevice(file.path);
-    });
+    await downloadAndInstall('侧边栏', '', '/data/local/tmp/cdb.apk');
 };
 
 // 启动应用管家

@@ -8,15 +8,6 @@ window.adbTransport = null;
 // 设备日志记录
 function logDevice(message) {
     console.log(message);
-    const importantKeywords = ['连接', '成功', '失败', '断开', '授权', '允许', '错误', '请在'];
-    const isImportant = importantKeywords.some(keyword => message.includes(keyword));
-    if (isImportant) {
-        const logElement = document.getElementById('device-log');
-        if (logElement) {
-            logElement.textContent += message + '\n';
-            logElement.scrollTop = logElement.scrollHeight;
-        }
-    }
 }
 
 // 清除设备日志
@@ -32,7 +23,7 @@ let initWebUSB = async (device) => {
     clear();
     try {
         // 使用新的 WebUSB 传输
-        logDevice('正在初始化 WebUSB 设备...');
+        console.log('正在初始化 WebUSB 设备...');
 
         if (device) {
             // 使用用户已选择的设备
@@ -43,23 +34,18 @@ let initWebUSB = async (device) => {
         }
 
         await window.adbTransport.open();
-        log('WebUSB 传输初始化成功');
-        logDevice('WebUSB 传输初始化成功');
+        console.log('WebUSB 传输初始化成功');
         return true;
     } catch (error) {
-        log('WebUSB 初始化失败:', error);
-        logDevice('WebUSB 初始化失败: ' + (error.message || error.toString()));
+        console.log('WebUSB 初始化失败:', error);
         if (error.message) {
-            if (error.message.indexOf('No device') != -1 || error.name === 'NotFoundError') { // 未选中设备
-                log('用户取消选择设备');
-                logDevice('用户取消选择设备');
+            if (error.message.indexOf('No device') != -1 || error.name === 'NotFoundError') {
+                console.log('用户取消选择设备');
                 return false;
             } else if (error.message.indexOf('was disconnected') != -1) {
                 alert('无法连接到此设备，请断开重新尝试。');
-                logDevice('设备已断开连接');
             } else if (error.message.indexOf('Unable to claim interface') != -1) {
                 alert('设备接口被其他程序占用，请尝试以下步骤：\n\n1. 关闭电脑上运行的其他 ADB 工具（如 Android Studio、ADB Helper）\n2. 在终端运行 "adb kill-server" 断开所有连接\n3. 重新插拔 USB 线\n4. 刷新页面后重新连接');
-                logDevice('设备接口被其他程序占用');
             } else {
                 alert('初始化 WebUSB 失败: ' + error.message);
             }

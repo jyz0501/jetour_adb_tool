@@ -35,7 +35,7 @@ let downloadAndInstall = async (appName, downloadUrl, savePath) => {
         const progressInterval = setInterval(async () => {
             try {
                 const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
-                const sizeMatch = sizeResult.match(/(\d+)\s/);
+                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
                 if (sizeMatch) {
                     const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
                     log('下载中... 已下载 ' + sizeMB + ' MB\r');
@@ -95,7 +95,7 @@ let sfgj = async () => {
         const progressInterval = setInterval(async () => {
             try {
                 const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
-                const sizeMatch = sizeResult.match(/(\d+)\s/);
+                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
                 if (sizeMatch) {
                     const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
                     log('下载中... 已下载 ' + sizeMB + ' MB\r');
@@ -165,7 +165,7 @@ let yygj = async () => {
                 const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText([
                     'ls', '-l', savePath
                 ]);
-                const sizeMatch = sizeResult.match(/(\d+)\s/);
+                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
                 if (sizeMatch) {
                     const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
                     log('下载中... 已下载 ' + sizeMB + ' MB\r');
@@ -273,7 +273,7 @@ let qzm = async () => {
         const progressInterval = setInterval(async () => {
             try {
                 const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
-                const sizeMatch = sizeResult.match(/(\d+)\s/);
+                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
                 if (sizeMatch) {
                     const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
                     log('下载中... 已下载 ' + sizeMB + ' MB\r');
@@ -334,7 +334,7 @@ let cdb = async () => {
         const progressInterval = setInterval(async () => {
             try {
                 const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
-                const sizeMatch = sizeResult.match(/(\d+)\s/);
+                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
                 if (sizeMatch) {
                     const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
                     log('下载中... 已下载 ' + sizeMB + ' MB\r');

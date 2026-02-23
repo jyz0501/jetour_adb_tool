@@ -1,7 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    margin: 20px;
-    margin-bottom: 60px;
+    margin: 0;
     background-color: #f5f5f5;
 }
 
@@ -10,7 +9,7 @@ body {
     margin: 0 auto;
     background-color: white;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 0 0 8px 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
@@ -205,12 +204,13 @@ a:hover {
 
 /* Log Styles */
 #exec-result {
-    margin: 20px 0;
-    margin-bottom: 0;
+    margin: 0;
     padding: 15px;
     background-color: #f8f9fa;
-    border-radius: 8px 8px 0 0;
+    border-radius: 0;
     box-sizing: border-box;
+    border: 1px solid #ddd;
+    border-bottom: none;
     width: 100%;
     max-width: 800px;
     position: fixed;
@@ -228,6 +228,7 @@ a:hover {
     max-height: 30px;
     overflow-y: hidden;
     padding: 8px 15px;
+    border-radius: 0;
 }
 
 #exec-result.collapsed #log {

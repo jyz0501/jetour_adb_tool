@@ -786,17 +786,25 @@ let checkBrowserSupportAndConnect = async () => {
                     }
                     alert('请在车机上点击"允许USB调试"');
                     
-                    // 等待授权后自动重试连接
-                    logDevice('等待授权完成，3秒后自动重试...');
-                    setTimeout(async () => {
-                        // 再次请求设备授权（第二次弹窗）
-                        logDevice('正在请求第二次授权...');
+                    // 循环请求3次授权
+                    const requestAuth = async (attempt) => {
+                        if (attempt > 3) {
+                            logDevice('3次授权请求已完成');
+                            await connectToDevice();
+                            return;
+                        }
+                        
+                        logDevice(`正在请求第${attempt}次授权...`);
                         try {
                             await manager.requestDevice();
                         } catch(e) {}
                         
-                        await connectToDevice();
-                    }, 3000);
+                        setTimeout(async () => {
+                            await requestAuth(attempt + 1);
+                        }, 2500);
+                    };
+                    
+                    setTimeout(() => requestAuth(1), 1000);
                     return;
                 } else {
                     logDevice('用户取消了设备选择');

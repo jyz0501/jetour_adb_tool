@@ -404,7 +404,8 @@ let connect = async () => {
             
             if (window.adbDevice && window.adbDevice.connected) {
                 let deviceName = window.adbDevice.banner || '设备';
-                setDeviceName(deviceName);
+                let serialNumber = window.adbDevice.serial || '未知';
+                setDeviceName('🚗 ' + deviceName + ' | ' + serialNumber);
                 console.log('设备连接成功:', window.adbDevice);
                 logDevice('===== ADB 连接成功 =====');
                 logDevice('设备名称: ' + deviceName);
@@ -880,8 +881,9 @@ let checkBrowserSupportAndConnect = async () => {
             const serialno = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.serialno"]);
             const id = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.id"]);
             const modelName = model.trim();
+            const serialNumber = serialno.trim();
             
-            setDeviceName(modelName.trim());
+            setDeviceName('🚗 ' + modelName.trim() + ' | ' + serialNumber);
             logDevice('===== ADB 连接成功 =====');
             logDevice('===== 设备信息 =====');
             logDevice('设备型号: ' + modelName.trim());
@@ -1001,7 +1003,8 @@ let performWirelessConnect = async () => {
 
             if (window.adbDevice && window.adbDevice.connected) {
                 let deviceName = window.adbDevice.banner || '网络设备';
-                setDeviceName(deviceName);
+                let serialNumber = window.adbDevice.serial || '未知';
+                setDeviceName('🚗 ' + deviceName + ' | ' + serialNumber);
                 console.log('网络设备连接成功:', window.adbDevice);
                 logDevice('网络设备连接成功: ' + deviceName);
 

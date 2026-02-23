@@ -210,6 +210,16 @@
                         </tbody>
                     </table>
                 </div>
+                
+                <!-- Log Area -->
+                <div id="exec-result">
+                    <div id="exec-result-toggle" onclick="toggleExecResult()">▼ 点击折叠执行结果</div>
+                    <h4>执行结果</h4>
+                    <div class="progress" id="progress">
+                        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+                    </div>
+                    <div id="log"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -268,6 +278,19 @@
             // 检查浏览器支持
             checkWebUSBSupport();
         });
+
+        // 折叠/展开执行结果
+        function toggleExecResult() {
+            const execResult = document.getElementById('exec-result');
+            const toggleBtn = document.getElementById('exec-result-toggle');
+            if (execResult.classList.contains('collapsed')) {
+                execResult.classList.remove('collapsed');
+                toggleBtn.textContent = '▼ 点击折叠执行结果';
+            } else {
+                execResult.classList.add('collapsed');
+                toggleBtn.textContent = '▲ 点击展开执行结果';
+            }
+        }
     </script>
 </body>
 </html>

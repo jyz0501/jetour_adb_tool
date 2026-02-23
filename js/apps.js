@@ -640,8 +640,8 @@ let showApkFilePicker = (files, currentDir, onSelect) => {
     html += '<h3 style="margin-top:0;color:#333;font-size:20px;display:flex;align-items:center;gap:10px;">📦 选择APK文件</h3>';
     html += '<p style="color:#666;background:#f5f5f5;padding:10px;border-radius:8px;font-size:13px;">📂 当前目录: <code style="background:#e8f4fd;padding:2px 6px;border-radius:4px;">' + currentDir + '</code></p>';
     html += '<div style="display:flex;gap:8px;margin-bottom:15px;flex-wrap:wrap;">';
-    html += '<button onclick="listDeviceApkFiles(\'/storage/emulated/0/Download\', window.currentApkSelectCallback)" style="padding:8px 14px;cursor:pointer;background:#4CAF50;color:white;border:none;border-radius:6px;font-weight:bold;">📥 下载</button>';
-    html += '<button onclick="listDeviceApkFiles(\'/storage/emulated/0\', window.currentApkSelectCallback)" style="padding:8px 14px;cursor:pointer;background:#2196F3;color:white;border:none;border-radius:6px;font-weight:bold;">💾 存储</button>';
+    html += '<button onclick="listDeviceApkFiles(\'/storage/emulated/0/Download\', window.currentApkSelectCallback)" style="padding:8px 14px;cursor:pointer;background:#4CAF50;color:white;border:none;border-radius:6px;font-weight:bold;">📥 Download文件夹</button>';
+    html += '<button onclick="listDeviceApkFiles(\'/storage/emulated/0\', window.currentApkSelectCallback)" style="padding:8px 14px;cursor:pointer;background:#2196F3;color:white;border:none;border-radius:6px;font-weight:bold;">💾 车机内部存储</button>';
     html += '</div>';
     html += '<div style="margin-bottom:15px;display:flex;gap:8px;">';
     html += '<input type="text" id="custom-apk-path" placeholder="输入其他目录路径" style="flex:1;padding:10px;border:2px solid #ddd;border-radius:8px;font-size:14px;">';

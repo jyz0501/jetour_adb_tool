@@ -1,6 +1,7 @@
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
+    margin-bottom: 60px;
     background-color: #f5f5f5;
 }
 
@@ -205,9 +206,10 @@ a:hover {
 /* Log Styles */
 #exec-result {
     margin: 20px 0;
+    margin-bottom: 0;
     padding: 15px;
     background-color: #f8f9fa;
-    border-radius: 8px;
+    border-radius: 8px 8px 0 0;
     box-sizing: border-box;
     width: 100%;
     position: fixed;
@@ -218,6 +220,38 @@ a:hover {
     overflow-y: auto;
     z-index: 1000;
     box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    transition: max-height 0.3s ease;
+}
+
+#exec-result.collapsed {
+    max-height: 30px;
+    overflow-y: hidden;
+    padding: 8px 15px;
+}
+
+#exec-result.collapsed #log {
+    display: none;
+}
+
+#exec-result.collapsed .progress {
+    display: none;
+}
+
+#exec-result-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 15px;
+    margin: -15px -15px 10px -15px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    border-radius: 8px 8px 0 0;
+    font-weight: bold;
+}
+
+#exec-result-toggle:hover {
+    background-color: #0056b3;
 }
 
 #exec-result h4 {

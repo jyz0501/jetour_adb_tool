@@ -1136,6 +1136,12 @@ let initDeviceDetection = async () => {
 // 页面加载完成后初始化
 if (typeof window !== 'undefined') {
     window.addEventListener('DOMContentLoaded', () => {
+        // 输出浏览器 UA
+        const ua = navigator.userAgent;
+        logDevice('===== 初始化信息 =====');
+        logDevice('浏览器 UA: ' + ua);
+        logDevice('=====================');
+        
         // 初始化设备日志
         const deviceLogElement = document.getElementById('device-log');
         if (deviceLogElement) {

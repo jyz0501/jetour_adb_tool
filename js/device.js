@@ -1029,15 +1029,21 @@ let deviceMonitoringInterval = null;
 // 开始持续检测设备状态
 let startDeviceMonitoring = () => {
     stopDeviceMonitoring();
+    logDevice('===== 开始监控设备状态 =====');
     deviceMonitoringInterval = setInterval(async () => {
         try {
             if (window.adbClient) {
-                await window.adbClient.subprocess.noneProtocol.spawnWaitText(["echo", "test"]);
+                const testResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(["getprop", "sys.boot_completed"]);
+                const battery = await window.adbClient.subprocess.noneProtocol.spawnWaitText(["dumpsys", "battery", "|", "grep", "level"]);
+                const memory = await window.adbClient.subprocess.noneProtocol.spawnWaitText(["cat", "/proc/meminfo", "|", "grep", "MemAvailable"]);
+                logDevice('设备已连接 | 启动状态: ' + testResult.trim() + ' | ' + battery.trim() + ' | 可用内存: ' + memory.trim());
             } else {
+                logDevice('设备已断开');
                 setDeviceName(null);
                 stopDeviceMonitoring();
             }
         } catch (error) {
+            logDevice('设备连接异常: ' + error.message);
             setDeviceName(null);
             stopDeviceMonitoring();
         }

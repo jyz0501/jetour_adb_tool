@@ -95,8 +95,14 @@ function checkWebUSBSupport() {
     console.log('WebUSB check: navigator.usb =', navigator.usb);
     if (!('usb' in navigator)) {
         console.log('checkWebUSBSupport: failed at basic WebUSB check');
-        console.log('WebUSB not supported - no usb in navigator');
-        usbWarning.innerHTML = '⚠️ 您的浏览器不支持 WebUSB API<br>请使用 Chrome 或 Edge 浏览器';
+        
+        // 检测是否是移动端设备
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile) {
+            usbWarning.innerHTML = '⚠️ 移动端浏览器暂不支持 WebUSB<br>请使用电脑浏览器（Chrome/Edge）连接车机<br><br>或使用无线 ADB 调试';
+        } else {
+            usbWarning.innerHTML = '⚠️ 您的浏览器不支持 WebUSB API<br>请使用 Chrome 或 Edge 浏览器';
+        }
         usbWarning.style.display = 'block';
         showEdgeDownloadPopup();
         return false;

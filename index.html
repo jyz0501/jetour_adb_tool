@@ -152,6 +152,11 @@
                         <button class="btn btn-connect" onclick="sfgj()" style="flex-shrink: 0;">沙发管家</button>    
                         <button class="btn btn-connect" onclick="qxg()" style="flex-shrink: 0;">权限狗</button>        
                     </div>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                        <button class="btn btn-connect" onclick="startAhuiApp()" style="flex-shrink: 0; background-color: #28a745;">启动应用管家</button>
+                        <button class="btn btn-connect" onclick="exec_shell('am start -n com.mcar.auto.uid/com.mcar.auto.uid/.MainActivity')" style="flex-shrink: 0;">启动氢桌面</button>
+                        <button class="btn btn-connect" onclick="exec_shell('am start -W -n com.hzsoft.sidebar/.MainActivity')" style="flex-shrink: 0;">启动侧边栏</button>
+                    </div>
                     <p style="margin-top: 10px; font-size: 12px; color: #6c757d;">请先安装以上软件，以确保系统正常运行。</p>
                 </div>
                 
@@ -180,25 +185,18 @@
                 <div style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
                     <h4 style="margin-top: 0; margin-bottom: 15px;">应用管理</h4>
                     
-                    <!-- 常用应用启动按钮 -->
-                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
-                        <button class="btn btn-connect" onclick="startAhuiApp()" style="flex-shrink: 0; background-color: #28a745;">启动应用管家</button>
-                        <button class="btn btn-connect" onclick="exec_shell('am start -n com.mcar.auto.uid/com.mcar.auto.uid/.MainActivity')" style="flex-shrink: 0;">启动氢桌面</button>
-                        <button class="btn btn-connect" onclick="exec_shell('monkey -p com.android.settings -c android.intent.category.LAUNCHER 1')" style="flex-shrink: 0;">启动设置</button>
-                        <button class="btn btn-connect" onclick="exec_shell('am start -W -n com.hzsoft.sidebar/.MainActivity')" style="flex-shrink: 0;">启动侧边栏</button>
-                    </div>
-                    
-                    <!-- 刷新应用列表 -->
-                    <button class="btn btn-connect" onclick="loadPackageList()" style="margin-bottom: 15px;">刷新应用列表</button>
+                    <!-- 刷新用户应用列表 -->
+                    <button class="btn btn-connect" onclick="loadPackageList()" style="margin-bottom: 15px;">刷新用户应用列表</button>
                     
                     <!-- 已安装应用列表 -->
                     <table id="package-list" style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr style="background-color: #e9ecef;">
-                                <th style="padding: 8px; border: 1px solid #dee2e6;">序号</th>
-                                <th style="padding: 8px; border: 1px solid #dee2e6;">包名</th>
-                                <th style="padding: 8px; border: 1px solid #dee2e6;">操作</th>
-                                <th style="padding: 8px; border: 1px solid #dee2e6;">卸载</th>
+                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 50px;">序号</th>
+                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 200px;">应用名</th>
+                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 300px; word-break: break-all;">包名</th>
+                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 80px;">操作</th>
+                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 80px;">卸载</th>
                             </tr>
                         </thead>
                         <tbody>

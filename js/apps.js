@@ -405,21 +405,19 @@ function startAhuiApp() {
     alert("未连接到设备，请先点击'开始连接'按钮连接设备");
 }
 
-// 刷新应用列表
+// 刷新用户应用列表
 let loadPackageList = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
-    // 弹出确认对话框
     const confirmed = confirm("是否查看应用列表？");
     if (!confirmed) {
-        return; // 用户点击了取消，不执行操作
+        return;
     }
     clear();
     showProgress(true);
     var packageContent = "";
     try {
-        // 使用 Tango ADB 执行命令获取包列表
         const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText(["pm", "list", "packages", "-3"]);
         packageContent = result;
     } catch (error) {
@@ -429,20 +427,36 @@ let loadPackageList = async () => {
     packageList.innerHTML = "";
     let arryAll = packageContent.split("\n");
     let index = 1;
+    
     for (var i = 0, len = arryAll.length; i < len; i++) {
         let line = arryAll[i];
         if (line.indexOf("package:") != 0) {
             continue;
         }
         let packageName = line.substring(8);
+        
+        let appName = packageName;
+        try {
+            const dumpResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(["dumpsys", "package", packageName]);
+            const nameMatch = dumpResult.match(/package\s+([^\s@]+)/);
+            if (nameMatch) {
+                appName = nameMatch[1];
+            }
+        } catch (e) {}
+        
         var tr = document.createElement("tr");
         
         var tdIndex = document.createElement("td");
         tdIndex.textContent = index;
         tr.appendChild(tdIndex);
         
+        var tdName = document.createElement("td");
+        tdName.textContent = appName;
+        tr.appendChild(tdName);
+        
         var tdPackage = document.createElement("td");
         tdPackage.textContent = packageName;
+        tdPackage.style.wordBreak = "break-all";
         tr.appendChild(tdPackage);
         
         var tdActions = document.createElement("td");

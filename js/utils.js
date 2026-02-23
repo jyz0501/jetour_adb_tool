@@ -84,6 +84,7 @@ function checkWebUSBSupport() {
     // 第一层：检测 iOS 设备
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     if (isIOS) {
+        console.log('checkWebUSBSupport: failed at iOS check');
         usbWarning.innerHTML = '⚠️ iOS 设备暂不支持 WebUSB 连接<br>请使用以下替代方案：<br>1. 使用 Windows/Mac 电脑连接<br>2. 使用无线 ADB（手机设置→开发者选项→无线调试）';
         usbWarning.style.display = 'block';
         showEdgeDownloadPopup();
@@ -93,6 +94,7 @@ function checkWebUSBSupport() {
     // 第二层：基本 WebUSB 支持
     console.log('WebUSB check: navigator.usb =', navigator.usb);
     if (!('usb' in navigator)) {
+        console.log('checkWebUSBSupport: failed at basic WebUSB check');
         console.log('WebUSB not supported - no usb in navigator');
         usbWarning.innerHTML = '⚠️ 您的浏览器不支持 WebUSB API<br>请使用 Chrome 或 Edge 浏览器';
         usbWarning.style.display = 'block';
@@ -110,6 +112,7 @@ function checkWebUSBSupport() {
     console.log('Browser detection:', { userAgent, isEdge, isChrome, isOpera, isSupportedBrowser });
 
     if (!isSupportedBrowser) {
+        console.log('checkWebUSBSupport: failed at browser type check');
         usbWarning.innerHTML = '⚠️ 您的浏览器类型不支持 WebUSB<br>请使用 Chrome 或 Edge 浏览器<br><br>当前UA: ' + userAgent;
         usbWarning.style.display = 'block';
         showEdgeDownloadPopup();
@@ -145,12 +148,14 @@ function checkWebUSBSupport() {
     }
 
     if (!isSupportedVersion) {
+        console.log('checkWebUSBSupport: failed at version check');
         usbWarning.innerHTML = '⚠️ 您的浏览器版本过低，不支持 WebUSB<br>请更新到最新版本的 Chrome 或 Edge 浏览器';
         usbWarning.style.display = 'block';
         showEdgeDownloadPopup();
         return false;
     }
 
+    console.log('checkWebUSBSupport: passed all checks');
     // 所有检测都通过，支持 WebUSB
     usbWarning.style.display = 'none';
     return true;

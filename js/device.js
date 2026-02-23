@@ -1103,10 +1103,14 @@ let initDeviceDetection = async () => {
             }
             
             // 监听设备连接事件
-            navigator.usb.addEventListener('connect', (event) => {
+            navigator.usb.addEventListener('connect', async (event) => {
                 logDevice('===== USB 设备已连接 =====');
                 logDevice(`设备: ${event.device.productName || 'USB设备'} (VID: ${event.device.vendorId}, PID: ${event.device.productId})`);
-                logDevice('请刷新页面或点击"开始连接"按钮');
+                logDevice('检测到新设备，正在尝试自动连接...');
+                // 延迟一下让设备完全就绪
+                setTimeout(async () => {
+                    await checkBrowserSupportAndConnect();
+                }, 1000);
             });
             
             // 监听设备断开事件

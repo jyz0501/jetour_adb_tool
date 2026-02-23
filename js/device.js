@@ -882,8 +882,9 @@ let checkBrowserSupportAndConnect = async () => {
             const id = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.id"]);
             const modelName = model.trim();
             const serialNumber = serialno.trim();
+            const deviceName = device.trim();
             
-            setDeviceName('🚗 ' + modelName.trim() + ' | ' + serialNumber);
+            setDeviceName('🚗 ' + deviceName + ' | ' + serialNumber);
             logDevice('===== ADB 连接成功 =====');
             logDevice('===== 设备信息 =====');
             logDevice('设备型号: ' + modelName.trim());

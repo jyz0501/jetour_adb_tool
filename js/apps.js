@@ -677,9 +677,10 @@ let showApkFilePicker = (files, currentDir, onSelect) => {
     
     files.forEach((file, index) => {
         const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+        const displayName = file.name.replace(/\.apk$/i, '');
         html += '<div onclick="window.selectApkFile(' + index + ')" style="padding:12px;cursor:pointer;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:12px;transition:all 0.2s;" onmouseover="this.style.background=\'#f8f9fa\'" onmouseout="this.style.background=\'#fff\'">';
         html += '<div style="width:40px;height:40px;background:linear-gradient(135deg,#4CAF50,#2E7D32);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;">📦</div>';
-        html += '<div style="flex:1;overflow:hidden;"><div style="font-weight:600;color:#333;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + file.name + '</div></div>';
+        html += '<div style="flex:1;overflow:hidden;"><div style="font-weight:600;color:#333;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + displayName + '</div></div>';
         html += '<div style="background:#e8f5e9;color:#2e7d32;padding:4px 8px;border-radius:12px;font-size:12px;font-weight:bold;">' + sizeMB + ' MB</div>';
         html += '</div>';
     });
@@ -714,7 +715,7 @@ let showApkFilePicker = (files, currentDir, onSelect) => {
         const selectedInfo = document.getElementById('selected-file-info');
         if (selectedInfo) {
             selectedInfo.style.display = 'block';
-            selectedInfo.innerHTML = '✅ 已选择: ' + file.name;
+            selectedInfo.innerHTML = '✅ 已选择: ' + file.name.replace(/\.apk$/i, '');
         }
     };
     

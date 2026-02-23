@@ -261,7 +261,7 @@ let qzm = async () => {
     showProgress(true);
     log('正在从车机下载氢桌面...\n');
     
-    const downloadUrl = 'https://d.pcs.baidu.com/file/bc0c3a42btce2d170197e984043fc3df?fid=3137622920-250528-227348641477085&rt=pr&sign=FDtAERK-DCb740ccc5511e5e8fedcff06b081203-tCFVzmXdGrcFugnX3abm%2BnmrMvA%3D&expires=8h&chkbd=0&chkv=0&dp-logid=2304789363126453587&dp-callid=0&dstime=1771868850&r=412352790&vuk=3137622920&origin_appid=15195230&file_type=0&access_token=123.358d7c5c9043c68bc5361310dbb63f5e.Y3PiNU1DD4jrSdzmaMxBL-37Fr2D_vnvsj0CfES.iZEF3Q';
+    const downloadUrl = 'https://d.pcs.baidu.com/file/24135b396r213e6e7ab2aaa07babcca9?fid=3137622920-250528-971560898191160&rt=pr&sign=FDtAERK-DCb740ccc5511e5e8fedcff06b081203-wlapdnAGxLZi%2BVsKx%2BKgXVg8RUg%3D&expires=8h&chkbd=0&chkv=0&dp-logid=2695581379901006603&dp-callid=0&dstime=1771872758&r=802407441&vuk=3137622920&origin_appid=15195230&file_type=0&access_token=123.358d7c5c9043c68bc5361310dbb63f5e.Y3PiNU1DD4jrSdzmaMxBL-37Fr2D_vnvsj0CfES.iZEF3Q';
     const savePath = '/storage/emulated/0/Download/qzm.apk';
     
     try {

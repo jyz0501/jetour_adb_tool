@@ -410,10 +410,6 @@ let loadPackageList = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
-    const confirmed = confirm("是否查看应用列表？");
-    if (!confirmed) {
-        return;
-    }
     clear();
     showProgress(true);
     var packageContent = "";

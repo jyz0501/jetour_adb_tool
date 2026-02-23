@@ -106,12 +106,13 @@ function checkWebUSBSupport() {
 
     // 第三层：检测是否为支持的浏览器类型
     const userAgent = navigator.userAgent;
+    const isEdge = userAgent.indexOf('Edg') > -1;
     const isChrome = userAgent.indexOf('Chrome') > -1 && userAgent.indexOf('Edg') === -1;
     const isOpera = userAgent.indexOf('OPR') > -1;
-    const isSupportedBrowser = isChrome || isOpera;
+    const isSupportedBrowser = isEdge || isChrome || isOpera;
 
     if (!isSupportedBrowser) {
-        usbWarning.innerHTML = '⚠️ 您的浏览器类型不支持 WebUSB<br>请使用 Chrome 浏览器<br><br>当前UA: ' + userAgent;
+        usbWarning.innerHTML = '⚠️ 您的浏览器类型不支持 WebUSB<br>请使用 Chrome 或 Edge 浏览器<br><br>当前UA: ' + userAgent;
         usbWarning.style.display = 'block';
         showChromeDownloadPopup();
         return false;
@@ -120,8 +121,16 @@ function checkWebUSBSupport() {
     // 第四层：检测浏览器版本
     let isSupportedVersion = false;
 
+    // Edge 浏览器
+    if (isEdge) {
+        const edgeMatch = userAgent.match(/Edg\/(\d+)/);
+        if (edgeMatch) {
+            const edgeVersion = parseInt(edgeMatch[1]);
+            isSupportedVersion = edgeVersion >= 79;
+        }
+    }
     // Chrome 浏览器
-    if (isChrome) {
+    else if (isChrome) {
         const chromeMatch = userAgent.match(/Chrome\/(\d+)/);
         if (chromeMatch) {
             const chromeVersion = parseInt(chromeMatch[1]);
@@ -138,7 +147,7 @@ function checkWebUSBSupport() {
     }
 
     if (!isSupportedVersion) {
-        usbWarning.innerHTML = '⚠️ 您的浏览器版本过低，不支持 WebUSB<br>请更新到最新版本的 Chrome 浏览器';
+        usbWarning.innerHTML = '⚠️ 您的浏览器版本过低，不支持 WebUSB<br>请更新到最新版本的 Chrome 或 Edge 浏览器';
         usbWarning.style.display = 'block';
         showChromeDownloadPopup();
         return false;

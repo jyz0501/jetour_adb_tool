@@ -65,19 +65,19 @@ jetour_adb_tool/
 ## 使用说明
 
 ### 环境要求
-- **浏览器**：Google Chrome
+- **浏览器**：Google Chrome 或 Microsoft Edge
 - **设备**：Android设备
 - **连接**：USB数据线
 
 ### 连接步骤
-1. 使用Chrome浏览器访问工具页面
+1. 使用Chrome或Edge浏览器访问工具页面
 2. 点击"有线连接"按钮
 3. 在设备上允许USB调试
 4. 连接成功后即可使用各项功能
 
 ### 常见问题
 1. **连接失败**：尝试拔插数据线，或运行 `adb kill-server`
-2. **浏览器不支持**：使用Chrome浏览器
+2. **浏览器不支持**：使用Chrome或Edge浏览器
 3. **权限问题**：确保设备已开启USB调试模式
 4. **root权限**：部分系统工具需要root权限
 

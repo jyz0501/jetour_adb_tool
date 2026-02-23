@@ -750,6 +750,7 @@ let checkBrowserSupportAndConnect = async () => {
         
         if (!manager) {
             logDevice('错误: 浏览器不支持 WebUSB');
+            console.log('WebUSB manager check:', manager);
             alert('您的浏览器不支持 WebUSB，请使用 Chrome 或 Edge 浏览器');
             return;
         }
@@ -1094,6 +1095,7 @@ let initDeviceDetection = async () => {
             });
             
         } else {
+            console.log('WebUSB check in init:', 'usb' in navigator);
             logDevice('浏览器不支持 WebUSB');
         }
     } catch (error) {

@@ -786,11 +786,10 @@ let checkBrowserSupportAndConnect = async () => {
                     }
                     alert('请在车机上点击"允许USB调试"');
                     
-                    // 循环请求3次授权
                     const requestAuth = async (attempt) => {
                         if (attempt > 3) {
                             logDevice('3次授权请求已完成');
-                            await connectToDevice();
+                            await checkBrowserSupportAndConnect();
                             return;
                         }
                         

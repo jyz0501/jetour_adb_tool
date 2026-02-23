@@ -170,45 +170,47 @@ let yygj = async () => {
         return;
     }
     clear();
-    let toast = document.getElementById('downloading-toast');
-    toast.style.opacity = '1';
-    toast.style.display = 'block';
+    showProgress(true);
+    log('正在从车机下载应用管家...\n');
+    
     try {
-        // 从远程URL下载APK
-        let response = await fetch('https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B61.8.0%E5%85%AC%E7%AD%BE%E7%89%88.apk');
-        let fileBlob = await response.blob();
-        if (!(fileBlob instanceof Blob)) throw new Error('下载文件失败！！！');
-        let filePath = "/data/local/tmp/yygj.apk";
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 500);
+        const downloadUrl = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B61.8.0%E5%85%AC%E7%AD%BE%E7%89%88.apk';
+        const savePath = '/data/local/tmp/yygj.apk';
+        
+        // 先设置安装权限
         await exec_shell("setprop persist.sv.enable_adb_install 1");
-        await push(filePath, fileBlob);
-        log('正在安装 应用管家 ...');
-        let installOutput = await execShellAndGetOutput("pm install -g -r " + filePath);
+        
+        // 使用车机上的 wget 或 curl 下载
+        try {
+            await exec_shell('wget -O ' + savePath + ' "' + downloadUrl + '"');
+        } catch (wgetError) {
+            log('wget 失败，尝试 curl...');
+            await exec_shell('curl -L -o ' + savePath + ' "' + downloadUrl + '"');
+        }
+        
+        log('下载完成，正在安装...\n');
+        let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+        
         if (installOutput.includes('Success')) {
             log('安装成功！');
             alert("安装成功！");
         } else {
-            log('安装失败！');
-            toast.style.opacity = '0';
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 500);
-            alert("安装失败！");
+            log('安装失败: ' + installOutput);
+            // 安装失败，从设备选择
+            listDeviceApkFiles('/sdcard/Download', async (file) => {
+                await installFromDevice(file.path);
+            });
         }
     } catch (error) {
-        log('远程下载失败，将从设备选择APK文件');
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 500);
+        log('下载失败: ' + error.message);
+        log('请在车机浏览器中手动下载 APK，然后从设备选择安装');
         // 从设备选择APK文件
         listDeviceApkFiles('/sdcard/Download', async (file) => {
             await installFromDevice(file.path);
         });
     }
+    
+    showProgress(false);
 };
 
 // 从设备安装APK

@@ -575,6 +575,7 @@ let installApkFile = async () => {
             }
         }
         alert(`🎉 共 ${validFiles.length} 个应用安装完成！`);
+        loadPackageList();
     } catch (error) {
         console.error("批量安装出错:", error);
         log("❌ 批量安装过程中发生错误，请查看控制台。");

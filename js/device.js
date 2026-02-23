@@ -887,11 +887,6 @@ let checkBrowserSupportAndConnect = async () => {
             setDeviceName('🚗 ' + deviceName + ' | ' + serialNumber);
             logDevice('===== ADB 连接成功 =====');
 
-            // 在车机上显示连接成功提示
-            try {
-                await adb.subprocess.noneProtocol.spawnWaitText(["wm", "toast", "-n", "连接成功"]);
-            } catch (e) {}
-            
             // 开始监控
             startDeviceMonitoring();
             

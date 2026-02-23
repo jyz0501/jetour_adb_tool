@@ -591,6 +591,9 @@ let listDeviceApkFiles = async (directory, onSelect) => {
     clear();
     showProgress(true);
     log('正在扫描 ' + directory + ' 目录下的APK文件...\n');
+    log('提示：如果找不到APK文件，请先将APK文件通过数据线传到车机存储目录\n');
+    
+    alert('即将扫描 ' + directory + ' 目录下的APK文件。\n\n如果找不到文件，请先将APK文件传到车机的「下载」或「存储」目录。');
     
     try {
         const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText([
@@ -611,7 +614,7 @@ let listDeviceApkFiles = async (directory, onSelect) => {
         showProgress(false);
         
         if (files.length === 0) {
-            alert('未找到APK文件');
+            alert('未找到APK文件！\n\n请确认：\n1. APK文件是否已传到车机存储\n2. 尝试切换到其他目录（下载/存储）\n3. 或使用车机浏览器下载APK后再安装');
             return;
         }
         
@@ -628,35 +631,42 @@ let showApkFilePicker = (files, currentDir, onSelect) => {
     // 创建弹窗
     const modal = document.createElement('div');
     modal.id = 'apk-picker-modal';
-    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;justify-content:center;align-items:center;';
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;display:flex;justify-content:center;align-items:center;';
     
     const content = document.createElement('div');
-    content.style.cssText = 'background:#fff;border-radius:8px;padding:20px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto;';
+    content.style.cssText = 'background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:16px;padding:24px;max-width:600px;width:90%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);';
     
-    let html = '<h3 style="margin-top:0;">选择APK文件</h3>';
-    html += '<p style="color:#666;">当前目录: ' + currentDir + '</p>';
-    html += '<div style="display:flex;gap:10px;margin-wrap:wrap;">';
-    html += '<button onclick="listDeviceApkFiles(\'/storage/emulated/0/Download\', window.currentApkSelectCallback)" style="padding:8px 12px;cursor:pointer;">下载</button>';
-    html += '<button onclick="listDeviceApkFiles(\'/storage/emulated/0\', window.currentApkSelectCallback)" style="padding:8px 12px;cursor:pointer;">存储</button>';
+    let html = '<div style="background:white;border-radius:12px;padding:20px;">';
+    html += '<h3 style="margin-top:0;color:#333;font-size:20px;display:flex;align-items:center;gap:10px;">📦 选择APK文件</h3>';
+    html += '<p style="color:#666;background:#f5f5f5;padding:10px;border-radius:8px;font-size:13px;">📂 当前目录: <code style="background:#e8f4fd;padding:2px 6px;border-radius:4px;">' + currentDir + '</code></p>';
+    html += '<div style="display:flex;gap:8px;margin-bottom:15px;flex-wrap:wrap;">';
+    html += '<button onclick="listDeviceApkFiles(\'/storage/emulated/0/Download\', window.currentApkSelectCallback)" style="padding:8px 14px;cursor:pointer;background:#4CAF50;color:white;border:none;border-radius:6px;font-weight:bold;">📥 下载</button>';
+    html += '<button onclick="listDeviceApkFiles(\'/storage/emulated/0\', window.currentApkSelectCallback)" style="padding:8px 14px;cursor:pointer;background:#2196F3;color:white;border:none;border-radius:6px;font-weight:bold;">💾 存储</button>';
     html += '</div>';
-    html += '<div style="margin-bottom:15px;">';
-    html += '<input type="text" id="custom-apk-path" placeholder="输入其他目录路径" style="width:60%;padding:8px;">';
-    html += '<button onclick="var path=document.getElementById(\'custom-apk-path\').value;if(path)listDeviceApkFiles(path, window.currentApkSelectCallback)" style="padding:8px 12px;cursor:pointer;">跳转</button>';
+    html += '<div style="margin-bottom:15px;display:flex;gap:8px;">';
+    html += '<input type="text" id="custom-apk-path" placeholder="输入其他目录路径" style="flex:1;padding:10px;border:2px solid #ddd;border-radius:8px;font-size:14px;">';
+    html += '<button onclick="var path=document.getElementById(\'custom-apk-path\').value;if(path)listDeviceApkFiles(path, window.currentApkSelectCallback)" style="padding:10px 16px;cursor:pointer;background:#FF9800;color:white;border:none;border-radius:8px;font-weight:bold;">🔍 跳转</button>';
     html += '</div>';
-    html += '<div id="apk-file-list" style="max-height:300px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;">';
+    html += '<div style="background:#f8f9fa;border-radius:8px;padding:10px;margin-bottom:15px;font-size:12px;color:#666;">';
+    html += '💡 提示: 点击文件选中后点击确定按钮安装';
+    html += '</div>';
+    html += '<div id="apk-file-list" style="max-height:350px;overflow-y:auto;border:1px solid #e0e0e0;border-radius:8px;background:white;">';
     
     files.forEach((file, index) => {
-        html += '<div onclick="window.selectApkFile(' + index + ')" style="padding:10px;cursor:pointer;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px;" onmouseover="this.style.background=#f5f5f5" onmouseout="this.style.background=#fff">';
-        html += '<span style="font-size:20px;">📦</span>';
-        html += '<div><div style="font-weight:bold;">' + file.name + '</div>';
-        html += '<div style="color:#999;font-size:12px;">' + file.path + '</div></div>';
+        const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+        html += '<div onclick="window.selectApkFile(' + index + ')" style="padding:12px;cursor:pointer;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:12px;transition:all 0.2s;" onmouseover="this.style.background=\'#f8f9fa\'" onmouseout="this.style.background=\'#fff\'">';
+        html += '<div style="width:40px;height:40px;background:linear-gradient(135deg,#4CAF50,#2E7D32);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;">📦</div>';
+        html += '<div style="flex:1;overflow:hidden;"><div style="font-weight:600;color:#333;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + file.name + '</div>';
+        html += '<div style="color:#999;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + file.path + '</div></div>';
+        html += '<div style="background:#e8f5e9;color:#2e7d32;padding:4px 8px;border-radius:12px;font-size:12px;font-weight:bold;">' + sizeMB + ' MB</div>';
         html += '</div>';
     });
     
     html += '</div>';
-    html += '<div style="margin-top:15px;text-align:right;">';
-    html += '<button onclick="document.getElementById(\'apk-picker-modal\').remove()" style="padding:8px 16px;cursor:pointer;margin-right:10px;">取消</button>';
-    html += '<button id="confirm-apk-btn" onclick="window.confirmApkSelect()" disabled style="padding:8px 16px;cursor:pointer;background:#28a745;color:#fff;border:none;border-radius:4px;">确定</button>';
+    html += '<div style="margin-top:20px;text-align:right;display:flex;gap:10px;justify-content:flex-end;">';
+    html += '<button onclick="document.getElementById(\'apk-picker-modal\').remove()" style="padding:10px 20px;cursor:pointer;background:#9e9e9e;color:white;border:none;border-radius:8px;font-size:14px;">取消</button>';
+    html += '<button id="confirm-apk-btn" onclick="window.confirmApkSelect()" disabled style="padding:10px 24px;cursor:pointer;background:#9e9e9e;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:bold;">确定安装</button>';
+    html += '</div>';
     html += '</div>';
     
     content.innerHTML = html;
@@ -672,7 +682,10 @@ let showApkFilePicker = (files, currentDir, onSelect) => {
         document.querySelectorAll('#apk-file-list > div').forEach(d => d.style.background = '#fff');
         document.querySelectorAll('#apk-file-list > div')[index].style.background = '#e3f2fd';
         window.selectedApkIndex = index;
-        document.getElementById('confirm-apk-btn').disabled = false;
+        const btn = document.getElementById('confirm-apk-btn');
+        btn.disabled = false;
+        btn.style.background = '#28a745';
+        btn.style.cursor = 'pointer';
     };
     
     window.confirmApkSelect = () => {

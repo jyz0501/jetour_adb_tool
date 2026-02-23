@@ -91,7 +91,9 @@ function checkWebUSBSupport() {
     }
 
     // 第二层：基本 WebUSB 支持
+    console.log('WebUSB check: navigator.usb =', navigator.usb);
     if (!('usb' in navigator)) {
+        console.log('WebUSB not supported - no usb in navigator');
         usbWarning.innerHTML = '⚠️ 您的浏览器不支持 WebUSB API<br>请使用 Chrome 或 Edge 浏览器';
         usbWarning.style.display = 'block';
         showEdgeDownloadPopup();

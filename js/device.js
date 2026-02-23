@@ -800,7 +800,7 @@ let checkBrowserSupportAndConnect = async () => {
                         
                         setTimeout(async () => {
                             await requestAuth(attempt + 1);
-                        }, 2500);
+                        }, 1500);
                     };
                     
                     setTimeout(() => requestAuth(1), 1000);

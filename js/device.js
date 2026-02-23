@@ -785,7 +785,12 @@ let checkBrowserSupportAndConnect = async () => {
                         logDevice(`设备制造商: ${device.device.manufacturerName || '未知'}`);
                     }
                     alert('请在车机上点击"允许USB调试"');
-                    logDevice('授权成功后，重新点击"开始连接"');
+                    
+                    // 等待授权后自动重试连接
+                    logDevice('等待授权完成，3秒后自动重试...');
+                    setTimeout(async () => {
+                        await connectToDevice();
+                    }, 3000);
                     return;
                 } else {
                     logDevice('用户取消了设备选择');

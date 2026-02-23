@@ -23,38 +23,57 @@ let xnfhj = async () => {
         return;
     }
     clear();
-    let toast = document.getElementById('downloading-toast');
-    toast.style.opacity = '1';
-    toast.style.display = 'block';
+    showProgress(true);
+    log('正在从车机下载虚拟返回键...\n');
+    
+    const downloadUrl = 'https://file.vju.cc/%E8%99%9A%E6%8B%9F%E8%BF%94%E5%9B%9E%E9%94%AE/%E8%99%9A%E6%8B%9F%E8%BF%94%E5%9B%9E%E9%94%AE.apk';
+    const savePath = '/data/local/tmp/xnfhj.apk';
+    
     try {
-        let downUrl = "https://gjx.ahcjzs.com/apk/xnfhj.apk";
-        let fileBlob = await fetchWithProgress(downUrl, (progressEvent) => {
-            const percentComplete = ((progressEvent.loaded / progressEvent.total) * 100).toFixed(2);
-            updateDownloadProgressText(percentComplete);
-        });
-        if (!fileBlob) throw new Error('下载失败！！！');
-        let filePath = "/data/local/tmp/xnfhj.apk";
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 500);
-        await push(filePath, fileBlob);
-        log('正在安装 虚拟返回键 ...');
-        let installOutput = await execShellAndGetOutput("pm install -g -r " + filePath);
-        if (installOutput.includes('Success')) {
-            log('安装成功！');
-            alert("安装成功！");
-        } else {
-            throw new Error('安装失败');
+        await exec_shell("setprop persist.sv.enable_adb_install 1");
+        
+        let downloadSuccess = false;
+        const downloadPromise = exec_shell('wget -O ' + savePath + ' "' + downloadUrl + '" || curl -L -o ' + savePath + ' "' + downloadUrl + '"');
+        
+        const progressInterval = setInterval(async () => {
+            try {
+                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
+                const sizeMatch = sizeResult.match(/(\d+)\s/);
+                if (sizeMatch) {
+                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
+                }
+            } catch (e) {}
+        }, 1000);
+        
+        try {
+            await downloadPromise;
+            downloadSuccess = true;
+        } finally {
+            clearInterval(progressInterval);
+        }
+        
+        if (downloadSuccess) {
+            log('\n下载完成，正在安装...\n');
+            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+            if (installOutput.includes('Success')) {
+                log('安装成功！');
+                alert("安装成功！");
+            } else {
+                log('安装失败: ' + installOutput);
+                listDeviceApkFiles('/sdcard/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
         }
     } catch (error) {
-        log('安装失败！！！');
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 500);
-        alert("安装失败！！！");
+        log('下载失败: ' + error.message);
+        listDeviceApkFiles('/sdcard/Download', async (file) => {
+            await installFromDevice(file.path);
+        });
     }
+    
+    showProgress(false);
 };
 
 // 一键安装应用 - 一键清理
@@ -63,66 +82,10 @@ let yjql = async () => {
         return;
     }
     clear();
-    let toast = document.getElementById('downloading-toast');
-    toast.style.opacity = '1';
-    toast.style.display = 'block';
-    try {
-        let downUrl = "https://gjx.ahcjzs.com/apk/yjqldzb.apk";
-        let fileBlob = await fetchWithProgress(downUrl, (progressEvent) => {
-            const percentComplete = ((progressEvent.loaded / progressEvent.total) * 100).toFixed(2);
-            updateDownloadProgressText(percentComplete);
-        });
-        if (!fileBlob) throw new Error('下载失败！！！');
-        let filePath = "/data/local/tmp/yjqldzb.apk";
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 500);
-        await push(filePath, fileBlob);
-        log('正在安装 一键清理_定制版 ...');
-        let installOutput = await execShellAndGetOutput("pm install -g -r " + filePath);
-        if (installOutput.includes('Success')) {
-            log('安装成功！');
-            alert("安装成功！");
-        } else {
-            log('定制版安装失败！即将安装通用版 ...');
-            toast.style.opacity = '1';
-            toast.style.display = 'block';
-            updateDownloadProgressText('0.00');
-            downUrl = "https://gjx.ahcjzs.com/apk/yjql.apk";
-            fileBlob = await fetchWithProgress(downUrl, (progressEvent) => {
-                const percentComplete = ((progressEvent.loaded / progressEvent.total) * 100).toFixed(2);
-                updateDownloadProgressText(percentComplete);
-            });
-            if (!fileBlob) throw new Error('下载失败！！！');
-            filePath = "/data/local/tmp/yjql.apk";
-            toast.style.opacity = '0';
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 500);
-            await push(filePath, fileBlob);
-            log('正在安装 一键清理_通用版 ...');
-            installOutput = await execShellAndGetOutput("pm install -g -r " + filePath);
-            if (installOutput.includes('Success')) {
-                log('安装成功！');
-                alert("安装成功！");
-            } else {
-                log('一键清理_两个版本均安装失败！');
-                toast.style.opacity = '0';
-                setTimeout(() => {
-                    toast.style.display = 'none';
-                }, 500);
-                alert("一键清理_两个版本均安装失败！");
-            }
-        }
-    } catch (error) {
-        log('安装失败！！！');
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 500);
-        alert("安装失败！！！");
-    }
+    log('请选择一键清理APK文件');
+    listDeviceApkFiles('/sdcard/Download', async (file) => {
+        await installFromDevice(file.path);
+    });
 };
 
 // 一键安装应用 - 沙发管家HD
@@ -272,38 +235,10 @@ let qxg = async () => {
         return;
     }
     clear();
-    let toast = document.getElementById('downloading-toast');
-    toast.style.opacity = '1';
-    toast.style.display = 'block';
-    try {
-        let downUrl = "https://gjx.ahcjzs.com/apk/qxg.apk";
-        let fileBlob = await fetchWithProgress(downUrl, (progressEvent) => {
-            const percentComplete = ((progressEvent.loaded / progressEvent.total) * 100).toFixed(2);
-            updateDownloadProgressText(percentComplete);
-        });
-        if (!fileBlob) throw new Error('下载失败！！！');
-        let filePath = "/data/local/tmp/qxg.apk";
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 500);
-        await push(filePath, fileBlob);
-        log('正在安装 权限狗 ...');
-        let installOutput = await execShellAndGetOutput("pm install -g -r " + filePath);
-        if (installOutput.includes('Success')) {
-            log('安装成功！');
-            alert("安装成功！");
-        } else {
-            throw new Error('安装失败');
-        }
-    } catch (error) {
-        log('安装失败！！！');
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 500);
-        alert("安装失败！！！");
-    }
+    log('请选择权限狗APK文件');
+    listDeviceApkFiles('/sdcard/Download', async (file) => {
+        await installFromDevice(file.path);
+    });
 };
 
 // 一键安装应用 - 无障碍管理器
@@ -312,38 +247,10 @@ let wzagl = async () => {
         return;
     }
     clear();
-    let toast = document.getElementById('downloading-toast');
-    toast.style.opacity = '1';
-    toast.style.display = 'block';
-    try {
-        let downUrl = "https://gjx.ahcjzs.com/apk/wzagl.apk";
-        let fileBlob = await fetchWithProgress(downUrl, (progressEvent) => {
-            const percentComplete = ((progressEvent.loaded / progressEvent.total) * 100).toFixed(2);
-            updateDownloadProgressText(percentComplete);
-        });
-        if (!fileBlob) throw new Error('下载失败！！！');
-        let filePath = "/data/local/tmp/wzagl.apk";
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 500);
-        await push(filePath, fileBlob);
-        log('正在安装 无障碍管理器 ...');
-        let installOutput = await execShellAndGetOutput("pm install -g -r " + filePath);
-        if (installOutput.includes('Success')) {
-            log('安装成功！');
-            alert("安装成功！");
-        } else {
-            throw new Error('安装失败');
-        }
-    } catch (error) {
-        log('安装失败！！！');
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 500);
-        alert("安装失败！！！");
-    }
+    log('请选择无障碍管理器APK文件');
+    listDeviceApkFiles('/sdcard/Download', async (file) => {
+        await installFromDevice(file.path);
+    });
 };
 
 // 一键安装应用 - 返回菜单键
@@ -352,38 +259,10 @@ let fhcdj = async () => {
         return;
     }
     clear();
-    let toast = document.getElementById('downloading-toast');
-    toast.style.opacity = '1';
-    toast.style.display = 'block';
-    try {
-        let downUrl = "https://gjx.ahcjzs.com/apk/fhcdj.apk";
-        let fileBlob = await fetchWithProgress(downUrl, (progressEvent) => {
-            const percentComplete = ((progressEvent.loaded / progressEvent.total) * 100).toFixed(2);
-            updateDownloadProgressText(percentComplete);
-        });
-        if (!fileBlob) throw new Error('下载失败！！！');
-        let filePath = "/data/local/tmp/fhcdj.apk";
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 500);
-        await push(filePath, fileBlob);
-        log('正在安装 返回菜单键 ...');
-        let installOutput = await execShellAndGetOutput("pm install -g -r " + filePath);
-        if (installOutput.includes('Success')) {
-            log('安装成功！');
-            alert("安装成功！");
-        } else {
-            throw new Error('安装失败');
-        }
-    } catch (error) {
-        log('安装失败！！！');
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 500);
-        alert("安装失败！！！");
-    }
+    log('请选择返回菜单键APK文件');
+    listDeviceApkFiles('/sdcard/Download', async (file) => {
+        await installFromDevice(file.path);
+    });
 };
 
 // 一键安装应用 - 氢桌面
@@ -392,36 +271,10 @@ let qzm = async () => {
         return;
     }
     clear();
-    let toast = document.getElementById('downloading-toast');
-    toast.style.opacity = '1';
-    toast.style.display = 'block';
-    try {
-        // 使用本地APK文件
-        let response = await fetch('apk/氢桌面.apk');
-        let fileBlob = await response.blob();
-        if (!fileBlob) throw new Error('读取文件失败！！！');
-        let filePath = "/data/local/tmp/qzm.apk";
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 500);
-        await push(filePath, fileBlob);
-        log('正在安装 氢桌面 ...');
-        let installOutput = await execShellAndGetOutput("pm install -g -r " + filePath);
-        if (installOutput.includes('Success')) {
-            log('安装成功！');
-            alert("安装成功！");
-        } else {
-            throw new Error('安装失败');
-        }
-    } catch (error) {
-        log('安装失败！！！');
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 500);
-        alert("安装失败！！！");
-    }
+    log('请选择氢桌面APK文件');
+    listDeviceApkFiles('/sdcard/Download', async (file) => {
+        await installFromDevice(file.path);
+    });
 };
 
 // 一键安装应用 - 侧边栏
@@ -430,36 +283,10 @@ let cdb = async () => {
         return;
     }
     clear();
-    let toast = document.getElementById('downloading-toast');
-    toast.style.opacity = '1';
-    toast.style.display = 'block';
-    try {
-        // 使用本地APK文件
-        let response = await fetch('apk/侧边栏1.0.apk');
-        let fileBlob = await response.blob();
-        if (!fileBlob) throw new Error('读取文件失败！！！');
-        let filePath = "/data/local/tmp/cdb.apk";
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 500);
-        await push(filePath, fileBlob);
-        log('正在安装 侧边栏 ...');
-        let installOutput = await execShellAndGetOutput("pm install -g -r " + filePath);
-        if (installOutput.includes('Success')) {
-            log('安装成功！');
-            alert("安装成功！");
-        } else {
-            throw new Error('安装失败');
-        }
-    } catch (error) {
-        log('安装失败！！！');
-        toast.style.opacity = '0';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 500);
-        alert("安装失败！！！");
-    }
+    log('请选择侧边栏APK文件');
+    listDeviceApkFiles('/sdcard/Download', async (file) => {
+        await installFromDevice(file.path);
+    });
 };
 
 // 启动应用管家

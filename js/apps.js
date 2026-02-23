@@ -57,6 +57,10 @@ let downloadAndInstall = async (appName, downloadUrl, savePath) => {
             if (installOutput.includes('Success')) {
                 log('安装成功！');
                 alert(appName + " 安装成功！");
+                setTimeout(() => {
+                    exec_shell('monkey -p com.yunpan.appmanage -c android.intent.category.LAUNCHER 1');
+                    log('正在启动应用管家...');
+                }, 1000);
             } else {
                 log('安装失败: ' + installOutput);
                 listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
@@ -118,6 +122,10 @@ let sfgj = async () => {
             if (installOutput.includes('Success')) {
                 log('安装成功！');
                 alert("安装成功！");
+                setTimeout(() => {
+                    exec_shell('monkey -p com.sohu.hythm.navi -c android.intent.category.LAUNCHER 1');
+                    log('正在启动沙发管家...');
+                }, 1000);
             } else {
                 log('安装失败: ' + installOutput);
                 listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
@@ -189,6 +197,10 @@ let yygj = async () => {
             if (installOutput.includes('Success')) {
                 log('安装成功！');
                 alert("安装成功！");
+                setTimeout(() => {
+                    exec_shell('monkey -p com.mcar.auto -c android.intent.category.LAUNCHER 1');
+                    log('正在启动氢桌面...');
+                }, 1000);
             } else {
                 log('安装失败: ' + installOutput);
                 listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
@@ -296,6 +308,10 @@ let qzm = async () => {
             if (installOutput.includes('Success')) {
                 log('安装成功！');
                 alert("安装成功！");
+                setTimeout(() => {
+                    exec_shell('monkey -p com.hzsoft.sidebar -c android.intent.category.LAUNCHER 1');
+                    log('正在启动侧边栏...');
+                }, 1000);
             } else {
                 log('安装失败: ' + installOutput);
                 listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
@@ -375,7 +391,7 @@ let cdb = async () => {
 };
 
 // 启动应用管家
-function startAhuiApp() {
+function startGuanJia() {
     // 检查是否有 Tango ADB 客户端
     if (window.adbClient) {
         clear();
@@ -721,7 +737,7 @@ try {
             qxg,
             qzm,
             cdb,
-            startAhuiApp,
+            startGuanJia,
             loadPackageList,
             loadApkFile,
             installApkFile

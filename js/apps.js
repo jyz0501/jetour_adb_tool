@@ -562,7 +562,7 @@ let installApkFile = async () => {
     try {
         for (let i = 0; i < validFiles.length; i++) {
             const file = validFiles[i];
-            const remotePath = `/data/local/tmp/upload_${Date.now()}_${i}.apk`;
+            const remotePath = `/storage/emulated/0/Download/upload_${Date.now()}_${i}.apk`;
             log(`[${i + 1}/${validFiles.length}] 推送: ${file.name}`);
             await push(remotePath, file);
             // 安装 APK（-r 表示覆盖安装，-g 自动授予权限）

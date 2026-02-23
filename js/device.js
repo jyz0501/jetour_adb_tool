@@ -678,8 +678,8 @@ let checkBrowserSupportAndConnect = async () => {
         // 检查浏览器是否支持 WebUSB
         const isSupported = checkWebUSBSupport();
         if (!isSupported || !navigator.usb) {
-            // 不支持，显示 Edge 下载弹窗
-            showEdgeDownloadPopup();
+            // 不支持，显示 Chrome 下载弹窗
+            showChromeDownloadPopup();
             return;
         }
         logDevice('使用 Tango ADB 连接设备...');
@@ -736,7 +736,7 @@ let checkBrowserSupportAndConnect = async () => {
         
         if (!manager) {
             logDevice('错误: 浏览器不支持 WebUSB');
-            alert('您的浏览器不支持 WebUSB，请使用 Chrome 或 Edge 浏览器');
+            alert('您的浏览器不支持 WebUSB，请使用 Chrome 浏览器');
             return;
         }
         
@@ -899,8 +899,8 @@ let wirelessConnect = async () => {
         // 检查浏览器是否支持 WebUSB
         const isSupported = checkWebUSBSupport();
         if (!isSupported || !navigator.usb) {
-            // 不支持，显示 Edge 下载弹窗
-            showEdgeDownloadPopup();
+            // 不支持，显示 Chrome 下载弹窗
+            showChromeDownloadPopup();
             // 直接返回，不继续执行后续连接逻辑
             return;
         }

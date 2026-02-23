@@ -86,7 +86,7 @@ function checkWebUSBSupport() {
     if (isIOS) {
         usbWarning.innerHTML = '⚠️ iOS 设备暂不支持 WebUSB 连接<br>请使用以下替代方案：<br>1. 使用 Windows/Mac 电脑连接<br>2. 使用无线 ADB（手机设置→开发者选项→无线调试）';
         usbWarning.style.display = 'block';
-        showEdgeDownloadPopup();
+        showChromeDownloadPopup();
         return false;
     }
 
@@ -95,42 +95,33 @@ function checkWebUSBSupport() {
         // 检测是否是移动端设备
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         if (isMobile) {
-            usbWarning.innerHTML = '⚠️ 移动端浏览器暂不支持 WebUSB<br>请使用电脑浏览器（Chrome/Edge）连接车机<br><br>或使用无线 ADB 调试';
+            usbWarning.innerHTML = '⚠️ 移动端浏览器暂不支持 WebUSB<br>请使用电脑浏览器（Chrome）连接车机<br><br>或使用无线 ADB 调试';
         } else {
-            usbWarning.innerHTML = '⚠️ 您的浏览器不支持 WebUSB API<br>请使用 Chrome 或 Edge 浏览器';
+            usbWarning.innerHTML = '⚠️ 您的浏览器不支持 WebUSB API<br>请使用 Chrome 浏览器';
         }
         usbWarning.style.display = 'block';
-        showEdgeDownloadPopup();
+        showChromeDownloadPopup();
         return false;
     }
 
     // 第三层：检测是否为支持的浏览器类型
     const userAgent = navigator.userAgent;
-    const isEdge = userAgent.indexOf('Edg') > -1;
     const isChrome = userAgent.indexOf('Chrome') > -1 && userAgent.indexOf('Edg') === -1;
     const isOpera = userAgent.indexOf('OPR') > -1;
-    const isSupportedBrowser = isEdge || isChrome || isOpera;
+    const isSupportedBrowser = isChrome || isOpera;
 
     if (!isSupportedBrowser) {
-        usbWarning.innerHTML = '⚠️ 您的浏览器类型不支持 WebUSB<br>请使用 Chrome 或 Edge 浏览器<br><br>当前UA: ' + userAgent;
+        usbWarning.innerHTML = '⚠️ 您的浏览器类型不支持 WebUSB<br>请使用 Chrome 浏览器<br><br>当前UA: ' + userAgent;
         usbWarning.style.display = 'block';
-        showEdgeDownloadPopup();
+        showChromeDownloadPopup();
         return false;
     }
 
     // 第四层：检测浏览器版本
     let isSupportedVersion = false;
 
-    // Edge 浏览器
-    if (isEdge) {
-        const edgeMatch = userAgent.match(/Edg\/(\d+)/);
-        if (edgeMatch) {
-            const edgeVersion = parseInt(edgeMatch[1]);
-            isSupportedVersion = edgeVersion >= 79;
-        }
-    }
     // Chrome 浏览器
-    else if (isChrome) {
+    if (isChrome) {
         const chromeMatch = userAgent.match(/Chrome\/(\d+)/);
         if (chromeMatch) {
             const chromeVersion = parseInt(chromeMatch[1]);
@@ -147,9 +138,9 @@ function checkWebUSBSupport() {
     }
 
     if (!isSupportedVersion) {
-        usbWarning.innerHTML = '⚠️ 您的浏览器版本过低，不支持 WebUSB<br>请更新到最新版本的 Chrome 或 Edge 浏览器';
+        usbWarning.innerHTML = '⚠️ 您的浏览器版本过低，不支持 WebUSB<br>请更新到最新版本的 Chrome 浏览器';
         usbWarning.style.display = 'block';
-        showEdgeDownloadPopup();
+        showChromeDownloadPopup();
         return false;
     }
 
@@ -256,19 +247,18 @@ function showConfirmWithLinks(title, content, callback) {
 }
 
 // 显示浏览器下载弹窗
-function showEdgeDownloadPopup() {
+function showChromeDownloadPopup() {
     const content = '您的浏览器不支持 WebUSB，请使用以下浏览器：<br><br>' +
-                    '<a href="https://www.microsoft.com/zh-cn/edge/download" target="_blank">1. Microsoft Edge 浏览器</a><br>' +
-                    '<a href="https://www.google.com/chrome/downloads/" target="_blank">2. Google Chrome 浏览器</a><br><br>' +
+                    '<a href="https://www.google.com/chrome/downloads/" target="_blank">Google Chrome 浏览器</a><br><br>' +
                     '点击上方链接直接下载，或点击下方按钮选择浏览器下载。';
     
     showModal('浏览器支持提示', content, {
         showCancel: true,
         cancelText: '取消',
-        confirmText: '下载 Edge',
+        confirmText: '下载 Chrome',
         callback: function(confirmed) {
             if (confirmed) {
-                window.open('https://www.microsoft.com/zh-cn/edge/download', '_blank');
+                window.open('https://www.google.com/chrome/downloads/', '_blank');
             }
         }
     });

@@ -30,7 +30,7 @@ let downloadAndInstall = async (appName, downloadUrl, savePath) => {
         await exec_shell("setprop persist.sv.enable_adb_install 1");
         
         let downloadSuccess = false;
-        const downloadPromise = exec_shell('wget -O ' + savePath + ' "' + downloadUrl + '" || curl -L -o ' + savePath + ' "' + downloadUrl + '"');
+        const downloadPromise = exec_shell('wget -q -O ' + savePath + ' "' + downloadUrl + '" || curl -sL -o ' + savePath + ' "' + downloadUrl + '"');
         
         const progressInterval = setInterval(async () => {
             try {
@@ -89,7 +89,7 @@ let sfgj = async () => {
     try {
         await exec_shell("setprop persist.sv.enable_adb_install 1");
         
-        const downloadCommand = 'wget -O ' + savePath + ' "' + downloadUrl + '" || curl -L -o ' + savePath + ' "' + downloadUrl + '"';
+        const downloadCommand = 'wget -q -O ' + savePath + ' "' + downloadUrl + '" || curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
         const downloadPromise = exec_shell(downloadCommand);
         
         const progressInterval = setInterval(async () => {
@@ -154,7 +154,7 @@ let yygj = async () => {
         let downloadSuccess = false;
         
         // 启动下载命令
-        const downloadCommand = 'wget -O ' + savePath + ' "' + downloadUrl + '" || curl -L -o ' + savePath + ' "' + downloadUrl + '"';
+        const downloadCommand = 'wget -q -O ' + savePath + ' "' + downloadUrl + '" || curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
         
         // 启动下载
         const downloadPromise = exec_shell(downloadCommand);
@@ -267,7 +267,7 @@ let qzm = async () => {
     try {
         await exec_shell("setprop persist.sv.enable_adb_install 1");
         
-        const downloadCommand = 'wget -O ' + savePath + ' "' + downloadUrl + '" || curl -L -o ' + savePath + ' "' + downloadUrl + '"';
+        const downloadCommand = 'wget -q -O ' + savePath + ' "' + downloadUrl + '" || curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
         const downloadPromise = exec_shell(downloadCommand);
         
         const progressInterval = setInterval(async () => {
@@ -328,7 +328,7 @@ let cdb = async () => {
     try {
         await exec_shell("setprop persist.sv.enable_adb_install 1");
         
-        const downloadCommand = 'wget -O ' + savePath + ' "' + downloadUrl + '" || curl -L -o ' + savePath + ' "' + downloadUrl + '"';
+        const downloadCommand = 'wget -q -O ' + savePath + ' "' + downloadUrl + '" || curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
         const downloadPromise = exec_shell(downloadCommand);
         
         const progressInterval = setInterval(async () => {

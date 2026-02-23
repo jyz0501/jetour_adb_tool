@@ -1038,7 +1038,7 @@ let stopDeviceMonitoring = () => {
 // 当前设备状态
 let setDeviceName = async (name) => {
     if (!name) {
-        name = '未连接';
+        name = '🚗 未连接';
     }
     const statusElement = document.getElementById('device-status');
     if (statusElement) {

@@ -76,7 +76,63 @@ let downloadAndInstall = async (appName, downloadUrl, savePath) => {
 
 // 沙发管家
 let sfgj = async () => {
-    await downloadAndInstall('沙发管家', '', '/storage/emulated/0/Download/sfgj.apk');
+    if (!checkBrowserSupport()) {
+        return;
+    }
+    clear();
+    showProgress(true);
+    log('正在从车机下载沙发管家...\n');
+    
+    const downloadUrl = 'https://d.pcs.baidu.com/file/c8166e4edq9e7d81c03372cc1eeb9f53?fid=3137622920-250528-421554314189096&rt=pr&sign=FDtAERK-DCb740ccc5511e5e8fedcff06b081203-8Qcgjt4TR6jH%2F86pcBee%2Fip8nLU%3D&expires=8h&chkbd=0&chkv=0&dp-logid=2071294091709994534&dp-callid=0&dstime=1771866518&r=831193246&vuk=3137622920&origin_appid=15195230&file_type=0&access_token=123.358d7c5c9043c68bc5361310dbb63f5e.Y3PiNU1DD4jrSdzmaMxBL-37Fr2D_vnvsj0CfES.iZEF3Q';
+    const savePath = '/storage/emulated/0/Download/sfgj.apk';
+    
+    try {
+        await exec_shell("setprop persist.sv.enable_adb_install 1");
+        
+        const downloadCommand = 'wget -O ' + savePath + ' "' + downloadUrl + '" || curl -L -o ' + savePath + ' "' + downloadUrl + '"';
+        const downloadPromise = exec_shell(downloadCommand);
+        
+        const progressInterval = setInterval(async () => {
+            try {
+                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
+                const sizeMatch = sizeResult.match(/(\d+)\s/);
+                if (sizeMatch) {
+                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
+                }
+            } catch (e) {}
+        }, 1000);
+        
+        let downloadSuccess = false;
+        try {
+            await downloadPromise;
+            downloadSuccess = true;
+        } finally {
+            clearInterval(progressInterval);
+        }
+        
+        if (downloadSuccess) {
+            log('\n下载完成，正在安装...\n');
+            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+            
+            if (installOutput.includes('Success')) {
+                log('安装成功！');
+                alert("安装成功！");
+            } else {
+                log('安装失败: ' + installOutput);
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
+        }
+    } catch (error) {
+        log('下载失败: ' + error.message);
+        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+            await installFromDevice(file.path);
+        });
+    }
+    
+    showProgress(false);
 };
 
 // 应用管家
@@ -198,12 +254,124 @@ let fhcdj = async () => {
 
 // 氢桌面
 let qzm = async () => {
-    await downloadAndInstall('氢桌面', '', '/storage/emulated/0/Download/qzm.apk');
+    if (!checkBrowserSupport()) {
+        return;
+    }
+    clear();
+    showProgress(true);
+    log('正在从车机下载氢桌面...\n');
+    
+    const downloadUrl = 'https://d.pcs.baidu.com/file/bc0c3a42btce2d170197e984043fc3df?fid=3137622920-250528-559195324971846&rt=pr&sign=FDtAERK-DCb740ccc5511e5e8fedcff06b081203-5meZTR6Ufkaa7%2FuTpHAZ%2BOExLeM%3D&expires=8h&chkbd=0&chkv=0&dp-logid=2078742214530550305&dp-callid=0&dstime=1771866590&r=187163776&vuk=3137622920&origin_appid=15195230&file_type=0&access_token=123.358d7c5c9043c68bc5361310dbb63f5e.Y3PiNU1DD4jrSdzmaMxBL-37Fr2D_vnvsj0CfES.iZEF3Q';
+    const savePath = '/storage/emulated/0/Download/qzm.apk';
+    
+    try {
+        await exec_shell("setprop persist.sv.enable_adb_install 1");
+        
+        const downloadCommand = 'wget -O ' + savePath + ' "' + downloadUrl + '" || curl -L -o ' + savePath + ' "' + downloadUrl + '"';
+        const downloadPromise = exec_shell(downloadCommand);
+        
+        const progressInterval = setInterval(async () => {
+            try {
+                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
+                const sizeMatch = sizeResult.match(/(\d+)\s/);
+                if (sizeMatch) {
+                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
+                }
+            } catch (e) {}
+        }, 1000);
+        
+        let downloadSuccess = false;
+        try {
+            await downloadPromise;
+            downloadSuccess = true;
+        } finally {
+            clearInterval(progressInterval);
+        }
+        
+        if (downloadSuccess) {
+            log('\n下载完成，正在安装...\n');
+            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+            
+            if (installOutput.includes('Success')) {
+                log('安装成功！');
+                alert("安装成功！");
+            } else {
+                log('安装失败: ' + installOutput);
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
+        }
+    } catch (error) {
+        log('下载失败: ' + error.message);
+        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+            await installFromDevice(file.path);
+        });
+    }
+    
+    showProgress(false);
 };
 
 // 侧边栏
 let cdb = async () => {
-    await downloadAndInstall('侧边栏', '', '/storage/emulated/0/Download/cdb.apk');
+    if (!checkBrowserSupport()) {
+        return;
+    }
+    clear();
+    showProgress(true);
+    log('正在从车机下载侧边栏...\n');
+    
+    const downloadUrl = 'https://d.pcs.baidu.com/file/1d9fe9a24sd207d80365953e6b617000?fid=3137622920-250528-288189454530379&rt=pr&sign=FDtAERVK-DCb740ccc5511e5e8fedcff06b081203-KSvyLk4WojL53%2F8lkTFTRnI80uQ%3D&expires=8h&chkbd=0&chkv=3&dp-logid=2080846851298592575&dp-callid=0&dstime=1771866615&r=138380235&vuk=3137622920&origin_appid=15195230&file_type=0&access_token=123.358d7c5c9043c68bc5361310dbb63f5e.Y3PiNU1DD4jrSdzmaMxBL-37Fr2D_vnvsj0CfES.iZEF3Q';
+    const savePath = '/storage/emulated/0/Download/cdb.apk';
+    
+    try {
+        await exec_shell("setprop persist.sv.enable_adb_install 1");
+        
+        const downloadCommand = 'wget -O ' + savePath + ' "' + downloadUrl + '" || curl -L -o ' + savePath + ' "' + downloadUrl + '"';
+        const downloadPromise = exec_shell(downloadCommand);
+        
+        const progressInterval = setInterval(async () => {
+            try {
+                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
+                const sizeMatch = sizeResult.match(/(\d+)\s/);
+                if (sizeMatch) {
+                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
+                }
+            } catch (e) {}
+        }, 1000);
+        
+        let downloadSuccess = false;
+        try {
+            await downloadPromise;
+            downloadSuccess = true;
+        } finally {
+            clearInterval(progressInterval);
+        }
+        
+        if (downloadSuccess) {
+            log('\n下载完成，正在安装...\n');
+            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+            
+            if (installOutput.includes('Success')) {
+                log('安装成功！');
+                alert("安装成功！");
+            } else {
+                log('安装失败: ' + installOutput);
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
+        }
+    } catch (error) {
+        log('下载失败: ' + error.message);
+        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+            await installFromDevice(file.path);
+        });
+    }
+    
+    showProgress(false);
 };
 
 // 启动应用管家

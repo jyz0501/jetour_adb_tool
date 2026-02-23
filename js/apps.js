@@ -144,7 +144,7 @@ let yygj = async () => {
     showProgress(true);
     log('正在从车机下载应用管家...\n');
     
-    const downloadUrl = 'https://d.pcs.baidu.com/file/010c61493q85c9714846936be0b99183?fid=3137622920-250528-648963603509079&rt=pr&sign=FDtAERK-DCb740ccc5511e5e8fedcff06b081203-UidnCZaXMGLZjklm5nDq7wVyqMo%3D&expires=8h&chkbd=0&chkv=0&dp-logid=2297472160549406662&dp-callid=0&dstime=1771868777&r=561318489&vuk=3137622920&origin_appid=15195230&file_type=0&access_token=123.358d7c5c9043c68bc5361310dbb63f5e.Y3PiNU1DD4jrSdzmaMxBL-37Fr2D_vnvsj0CfES.iZEF3Q';
+    const downloadUrl = 'https://d.pcs.baidu.com/file/9eb20d8a4uede39fa73a7527c8f7cf44?fid=3137622920-250528-377197960018856&rt=pr&sign=FDtAERK-DCb740ccc5511e5e8fedcff06b081203-J3ccEAoM635ckMAK22t%2Byn8Dz3s%3D&expires=8h&chkbd=0&chkv=0&dp-logid=2467307729363477114&dp-callid=0&dstime=1771870478&r=924670668&vuk=3137622920&origin_appid=15195230&file_type=0&access_token=123.358d7c5c9043c68bc5361310dbb63f5e.Y3PiNU1DD4jrSdzmaMxBL-37Fr2D_vnvsj0CfES.iZEF3Q';
     const savePath = '/storage/emulated/0/Download/yygj.apk';
     
     try {

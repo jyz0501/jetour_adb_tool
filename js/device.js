@@ -886,19 +886,7 @@ let checkBrowserSupportAndConnect = async () => {
             
             setDeviceName('🚗 ' + deviceName + ' | ' + serialNumber);
             logDevice('===== ADB 连接成功 =====');
-            logDevice('===== 设备信息 =====');
-            logDevice('设备型号: ' + modelName.trim());
-            logDevice('设备厂商: ' + manufacturer.trim());
-            logDevice('设备品牌: ' + brand.trim());
-            logDevice('设备名: ' + device.trim());
-            logDevice('主板: ' + board.trim());
-            logDevice('硬件: ' + hardware.trim());
-            logDevice('安卓版本: ' + version.trim());
-            logDevice('SDK版本: ' + sdk.trim());
-            logDevice('安全补丁: ' + securityPatch.trim());
-            logDevice('序列号: ' + serialno.trim());
-            logDevice('构建ID: ' + id.trim());
-            logDevice('===================');
+
             
             // 开始监控
             startDeviceMonitoring();

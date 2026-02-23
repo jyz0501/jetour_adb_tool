@@ -602,12 +602,13 @@ let listDeviceApkFiles = async (directory, onSelect) => {
         
         const lines = result.trim().split('\n').filter(line => line.endsWith('.apk'));
         const files = lines.map(line => {
-            const parts = line.split(/\s+/);
-            const filename = parts[parts.length - 1];
+            const match = line.match(/^[-drwx]+\s+\d+\s+\w+\s+\w+\s+(\d+)\s+.+\s+(.+)$/);
+            const size = match ? match[1] : '0';
+            const filename = match ? match[2] : line.trim().split(/\s+/).pop();
             return {
                 name: filename,
                 path: directory + '/' + filename,
-                size: parts[4]
+                size: parseInt(size) || 0
             };
         });
         
@@ -693,7 +694,7 @@ let showApkFilePicker = (files, currentDir, onSelect) => {
         const selectedInfo = document.getElementById('selected-file-info');
         if (selectedInfo) {
             selectedInfo.style.display = 'block';
-            selectedInfo.innerHTML = '✅ 已选择: ' + file.path;
+            selectedInfo.innerHTML = '✅ 已选择: ' + file.name;
         }
     };
     

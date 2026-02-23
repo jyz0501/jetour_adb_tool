@@ -1033,17 +1033,29 @@ let startDeviceMonitoring = () => {
     deviceMonitoringInterval = setInterval(async () => {
         try {
             if (window.adbClient) {
-                const testResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(["getprop", "sys.boot_completed"]);
-                const battery = await window.adbClient.subprocess.noneProtocol.spawnWaitText(["dumpsys", "battery", "|", "grep", "level"]);
-                const memory = await window.adbClient.subprocess.noneProtocol.spawnWaitText(["cat", "/proc/meminfo", "|", "grep", "MemAvailable"]);
-                logDevice('设备已连接 | 启动状态: ' + testResult.trim() + ' | ' + battery.trim() + ' | 可用内存: ' + memory.trim());
+                const bootCompleted = await window.adbClient.subprocess.noneProtocol.spawnWaitText(["getprop", "sys.boot_completed"]);
+                const batteryLevel = await window.adbClient.subprocess.noneProtocol.spawnWaitText(["dumpsys", "battery", "-s", "15"]);
+                const cpuUsage = await window.adbClient.subprocess.noneProtocol.spawnWaitText(["top", "-n", "1", "-b"]);
+                const uptime = await window.adbClient.subprocess.noneProtocol.spawnWaitText(["getprop", "sys.uptime"]);
+                
+                const batteryMatch = batteryLevel.match(/level: (\d+)/);
+                const battery = batteryMatch ? batteryMatch[1] + '%' : 'N/A';
+                const cpuMatch = cpuUsage.match(/CPU usage.*?(\d+)/);
+                const cpu = cpuMatch ? cpuMatch[1] + '%' : 'N/A';
+                
+                logDevice('===== 设备状态监控 =====');
+                logDevice('📱 启动状态: ' + (bootCompleted.trim() === '1' ? '已启动 ✅' : '启动中...'));
+                logDevice('🔋 电池电量: ' + battery);
+                logDevice('⏱️ 运行时间: ' + uptime.trim());
+                logDevice('🖥️ CPU: ' + cpu);
+                logDevice('=======================');
             } else {
-                logDevice('设备已断开');
+                logDevice('❌ 设备已断开连接');
                 setDeviceName(null);
                 stopDeviceMonitoring();
             }
         } catch (error) {
-            logDevice('设备连接异常: ' + error.message);
+            logDevice('⚠️ 设备连接异常: ' + error.message);
             setDeviceName(null);
             stopDeviceMonitoring();
         }

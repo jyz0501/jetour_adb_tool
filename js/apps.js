@@ -59,14 +59,14 @@ let downloadAndInstall = async (appName, downloadUrl, savePath) => {
                 alert(appName + " 安装成功！");
             } else {
                 log('安装失败: ' + installOutput);
-                listDeviceApkFiles('/storage/self/primary/Download', async (file) => {
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
                     await installFromDevice(file.path);
                 });
             }
         }
     } catch (error) {
         log('下载失败: ' + error.message);
-        listDeviceApkFiles('/storage/self/primary/Download', async (file) => {
+        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
             await installFromDevice(file.path);
         });
     }
@@ -76,7 +76,7 @@ let downloadAndInstall = async (appName, downloadUrl, savePath) => {
 
 // 沙发管家
 let sfgj = async () => {
-    await downloadAndInstall('沙发管家', '', '/data/local/tmp/sfgj.apk');
+    await downloadAndInstall('沙发管家', '', '/storage/emulated/0/Download/sfgj.apk');
 };
 
 // 应用管家
@@ -89,7 +89,7 @@ let yygj = async () => {
     log('正在从车机下载应用管家...\n');
     
     const downloadUrl = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B61.8.0%E5%85%AC%E7%AD%BE%E7%89%88.apk';
-    const savePath = '/data/local/tmp/yygj.apk';
+    const savePath = '/storage/emulated/0/Download/yygj.apk';
     
     try {
         await exec_shell("setprop persist.sv.enable_adb_install 1");
@@ -135,7 +135,7 @@ let yygj = async () => {
                 alert("安装成功！");
             } else {
                 log('安装失败: ' + installOutput);
-                listDeviceApkFiles('/storage/self/primary/Download', async (file) => {
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
                     await installFromDevice(file.path);
                 });
             }
@@ -143,7 +143,7 @@ let yygj = async () => {
     } catch (error) {
         log('下载失败: ' + error.message);
         log('请在车机浏览器中手动下载 APK，然后从设备选择安装');
-        listDeviceApkFiles('/storage/self/primary/Download', async (file) => {
+        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
             await installFromDevice(file.path);
         });
     }
@@ -183,27 +183,27 @@ let installFromDevice = async (devicePath) => {
 
 // 权限狗
 let qxg = async () => {
-    await downloadAndInstall('权限狗', '', '/data/local/tmp/qxg.apk');
+    await downloadAndInstall('权限狗', '', '/storage/emulated/0/Download/qxg.apk');
 };
 
 // 无障碍管理器
 let wzagl = async () => {
-    await downloadAndInstall('无障碍管理器', '', '/data/local/tmp/wzagl.apk');
+    await downloadAndInstall('无障碍管理器', '', '/storage/emulated/0/Download/wzagl.apk');
 };
 
 // 返回菜单键
 let fhcdj = async () => {
-    await downloadAndInstall('返回菜单键', '', '/data/local/tmp/fhcdj.apk');
+    await downloadAndInstall('返回菜单键', '', '/storage/emulated/0/Download/fhcdj.apk');
 };
 
 // 氢桌面
 let qzm = async () => {
-    await downloadAndInstall('氢桌面', '', '/data/local/tmp/qzm.apk');
+    await downloadAndInstall('氢桌面', '', '/storage/emulated/0/Download/qzm.apk');
 };
 
 // 侧边栏
 let cdb = async () => {
-    await downloadAndInstall('侧边栏', '', '/data/local/tmp/cdb.apk');
+    await downloadAndInstall('侧边栏', '', '/storage/emulated/0/Download/cdb.apk');
 };
 
 // 启动应用管家
@@ -456,10 +456,9 @@ let showApkFilePicker = (files, currentDir, onSelect) => {
     
     let html = '<h3 style="margin-top:0;">选择APK文件</h3>';
     html += '<p style="color:#666;">当前目录: ' + currentDir + '</p>';
-    html += '<div style="display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;">';
-    html += '<button onclick="listDeviceApkFiles(\'/storage/self/primary/Download\', window.currentApkSelectCallback)" style="padding:8px 12px;cursor:pointer;">下载</button>';
-    html += '<button onclick="listDeviceApkFiles(\'/storage/self/primary\', window.currentApkSelectCallback)" style="padding:8px 12px;cursor:pointer;">存储</button>';
-    html += '<button onclick="listDeviceApkFiles(\'/data/local/tmp\', window.currentApkSelectCallback)" style="padding:8px 12px;cursor:pointer;">临时目录</button>';
+    html += '<div style="display:flex;gap:10px;margin-wrap:wrap;">';
+    html += '<button onclick="listDeviceApkFiles(\'/storage/emulated/0/Download\', window.currentApkSelectCallback)" style="padding:8px 12px;cursor:pointer;">下载</button>';
+    html += '<button onclick="listDeviceApkFiles(\'/storage/emulated/0\', window.currentApkSelectCallback)" style="padding:8px 12px;cursor:pointer;">存储</button>';
     html += '</div>';
     html += '<div style="margin-bottom:15px;">';
     html += '<input type="text" id="custom-apk-path" placeholder="输入其他目录路径" style="width:60%;padding:8px;">';

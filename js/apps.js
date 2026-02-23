@@ -83,7 +83,7 @@ let sfgj = async () => {
     showProgress(true);
     log('正在从车机下载沙发管家...\n');
     
-    const downloadUrl = 'https://d.pcs.baidu.com/file/c8166e4edq9e7d81c03372cc1eeb9f53?fid=3137622920-250528-421554314189096&rt=pr&sign=FDtAERK-DCb740ccc5511e5e8fedcff06b081203-8Qcgjt4TR6jH%2F86pcBee%2Fip8nLU%3D&expires=8h&chkbd=0&chkv=0&dp-logid=2071294091709994534&dp-callid=0&dstime=1771866518&r=831193246&vuk=3137622920&origin_appid=15195230&file_type=0&access_token=123.358d7c5c9043c68bc5361310dbb63f5e.Y3PiNU1DD4jrSdzmaMxBL-37Fr2D_vnvsj0CfES.iZEF3Q';
+    const downloadUrl = 'https://d.pcs.baidu.com/file/c8166e4edq9e7d81c03372cc1eeb9f53?fid=3137622920-250528-500228511666281&rt=pr&sign=FDtAERK-DCb740ccc5511e5e8fedcff06b081203-D37ftFJku9RzrB9i8OsuyVuIG%2Fw%3D&expires=8h&chkbd=0&chkv=0&dp-logid=2300820975970445967&dp-callid=0&dstime=1771868814&r=820712047&vuk=3137622920&origin_appid=15195230&file_type=0&access_token=123.358d7c5c9043c68bc5361310dbb63f5e.Y3PiNU1DD4jrSdzmaMxBL-37Fr2D_vnvsj0CfES.iZEF3Q';
     const savePath = '/storage/emulated/0/Download/sfgj.apk';
     
     try {
@@ -144,7 +144,7 @@ let yygj = async () => {
     showProgress(true);
     log('正在从车机下载应用管家...\n');
     
-    const downloadUrl = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B61.8.0%E5%85%AC%E7%AD%BE%E7%89%88.apk';
+    const downloadUrl = 'https://d.pcs.baidu.com/file/010c61493q85c9714846936be0b99183?fid=3137622920-250528-648963603509079&rt=pr&sign=FDtAERK-DCb740ccc5511e5e8fedcff06b081203-UidnCZaXMGLZjklm5nDq7wVyqMo%3D&expires=8h&chkbd=0&chkv=0&dp-logid=2297472160549406662&dp-callid=0&dstime=1771868777&r=561318489&vuk=3137622920&origin_appid=15195230&file_type=0&access_token=123.358d7c5c9043c68bc5361310dbb63f5e.Y3PiNU1DD4jrSdzmaMxBL-37Fr2D_vnvsj0CfES.iZEF3Q';
     const savePath = '/storage/emulated/0/Download/yygj.apk';
     
     try {
@@ -261,7 +261,7 @@ let qzm = async () => {
     showProgress(true);
     log('正在从车机下载氢桌面...\n');
     
-    const downloadUrl = 'https://d.pcs.baidu.com/file/bc0c3a42btce2d170197e984043fc3df?fid=3137622920-250528-559195324971846&rt=pr&sign=FDtAERK-DCb740ccc5511e5e8fedcff06b081203-5meZTR6Ufkaa7%2FuTpHAZ%2BOExLeM%3D&expires=8h&chkbd=0&chkv=0&dp-logid=2078742214530550305&dp-callid=0&dstime=1771866590&r=187163776&vuk=3137622920&origin_appid=15195230&file_type=0&access_token=123.358d7c5c9043c68bc5361310dbb63f5e.Y3PiNU1DD4jrSdzmaMxBL-37Fr2D_vnvsj0CfES.iZEF3Q';
+    const downloadUrl = 'https://d.pcs.baidu.com/file/bc0c3a42btce2d170197e984043fc3df?fid=3137622920-250528-227348641477085&rt=pr&sign=FDtAERK-DCb740ccc5511e5e8fedcff06b081203-tCFVzmXdGrcFugnX3abm%2BnmrMvA%3D&expires=8h&chkbd=0&chkv=0&dp-logid=2304789363126453587&dp-callid=0&dstime=1771868850&r=412352790&vuk=3137622920&origin_appid=15195230&file_type=0&access_token=123.358d7c5c9043c68bc5361310dbb63f5e.Y3PiNU1DD4jrSdzmaMxBL-37Fr2D_vnvsj0CfES.iZEF3Q';
     const savePath = '/storage/emulated/0/Download/qzm.apk';
     
     try {
@@ -322,7 +322,7 @@ let cdb = async () => {
     showProgress(true);
     log('正在从车机下载侧边栏...\n');
     
-    const downloadUrl = 'https://d.pcs.baidu.com/file/1d9fe9a24sd207d80365953e6b617000?fid=3137622920-250528-288189454530379&rt=pr&sign=FDtAERVK-DCb740ccc5511e5e8fedcff06b081203-KSvyLk4WojL53%2F8lkTFTRnI80uQ%3D&expires=8h&chkbd=0&chkv=3&dp-logid=2080846851298592575&dp-callid=0&dstime=1771866615&r=138380235&vuk=3137622920&origin_appid=15195230&file_type=0&access_token=123.358d7c5c9043c68bc5361310dbb63f5e.Y3PiNU1DD4jrSdzmaMxBL-37Fr2D_vnvsj0CfES.iZEF3Q';
+    const downloadUrl = 'https://d.pcs.baidu.com/file/1d9fe9a24sd207d80365953e6b617000?fid=3137622920-250528-6609345292430&rt=pr&sign=FDtAERVK-DCb740ccc5511e5e8fedcff06b081203-YjbTT92j0uci%2FRJzaq8i%2FpN3mmo%3D&expires=8h&chkbd=0&chkv=3&dp-logid=2306754795533280547&dp-callid=0&dstime=1771868874&r=777574612&vuk=3137622920&origin_appid=15195230&file_type=0&access_token=123.358d7c5c9043c68bc5361310dbb63f5e.Y3PiNU1DD4jrSdzmaMxBL-37Fr2D_vnvsj0CfES.iZEF3Q';
     const savePath = '/storage/emulated/0/Download/cdb.apk';
     
     try {

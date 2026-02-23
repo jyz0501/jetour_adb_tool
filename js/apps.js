@@ -74,22 +74,12 @@ let downloadAndInstall = async (appName, downloadUrl, savePath) => {
     showProgress(false);
 };
 
-// 一键安装应用 - 虚拟返回键
-let xnfhj = async () => {
-    await downloadAndInstall('虚拟返回键', 'https://file.vju.cc/%E8%99%9A%E6%8B%9F%E8%BF%94%E5%9B%9E%E9%94%AE/%E8%99%9A%E6%8B%9F%E8%BF%94%E5%9B%9E%E9%94%AE.apk', '/data/local/tmp/xnfhj.apk');
-};
-
-// 一键安装应用 - 一键清理
-let yjql = async () => {
-    await downloadAndInstall('一键清理', '', '/data/local/tmp/yjql.apk');
-};
-
-// 一键安装应用 - 沙发管家
+// 沙发管家
 let sfgj = async () => {
     await downloadAndInstall('沙发管家', '', '/data/local/tmp/sfgj.apk');
 };
 
-// 一键安装应用 - 应用管家
+// 应用管家
 let yygj = async () => {
     if (!checkBrowserSupport()) {
         return;
@@ -191,27 +181,27 @@ let installFromDevice = async (devicePath) => {
     showProgress(false);
 };
 
-// 一键安装应用 - 权限狗
+// 权限狗
 let qxg = async () => {
     await downloadAndInstall('权限狗', '', '/data/local/tmp/qxg.apk');
 };
 
-// 一键安装应用 - 无障碍管理器
+// 无障碍管理器
 let wzagl = async () => {
     await downloadAndInstall('无障碍管理器', '', '/data/local/tmp/wzagl.apk');
 };
 
-// 一键安装应用 - 返回菜单键
+// 返回菜单键
 let fhcdj = async () => {
     await downloadAndInstall('返回菜单键', '', '/data/local/tmp/fhcdj.apk');
 };
 
-// 一键安装应用 - 氢桌面
+// 氢桌面
 let qzm = async () => {
     await downloadAndInstall('氢桌面', '', '/data/local/tmp/qzm.apk');
 };
 
-// 一键安装应用 - 侧边栏
+// 侧边栏
 let cdb = async () => {
     await downloadAndInstall('侧边栏', '', '/data/local/tmp/cdb.apk');
 };
@@ -520,13 +510,9 @@ let showApkFilePicker = (files, currentDir, onSelect) => {
 try {
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = {
-            xnfhj,
-            yjql,
             sfgj,
             yygj,
             qxg,
-            wzagl,
-            fhcdj,
             qzm,
             cdb,
             startAhuiApp,

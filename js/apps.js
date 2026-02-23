@@ -59,14 +59,14 @@ let downloadAndInstall = async (appName, downloadUrl, savePath) => {
                 alert(appName + " 安装成功！");
             } else {
                 log('安装失败: ' + installOutput);
-                listDeviceApkFiles('/sdcard/Download', async (file) => {
+                listDeviceApkFiles('/storage/self/primary/Download', async (file) => {
                     await installFromDevice(file.path);
                 });
             }
         }
     } catch (error) {
         log('下载失败: ' + error.message);
-        listDeviceApkFiles('/sdcard/Download', async (file) => {
+        listDeviceApkFiles('/storage/self/primary/Download', async (file) => {
             await installFromDevice(file.path);
         });
     }
@@ -135,7 +135,7 @@ let yygj = async () => {
                 alert("安装成功！");
             } else {
                 log('安装失败: ' + installOutput);
-                listDeviceApkFiles('/sdcard/Download', async (file) => {
+                listDeviceApkFiles('/storage/self/primary/Download', async (file) => {
                     await installFromDevice(file.path);
                 });
             }
@@ -143,7 +143,7 @@ let yygj = async () => {
     } catch (error) {
         log('下载失败: ' + error.message);
         log('请在车机浏览器中手动下载 APK，然后从设备选择安装');
-        listDeviceApkFiles('/sdcard/Download', async (file) => {
+        listDeviceApkFiles('/storage/self/primary/Download', async (file) => {
             await installFromDevice(file.path);
         });
     }
@@ -457,9 +457,9 @@ let showApkFilePicker = (files, currentDir, onSelect) => {
     let html = '<h3 style="margin-top:0;">选择APK文件</h3>';
     html += '<p style="color:#666;">当前目录: ' + currentDir + '</p>';
     html += '<div style="display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;">';
-    html += '<button onclick="listDeviceApkFiles(\'/sdcard/Download\', window.currentApkSelectCallback)" style="padding:8px 12px;cursor:pointer;">下载</button>';
-    html += '<button onclick="listDeviceApkFiles(\'/sdcard\', window.currentApkSelectCallback)" style="padding:8px 12px;cursor:pointer;">存储根目录</button>';
-    html += '<button onclick="listDeviceApkFiles(\'/sdcard/Documents\', window.currentApkSelectCallback)" style="padding:8px 12px;cursor:pointer;">文档</button>';
+    html += '<button onclick="listDeviceApkFiles(\'/storage/self/primary/Download\', window.currentApkSelectCallback)" style="padding:8px 12px;cursor:pointer;">下载</button>';
+    html += '<button onclick="listDeviceApkFiles(\'/storage/self/primary\', window.currentApkSelectCallback)" style="padding:8px 12px;cursor:pointer;">存储</button>';
+    html += '<button onclick="listDeviceApkFiles(\'/data/local/tmp\', window.currentApkSelectCallback)" style="padding:8px 12px;cursor:pointer;">临时目录</button>';
     html += '</div>';
     html += '<div style="margin-bottom:15px;">';
     html += '<input type="text" id="custom-apk-path" placeholder="输入其他目录路径" style="width:60%;padding:8px;">';

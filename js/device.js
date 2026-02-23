@@ -789,6 +789,12 @@ let checkBrowserSupportAndConnect = async () => {
                     // 等待授权后自动重试连接
                     logDevice('等待授权完成，3秒后自动重试...');
                     setTimeout(async () => {
+                        // 再次请求设备授权（第二次弹窗）
+                        logDevice('正在请求第二次授权...');
+                        try {
+                            await manager.requestDevice();
+                        } catch(e) {}
+                        
                         await connectToDevice();
                     }, 3000);
                     return;

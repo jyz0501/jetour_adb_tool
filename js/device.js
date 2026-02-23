@@ -674,6 +674,12 @@ let showWirelessDeviceSelection = (devices) => {
 
 // 检查浏览器支持并连接
 let checkBrowserSupportAndConnect = async () => {
+    // 防止重复连接
+    if (window.adbClient && window.adbClient.connected) {
+        logDevice('设备已连接，请勿重复点击');
+        return;
+    }
+    
     try {
         // 检查浏览器是否支持 WebUSB
         const isSupported = checkWebUSBSupport();
@@ -895,10 +901,10 @@ let checkBrowserSupportAndConnect = async () => {
             console.error('ADB connection error:', e);
             
             // 针对常见错误提供解决方案
-            if (e.message && (e.message.includes('Unable to claim interface') || e.message.includes('Busy'))) {
-                alert('设备接口被占用！\n\n请在终端运行以下命令：\nadb kill-server\n\n然后重新点击"开始连接"按钮。');
+            if (e.message && (e.message.includes('Unable to claim interface') || e.message.includes('Busy') || e.message.includes('already in used'))) {
+                alert('设备接口被占用！\n\n请执行以下步骤：\n1. 刷新页面\n2. 重新插拔 USB 线\n3. 在车机上重新点击"允许"\n4. 点击"开始连接"');
                 logDevice('错误原因：USB 接口被其他程序占用');
-                logDevice('解决方案：请运行 adb kill-server');
+                logDevice('解决方案：请刷新页面并重新连接');
             } else if (e.message && e.message.includes('transferOut')) {
                 logDevice('错误原因：USB 传输错误，可能是连接不稳定');
                 logDevice('建议：检查 USB 线是否牢固，尝试更换 USB 端口');

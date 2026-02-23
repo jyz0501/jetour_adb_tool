@@ -650,6 +650,8 @@ let showApkFilePicker = (files, currentDir, onSelect) => {
     html += '<div style="background:#f8f9fa;border-radius:8px;padding:10px;margin-bottom:15px;font-size:12px;color:#666;">';
     html += '💡 提示: 点击文件选中后点击确定按钮安装';
     html += '</div>';
+    html += '<div id="selected-file-info" style="display:none;background:#e3f2fd;border-radius:8px;padding:10px;margin-bottom:15px;font-size:13px;color:#1565c0;">';
+    html += '</div>';
     html += '<div id="apk-file-list" style="max-height:350px;overflow-y:auto;border:1px solid #e0e0e0;border-radius:8px;background:white;">';
     
     files.forEach((file, index) => {
@@ -686,6 +688,14 @@ let showApkFilePicker = (files, currentDir, onSelect) => {
         btn.disabled = false;
         btn.style.background = '#28a745';
         btn.style.cursor = 'pointer';
+        
+        // 显示选中文件的路径
+        const file = files[index];
+        const selectedInfo = document.getElementById('selected-file-info');
+        if (selectedInfo) {
+            selectedInfo.style.display = 'block';
+            selectedInfo.innerHTML = '✅ 已选择: ' + file.path;
+        }
     };
     
     window.confirmApkSelect = () => {

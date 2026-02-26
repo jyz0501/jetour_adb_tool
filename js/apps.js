@@ -3,7 +3,7 @@
 // 无法关闭的弹窗
 let blockingModal = null;
 
-function showBlockingModal(message) {
+function showBlockingModal(message, stage = 'download') {
     if (blockingModal) {
         return;
     }
@@ -32,14 +32,61 @@ function showBlockingModal(message) {
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     `;
     
+    let stageText = '';
+    let waitText = '';
+    
+    if (stage === 'download') {
+        stageText = '正在下载';
+        waitText = '请耐心等待，下载完成后将自动开始安装';
+    } else if (stage === 'install') {
+        stageText = '正在安装';
+        waitText = '请耐心等待，安装完成后将自动关闭此窗口';
+    } else {
+        stageText = '正在处理';
+        waitText = '请耐心等待，操作完成后将自动关闭此窗口';
+    }
+    
     content.innerHTML = `
-        <div style="font-size: 24px; margin-bottom: 15px; color: #333;">正在安装</div>
+        <div style="font-size: 24px; margin-bottom: 15px; color: #333;">${stageText}</div>
         <div style="font-size: 16px; color: #666; line-height: 1.6;">${message}</div>
-        <div style="margin-top: 20px; color: #999; font-size: 14px;">请勿关闭页面，安装完成后将自动关闭</div>
+        <div style="margin-top: 20px; color: #999; font-size: 14px;">${waitText}</div>
+        <div style="margin-top: 10px; color: #ff6b6b; font-size: 14px; font-weight: bold;">请勿关闭页面或刷新浏览器</div>
     `;
     
     blockingModal.appendChild(content);
     document.body.appendChild(blockingModal);
+}
+
+function updateBlockingModal(message, stage) {
+    if (!blockingModal) {
+        return;
+    }
+    
+    const content = blockingModal.querySelector('div > div');
+    if (!content) {
+        return;
+    }
+    
+    let stageText = '';
+    let waitText = '';
+    
+    if (stage === 'download') {
+        stageText = '正在下载';
+        waitText = '请耐心等待，下载完成后将自动开始安装';
+    } else if (stage === 'install') {
+        stageText = '正在安装';
+        waitText = '请耐心等待，安装完成后将自动关闭此窗口';
+    } else {
+        stageText = '正在处理';
+        waitText = '请耐心等待，操作完成后将自动关闭此窗口';
+    }
+    
+    content.innerHTML = `
+        <div style="font-size: 24px; margin-bottom: 15px; color: #333;">${stageText}</div>
+        <div style="font-size: 16px; color: #666; line-height: 1.6;">${message}</div>
+        <div style="margin-top: 20px; color: #999; font-size: 14px;">${waitText}</div>
+        <div style="margin-top: 10px; color: #ff6b6b; font-size: 14px; font-weight: bold;">请勿关闭页面或刷新浏览器</div>
+    `;
 }
 
 function removeBlockingModal() {
@@ -101,6 +148,7 @@ let downloadAndInstall = async (appName, downloadUrl, savePath) => {
         }
         
         if (downloadSuccess) {
+            updateBlockingModal('正在安装 ' + appName + '...', 'install');
             log('\n下载完成，正在安装...\n');
             let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
             
@@ -170,6 +218,7 @@ let sfgj = async () => {
         }
         
         if (downloadSuccess) {
+            updateBlockingModal('正在安装沙发管家...', 'install');
             log('\n下载完成，正在安装...\n');
             let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
             
@@ -248,6 +297,7 @@ let yygj = async () => {
         }
         
         if (downloadSuccess) {
+            updateBlockingModal('正在安装权限狗...', 'install');
             log('\n下载完成，正在安装...\n');
             let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
             
@@ -351,6 +401,7 @@ let qxg = async () => {
         }
         
         if (downloadSuccess) {
+            updateBlockingModal('正在安装哨兵监控...', 'install');
             log('\n下载完成，正在安装...\n');
             let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
             
@@ -418,6 +469,7 @@ let sentry = async () => {
         }
         
         if (downloadSuccess) {
+            updateBlockingModal('正在安装小横条...', 'install');
             log('\n下载完成，正在安装...\n');
             let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
             
@@ -485,6 +537,7 @@ let hstrip = async () => {
         }
         
         if (downloadSuccess) {
+            updateBlockingModal('正在安装易控车机PIP...', 'install');
             log('\n下载完成，正在安装...\n');
             let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
             
@@ -552,6 +605,7 @@ let ykpip = async () => {
         }
         
         if (downloadSuccess) {
+            updateBlockingModal('正在安装氢桌面...', 'install');
             log('\n下载完成，正在安装...\n');
             let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
             
@@ -629,6 +683,7 @@ let qzm = async () => {
         }
         
         if (downloadSuccess) {
+            updateBlockingModal('正在安装侧边栏...', 'install');
             log('\n下载完成，正在安装...\n');
             let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
             

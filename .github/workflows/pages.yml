@@ -26,15 +26,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: .
           keep_files: false
-          exclude: |
-            douyin
-            douyin-miniprogram
-            wechat-miniprogram
-            .github
-            .gitee
-            .workflow
-            .trae
-            Dockerfile
-            requirements.txt
-            screenshot.py
-            build.sh

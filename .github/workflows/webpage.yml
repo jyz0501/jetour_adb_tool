@@ -1,41 +1,40 @@
-name: Deploy to GitHub Pages
+name: 生成静态页面
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
+
     steps:
-    - uses: actions/checkout@v4
-      
-    - name: Check HTML files
-      run: |
-        echo "Checking HTML files..."
-        find . -name "*.html" -type f | head -10
-        
-    - name: Check CSS files
-      run: |
-        echo "Checking CSS files..."
-        find . -name "*.css" -type f | head -10
-        
-    - name: Check JavaScript files
-      run: |
-        echo "Checking JavaScript files..."
-        find . -name "*.js" -type f | head -10
-        
-    - name: Deploy to GitHub Pages
-      if: github.ref == 'refs/heads/main'
-      uses: peaceiris/actions-gh-pages@v4
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: .
-        publish_branch: gh-pages
-        force_orphan: true
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Inject commit count
+        run: |
+          COUNT=$(git rev-list --count HEAD)
+          sed -i "s/<!--version-->/v${COUNT}/" index.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          keep_files: false
+          exclude: |
+            douyin
+            douyin-miniprogram
+            wechat-miniprogram
+            .github
+            .gitee
+            .workflow
+            .trae
+            Dockerfile
+            requirements.txt
+            screenshot.py
+            build.sh

@@ -87,7 +87,7 @@ let sfgj = async () => {
     showProgress(true);
     log('正在从车机下载沙发管家...\n');
     
-    const downloadUrl = 'https://d.pcs.baidu.com/file/c8166e4edq9e7d81c03372cc1eeb9f53?fid=3137622920-250528-500228511666281&rt=pr&sign=FDtAERK-DCb740ccc5511e5e8fedcff06b081203-D37ftFJku9RzrB9i8OsuyVuIG%2Fw%3D&expires=8h&chkbd=0&chkv=0&dp-logid=2300820975970445967&dp-callid=0&dstime=1771868814&r=820712047&vuk=3137622920&origin_appid=15195230&file_type=0&access_token=123.358d7c5c9043c68bc5361310dbb63f5e.Y3PiNU1DD4jrSdzmaMxBL-37Fr2D_vnvsj0CfES.iZEF3Q';
+    const downloadUrl = 'https://101.42.10.175:35070/down/IvlRhguh57DO.apk';
     const savePath = '/storage/emulated/0/Download/sfgj.apk';
     
     try {
@@ -152,7 +152,7 @@ let yygj = async () => {
     showProgress(true);
     log('正在从车机下载应用管家...\n');
     
-    const downloadUrl = 'https://d.pcs.baidu.com/file/9eb20d8a4uede39fa73a7527c8f7cf44?fid=3137622920-250528-377197960018856&rt=pr&sign=FDtAERK-DCb740ccc5511e5e8fedcff06b081203-J3ccEAoM635ckMAK22t%2Byn8Dz3s%3D&expires=8h&chkbd=0&chkv=0&dp-logid=2467307729363477114&dp-callid=0&dstime=1771870478&r=924670668&vuk=3137622920&origin_appid=15195230&file_type=0&access_token=123.358d7c5c9043c68bc5361310dbb63f5e.Y3PiNU1DD4jrSdzmaMxBL-37Fr2D_vnvsj0CfES.iZEF3Q';
+    const downloadUrl = 'https://101.42.10.175:35070/down/mnfds48btpxq.apk';
     const savePath = '/storage/emulated/0/Download/yygj.apk';
     
     try {
@@ -273,7 +273,7 @@ let qzm = async () => {
     showProgress(true);
     log('正在从车机下载氢桌面...\n');
     
-    const downloadUrl = 'https://d.pcs.baidu.com/file/24135b396r213e6e7ab2aaa07babcca9?fid=3137622920-250528-971560898191160&rt=pr&sign=FDtAERK-DCb740ccc5511e5e8fedcff06b081203-wlapdnAGxLZi%2BVsKx%2BKgXVg8RUg%3D&expires=8h&chkbd=0&chkv=0&dp-logid=2695581379901006603&dp-callid=0&dstime=1771872758&r=802407441&vuk=3137622920&origin_appid=15195230&file_type=0&access_token=123.358d7c5c9043c68bc5361310dbb63f5e.Y3PiNU1DD4jrSdzmaMxBL-37Fr2D_vnvsj0CfES.iZEF3Q';
+    const downloadUrl = 'https://101.42.10.175:35070/down/x9g1UOPys0F2.apk';
     const savePath = '/storage/emulated/0/Download/qzm.apk';
     
     try {
@@ -338,7 +338,7 @@ let cdb = async () => {
     showProgress(true);
     log('正在从车机下载侧边栏...\n');
     
-    const downloadUrl = 'https://d.pcs.baidu.com/file/1d9fe9a24sd207d80365953e6b617000?fid=3137622920-250528-6609345292430&rt=pr&sign=FDtAERVK-DCb740ccc5511e5e8fedcff06b081203-YjbTT92j0uci%2FRJzaq8i%2FpN3mmo%3D&expires=8h&chkbd=0&chkv=3&dp-logid=2306754795533280547&dp-callid=0&dstime=1771868874&r=777574612&vuk=3137622920&origin_appid=15195230&file_type=0&access_token=123.358d7c5c9043c68bc5361310dbb63f5e.Y3PiNU1DD4jrSdzmaMxBL-37Fr2D_vnvsj0CfES.iZEF3Q';
+    const downloadUrl = 'https://101.42.10.175:35070/down/P32XjDMnyz3M.apk';
     const savePath = '/storage/emulated/0/Download/cdb.apk';
     
     try {

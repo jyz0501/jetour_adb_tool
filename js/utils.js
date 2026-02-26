@@ -93,15 +93,39 @@ function checkWebUSBSupport() {
     // 第二层：基本 WebUSB 支持
     if (!('usb' in navigator)) {
         // 检测是否是移动端设备
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        if (isMobile) {
-            usbWarning.innerHTML = '⚠️ 移动端浏览器暂不支持 WebUSB<br>请使用电脑浏览器（Chrome）连接车机<br><br>或使用无线 ADB 调试';
-        } else {
-            usbWarning.innerHTML = '⚠️ 您的浏览器不支持 WebUSB API<br>请使用 Chrome 浏览器';
+        const userAgent = navigator.userAgent;
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+        
+        // 检测是否为支持的浏览器类型
+        const isEdge = userAgent.indexOf('Edg') > -1 || userAgent.indexOf('EdgA') > -1;
+        const isChrome = userAgent.indexOf('Chrome') > -1 && userAgent.indexOf('Edg') === -1 && userAgent.indexOf('EdgA') === -1;
+        const isOpera = userAgent.indexOf('OPR') > -1;
+        const isSupportedBrowser = isEdge || isChrome || isOpera;
+
+        // EdgA 标识的浏览器放行，不显示不支持提示
+        if (userAgent.indexOf('EdgA') > -1) {
+            return true;
         }
-        usbWarning.style.display = 'block';
-        showChromeDownloadPopup();
-        return false;
+
+        if (isMobile) {
+            // 移动端设备，即使是支持的浏览器也不支持 WebUSB
+            usbWarning.innerHTML = '⚠️ 移动端浏览器暂不支持 WebUSB<br>请使用电脑浏览器（Chrome）连接车机<br><br>或使用无线 ADB 调试';
+            usbWarning.style.display = 'block';
+            showChromeDownloadPopup();
+            return false;
+        } else if (!isSupportedBrowser) {
+            // 非移动端设备，但不支持的浏览器
+            usbWarning.innerHTML = '⚠️ 您的浏览器不支持 WebUSB API<br>请使用 Chrome 浏览器';
+            usbWarning.style.display = 'block';
+            showChromeDownloadPopup();
+            return false;
+        } else {
+            // 支持的浏览器但不支持 WebUSB API
+            usbWarning.innerHTML = '⚠️ 您的浏览器不支持 WebUSB API<br>请使用 Chrome 或 Edge 浏览器';
+            usbWarning.style.display = 'block';
+            showChromeDownloadPopup();
+            return false;
+        }
     }
 
     // 第三层：检测是否为支持的浏览器类型

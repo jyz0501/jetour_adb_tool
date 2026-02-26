@@ -828,10 +828,10 @@ let checkBrowserSupportAndConnect = async () => {
                         
                         setTimeout(async () => {
                             await requestAuth(attempt + 1);
-                        }, 500);
+                        }, 5000); // 增大授权请求间隔到 5 秒
                     };
                     
-                    setTimeout(() => requestAuth(1), 1000);
+                    setTimeout(() => requestAuth(1), 2000); // 增加初始延迟
                     return;
                 } else {
                     logDevice('用户取消了设备选择');
@@ -879,13 +879,33 @@ let checkBrowserSupportAndConnect = async () => {
             logDevice('正在创建 ADB 传输层...');
             // 使用 ADB_DEFAULT_AUTHENTICATORS
             const ADB_DEFAULT_AUTHENTICATORS = adbApi.ADB_DEFAULT_AUTHENTICATORS;
-            const transport = await AdbDaemonTransport.authenticate({
-                serial: webusbDevice.serial,
-                connection: connection,
-                credentialStore: credentialStore,
-                authenticators: ADB_DEFAULT_AUTHENTICATORS
-            });
-            logDevice('ADB 传输层已创建');
+            
+            // 添加重试机制
+            let transport;
+            let maxRetries = 3;
+            let retryCount = 0;
+            
+            while (retryCount < maxRetries) {
+                try {
+                    transport = await AdbDaemonTransport.authenticate({
+                        serial: webusbDevice.serial,
+                        connection: connection,
+                        credentialStore: credentialStore,
+                        authenticators: ADB_DEFAULT_AUTHENTICATORS
+                    });
+                    logDevice('ADB 传输层已创建');
+                    break;
+                } catch (error) {
+                    retryCount++;
+                    if (retryCount < maxRetries) {
+                        logDevice(`创建传输层失败，${retryCount}秒后重试...`);
+                        await new Promise(resolve => setTimeout(resolve, 3000));
+                    } else {
+                        logDevice('创建传输层失败，达到最大重试次数');
+                        throw error;
+                    }
+                }
+            }
             
             // 使用 new Adb(transport) 创建 ADB 客户端
             logDevice('正在创建 ADB 客户端...');
@@ -906,6 +926,10 @@ let checkBrowserSupportAndConnect = async () => {
             const device = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.device"]);
             const board = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.board"]);
             const hardware = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.hardware"]);
+            
+            // ADB 连接成功，显示弹窗提示
+            logDevice('===== ADB 连接成功 =====');
+            alert('ADB 连接成功！设备信息：\n品牌: ' + brand.trim() + '\n型号: ' + model.trim() + '\n设备: ' + device.trim());
             const version = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.version.release"]);
             const sdk = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.version.sdk"]);
             const securityPatch = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.version.security_patch"]);
@@ -1099,10 +1123,7 @@ let initDeviceDetection = async () => {
         const isSupported = checkWebUSBSupport();
         if (isSupported && navigator.usb) {
             const browserInfo = getBrowserInfo();
-            logDevice(`您使用的 ${browserInfo.browserName} ${browserInfo.version} 浏览器支持 WebUSB`);
-            
-            // 初始化时检查是否有已连接的设备
-            logDevice('初始化时检查已连接的设备...');
+            logDevice(`您使用的 ${browserInfo.browserName} 浏览器支持 WebUSB`);
             const webusbDevices = await navigator.usb.getDevices();
             if (webusbDevices.length > 0) {
                 logDevice(`发现 ${webusbDevices.length} 个已连接的 WebUSB 设备`);

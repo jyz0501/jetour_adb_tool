@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>捷途旅行者车机助手｜解锁 ADB 工具——@大伦哥的CDM</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- 自定义弹窗样式 -->
+    <style>
+        /* 自定义弹窗样式 */
+        .custom-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .custom-modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 15px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .custom-modal-header {
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .custom-modal-title {
+            margin: 0;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .custom-modal-body {
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .custom-modal-body a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        .custom-modal-body a:hover {
+            text-decoration: underline;
+        }
+        
+        .custom-modal-footer {
+            text-align: right;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .custom-modal-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .custom-modal-btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .custom-modal-btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .custom-modal-btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .custom-modal-btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="text-align: center; margin: 10px 0; font-size: 24px; color: #333;">捷途旅行者/山海T2车机工具箱</h1>
+        <div style="text-align: center; margin-bottom: 15px;">
+            <a href="https://jyz0501.github.io/jetour-adbtool-usage/" target="_blank" class="btn" style="background-color: #007bff; color: white; padding: 8px 20px; text-decoration: none; border-radius: 4px; margin: 0 5px;">使用教程</a>
+            <a href="https://jyz0501.github.io/jetour_vehicle_password/" target="_blank" class="btn" style="background-color: #007bff; color: white; padding: 8px 20px; text-decoration: none; border-radius: 4px; margin: 0 5px;">密码工具</a>
+        </div>
+        <!-- 安装方式一：手机App方式 (已隐藏) -->
+        <!-- 
+        <div style="margin: 10px 0;">
+            <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">安装方式一：手机App方式</h3>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <a href="https://adb.cheji.cc/apk/sj.apk" class="btn btn-connect" style="flex-shrink: 0;" target="_blank">手机助手下载</a>
+                <a href="https://101.42.10.175:35070/down/mnfds48btpxq.apk" class="btn btn-connect" style="flex-shrink: 0;" target="_blank">应用管家下载</a>
+            </div>
+        </div>
+        -->
+        
+        <hr style="margin: 15px 0; border: 1px solid #eee;">
+        
+            <!-- 有线连接 -->
+            <div style="margin: 10px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
+                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.184.0</span></h3>
+                <div class="warning" id="usb-warning">
+                    注意！您的浏览器不支持WebUSB。请在Chrome或Edge浏览器中打开。
+                </div>
+
+                <!-- Chrome/Edge浏览器下载地址已隐藏，将在检测到非支持浏览器时弹窗显示 -->
+
+                <div style="margin: 15px 0;">
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+                        <button class="btn btn-connect" id="connect-btn" onclick="checkBrowserSupportAndConnect()" style="background-color: #28a745; color: white;">开始连接</button>
+                        <!-- 无线调试功能暂时禁用
+                        <button class="btn btn-connect" id="wireless-connect-btn" onclick="showChromeDownloadPopup(); wirelessConnect()" style="background-color: #17a2b8; color: white;" title="仅用于开启ADB无线调试端口，需USB连接">无线调试</button>
+                        -->
+                        <span style="margin-left: 10px; font-weight: bold; color: #28a745;">
+                            <span id="device-status">🚗 未连接</span>
+                            <span id="device-name" style="margin-left: 5px; color: #666;"></span>
+                        </span>
+                    </div>
+                    <p style="font-size: 12px; color: #6c757d; margin: 0;">
+                        有线连接：使用Chrome或Edge浏览器 + OTG线连接车机USB口。<br>
+                        <!-- 无线调试功能暂时禁用 -->
+                        <!-- 无线调试：需先通过USB连接设备，然后使用系统工具中的"无线ADB"功能开启端口，供命令行adb使用（浏览器不支持直接TCP连接）。 -->
+                    </p>
+                </div>
+                <!-- 设备情况日志 -->
+                <div style="margin-top: 10px; padding: 10px; background-color: #f8f9fa; border-radius: 4px; font-size: 12px; font-family: monospace; max-height: 100px; overflow-y: auto;">
+                    <div style="font-weight: bold; margin-bottom: 5px; color: #333;">设备情况日志：</div>
+                    <div id="device-log" style="white-space: pre-wrap;">正在初始化...</div>
+                </div>
+            </div>
+                
+                <hr style="margin: 20px 0; border: 1px solid #eee;">
+                
+                <!-- 必装软件 -->
+                <div style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <h4 style="margin-top: 0; margin-bottom: 15px;">必装软件</h4>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-connect" onclick="yygj()" style="flex-shrink: 0;">应用管家</button>
+                        <button class="btn btn-connect" onclick="cdb()" style="flex-shrink: 0;">侧边栏</button>
+                        <button class="btn btn-connect" onclick="qzm()" style="flex-shrink: 0;">氢桌面</button>
+                        <button class="btn btn-connect" onclick="sfgj()" style="flex-shrink: 0;">沙发管家</button>    
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                        <button class="btn btn-connect" onclick="startGuanJia()" style="flex-shrink: 0; background-color: #28a745;">启动应用管家</button>
+                        <button class="btn btn-connect" onclick="exec_shell('monkey -p com.mcar.auto -c android.intent.category.LAUNCHER 1')" style="flex-shrink: 0;">启动氢桌面</button>
+                        <button class="btn btn-connect" onclick="exec_shell('monkey -p com.hzsoft.sidebar -c android.intent.category.LAUNCHER 1')" style="flex-shrink: 0;">启动侧边栏</button>
+                        <button class="btn btn-connect" onclick="exec_shell('monkey -p com.shafa.markethd -c android.intent.category.LAUNCHER 1')" style="flex-shrink: 0;">启动沙发管家</button>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 12px; color: #6c757d;">请先安装以上软件，以确保系统正常运行。</p>
+                </div>
+                
+                <!-- 其他软件 -->
+                <div style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <h4 style="margin-top: 0; margin-bottom: 15px;">其他软件</h4>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-connect" onclick="qxg()" style="flex-shrink: 0;">权限狗</button>
+                        <button class="btn btn-connect" onclick="sentry()" style="flex-shrink: 0;">哨兵监控</button>
+                        <button class="btn btn-connect" onclick="hstrip()" style="flex-shrink: 0;">小横条</button>
+                        <button class="btn btn-connect" onclick="ykpip()" style="flex-shrink: 0;">易控车机PIP</button>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 12px; color: #6c757d;">根据需要选择安装其他软件。</p>
+                </div>
+                
+                <!-- 自选安装 -->
+                <div style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <h4 style="margin-top: 0; margin-bottom: 15px;">自主安装</h4>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <input type="file" id="apkFile" multiple accept=".apk" style="display: none;">
+                        <button class="btn btn-connect" onclick="loadApkFile()" style="flex-shrink: 0;">选择文件</button>
+                        <span id="apkFileName" style="flex: 1; min-width: 200px; padding: 8px; background-color: white; border: 1px solid #dee2e6; border-radius: 4px;">未选择文件</span>
+                        <button class="btn btn-connect" onclick="installApkFile()" style="flex-shrink: 0; background-color: #007bff;">安装所选</button>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 12px; color: #6c757d;">操作点击按钮后请静候等待执行结果，切勿重复点击！</p>
+                </div>
+                
+                <!-- Shell Command Input -->
+                <div style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <h4 style="margin-top: 0; margin-bottom: 15px;">手动命令</h4>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <input type="text" id="shell" placeholder="输入命令（不用输入adb shell）" style="flex: 1; min-width: 200px; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;">
+                        <button class="btn btn-connect" onclick="exec_command()" style="flex-shrink: 0;">执行命令</button>
+                    </div>
+                </div>
+                
+                <!-- 应用管理 -->
+                <div style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <h4 style="margin-top: 0; margin-bottom: 15px;">应用管理</h4>
+                    
+                    <!-- 刷新用户应用列表 -->
+                    <button class="btn btn-connect" onclick="loadPackageList()" style="margin-bottom: 15px;">刷新用户应用列表</button>
+                    
+                    <!-- 已安装应用列表 -->
+                    <table id="package-list" style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                        <thead>
+                            <tr style="background-color: #e9ecef;">
+                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 50px;">序号</th>
+                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 100%; word-break: break-all;">包名</th>
+                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 80px; white-space: nowrap;">操作</th>
+                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 80px; white-space: nowrap;">卸载</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 应用列表将通过JavaScript动态添加 -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Log Area -->
+                <div id="exec-result">
+                    <div id="exec-result-toggle" onclick="toggleExecResult()">▼ 点击折叠执行结果</div>
+                    <h4>执行结果</h4>
+                    <div class="progress" id="progress">
+                        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+                    </div>
+                    <div id="log"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toasts -->
+    <div class="toast" id="downloading-toast">
+        <div>正在下载，请稍候...</div>
+        <div id="download-progress">
+            <div id="download-progress-bar"></div>
+        </div>
+        <div id="download-progress-text">0%</div>
+    </div>
+    
+    <div class="toast" id="success-toast">
+        设备连接成功！
+    </div>
+    
+    <!-- 自定义弹窗 -->
+    <div id="customModal" class="custom-modal">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <h4 class="custom-modal-title" id="modalTitle">提示</h4>
+            </div>
+            <div class="custom-modal-body" id="modalBody">
+                弹窗内容
+            </div>
+            <div class="custom-modal-footer" id="modalFooter">
+                <button class="custom-modal-btn custom-modal-btn-secondary" onclick="closeModal()">取消</button>
+                <button class="custom-modal-btn custom-modal-btn-primary" onclick="confirmModal()">确定</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ADB 核心模块 -->
+    <!-- 使用 ya-webadb 库 (Tango ADB) -->
+    <script src="js/lib/tango-adb.js" onerror="console.error('Failed to load tango-adb.js')"></script>
+
+    <!-- 自研 ADB 模块（备用） -->
+    <!-- <script src="js/adb/transport.js"></script> -->
+    <!-- <script src="js/adb/message.js"></script> -->
+    <!-- <script src="js/adb/device.js"></script> -->
+    <!-- <script src="js/adb/index.js"></script> -->
+
+    <!-- Custom JavaScript -->
+    <script src="js/utils.js"></script>
+    <script src="js/device.js"></script>
+    <script src="js/apps.js"></script>
+    <script src="js/system.js"></script>
+    <!-- 移除main.js，因为它会导致无限递归 -->
+    <!-- <script src="js/main.js"></script> -->
+
+    <!-- 页面加载完成后检查浏览器支持 -->
+    <script>
+        // 页面加载完成后检查浏览器是否支持WebUSB
+        window.addEventListener('DOMContentLoaded', function() {
+            // 检查浏览器支持
+            checkWebUSBSupport();
+        });
+
+        // 折叠/展开执行结果
+        function toggleExecResult() {
+            const execResult = document.getElementById('exec-result');
+            const toggleBtn = document.getElementById('exec-result-toggle');
+            if (execResult.classList.contains('collapsed')) {
+                execResult.classList.remove('collapsed');
+                toggleBtn.textContent = '▼ 点击折叠执行结果';
+            } else {
+                execResult.classList.add('collapsed');
+                toggleBtn.textContent = '▲ 点击展开执行结果';
+            }
+        }
+        
+        // 获取并显示版本号（基于Git提交次数）
+        function updateVersion() {
+            // 这里使用硬编码的版本号，实际部署时会通过构建脚本替换
+            // 在本地开发环境中，我们可以使用一个默认值
+            const versionElement = document.getElementById('app-version');
+            if (versionElement) {
+                // 尝试从localStorage获取版本号
+                let version = localStorage.getItem('appVersion');
+                if (!version) {
+                    // 生成一个基于时间戳的临时版本号
+                    const timestamp = Math.floor(Date.now() / 1000);
+                    version = `v1.${timestamp}.0`;
+                    localStorage.setItem('appVersion', version);
+                }
+                versionElement.textContent = version;
+            }
+        }
+        
+        // 页面加载完成后更新版本号
+        updateVersion();
+    </script>
+</body>
+</html>

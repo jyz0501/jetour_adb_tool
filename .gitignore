@@ -1,0 +1,36 @@
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build files
+build/
+dist/
+build-yume.js
+build-tango.js
+js/tango-entry.js
+js/lib/
+
+# Node.js files
+node_modules/
+package-lock.json
+
+# Log files
+logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

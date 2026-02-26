@@ -1,5 +1,54 @@
 // 应用安装相关功能
 
+// 无法关闭的弹窗
+let blockingModal = null;
+
+function showBlockingModal(message) {
+    if (blockingModal) {
+        return;
+    }
+    
+    blockingModal = document.createElement('div');
+    blockingModal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+    `;
+    
+    const content = document.createElement('div');
+    content.style.cssText = `
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        max-width: 500px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    `;
+    
+    content.innerHTML = `
+        <div style="font-size: 24px; margin-bottom: 15px; color: #333;">正在安装</div>
+        <div style="font-size: 16px; color: #666; line-height: 1.6;">${message}</div>
+        <div style="margin-top: 20px; color: #999; font-size: 14px;">请勿关闭页面，安装完成后将自动关闭</div>
+    `;
+    
+    blockingModal.appendChild(content);
+    document.body.appendChild(blockingModal);
+}
+
+function removeBlockingModal() {
+    if (blockingModal) {
+        blockingModal.remove();
+        blockingModal = null;
+    }
+}
+
 // 检查浏览器支持
 function checkBrowserSupport() {
     const isSupported = checkWebUSBSupport();
@@ -24,6 +73,7 @@ let downloadAndInstall = async (appName, downloadUrl, savePath) => {
     }
     clear();
     showProgress(true);
+    showBlockingModal('正在从车机下载 ' + appName + '...');
     log('正在从车机下载 ' + appName + '...\n');
     
     try {
@@ -59,6 +109,7 @@ let downloadAndInstall = async (appName, downloadUrl, savePath) => {
                 alert(appName + " 安装成功！");
                 await exec_shell('rm -f ' + savePath);
                 log('已删除安装文件: ' + savePath);
+                removeBlockingModal();
                 setTimeout(() => {
                     exec_shell('monkey -p com.yunpan.appmanage -c android.intent.category.LAUNCHER 1');
                     log('正在启动应用管家...');
@@ -87,6 +138,7 @@ let sfgj = async () => {
     }
     clear();
     showProgress(true);
+    showBlockingModal('正在从车机下载沙发管家...');
     log('正在从车机下载沙发管家...\n');
     
     const downloadUrl = 'https://101.42.10.175:35070/down/IvlRhguh57DO.apk';
@@ -126,6 +178,7 @@ let sfgj = async () => {
                 alert("安装成功！");
                 await exec_shell('rm -f ' + savePath);
                 log('已删除安装文件: ' + savePath);
+                removeBlockingModal();
                 setTimeout(() => {
                     exec_shell('monkey -p com.shafa.markethd -c android.intent.category.LAUNCHER 1');
                     log('正在启动沙发管家...');
@@ -232,6 +285,7 @@ let installFromDevice = async (devicePath) => {
     
     clear();
     showProgress(true);
+    showBlockingModal('正在安装 ' + devicePath);
     log('正在安装 ' + devicePath + ' ...\n');
     
     try {
@@ -243,13 +297,16 @@ let installFromDevice = async (devicePath) => {
             alert("安装成功！");
             await exec_shell('rm -f ' + devicePath);
             log('已删除安装文件: ' + devicePath);
+            removeBlockingModal();
         } else {
             log('安装失败: ' + installOutput);
             alert("安装失败！");
+            removeBlockingModal();
         }
     } catch (error) {
         log('安装失败: ' + error.message);
         alert("安装失败: " + error.message);
+        removeBlockingModal();
     }
     
     showProgress(false);
@@ -262,6 +319,7 @@ let qxg = async () => {
     }
     clear();
     showProgress(true);
+    showBlockingModal('正在从车机下载权限狗...');
     log('正在从车机下载权限狗...\n');
     
     const downloadUrl = 'https://101.42.10.175:35070/down/1WjYVJ8PWPef.apk';
@@ -301,8 +359,10 @@ let qxg = async () => {
                 alert("安装成功！");
                 await exec_shell('rm -f ' + savePath);
                 log('已删除安装文件: ' + savePath);
+                removeBlockingModal();
             } else {
                 log('安装失败: ' + installOutput);
+                removeBlockingModal();
                 listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
                     await installFromDevice(file.path);
                 });
@@ -310,6 +370,7 @@ let qxg = async () => {
         }
     } catch (error) {
         log('下载失败: ' + error.message);
+        removeBlockingModal();
         listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
             await installFromDevice(file.path);
         });
@@ -325,6 +386,7 @@ let sentry = async () => {
     }
     clear();
     showProgress(true);
+    showBlockingModal('正在从车机下载哨兵监控...');
     log('正在从车机下载哨兵监控...\n');
     
     const downloadUrl = 'https://101.42.10.175:35070/down/tZyE46IwtbVf.apk';
@@ -364,8 +426,10 @@ let sentry = async () => {
                 alert("安装成功！");
                 await exec_shell('rm -f ' + savePath);
                 log('已删除安装文件: ' + savePath);
+                removeBlockingModal();
             } else {
                 log('安装失败: ' + installOutput);
+                removeBlockingModal();
                 listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
                     await installFromDevice(file.path);
                 });
@@ -373,6 +437,7 @@ let sentry = async () => {
         }
     } catch (error) {
         log('下载失败: ' + error.message);
+        removeBlockingModal();
         listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
             await installFromDevice(file.path);
         });
@@ -388,6 +453,7 @@ let hstrip = async () => {
     }
     clear();
     showProgress(true);
+    showBlockingModal('正在从车机下载小横条...');
     log('正在从车机下载小横条...\n');
     
     const downloadUrl = 'https://101.42.10.175:35070/down/jkDh9pgcamip.apk';
@@ -427,8 +493,10 @@ let hstrip = async () => {
                 alert("安装成功！");
                 await exec_shell('rm -f ' + savePath);
                 log('已删除安装文件: ' + savePath);
+                removeBlockingModal();
             } else {
                 log('安装失败: ' + installOutput);
+                removeBlockingModal();
                 listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
                     await installFromDevice(file.path);
                 });
@@ -436,6 +504,7 @@ let hstrip = async () => {
         }
     } catch (error) {
         log('下载失败: ' + error.message);
+        removeBlockingModal();
         listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
             await installFromDevice(file.path);
         });
@@ -451,6 +520,7 @@ let ykpip = async () => {
     }
     clear();
     showProgress(true);
+    showBlockingModal('正在从车机下载易控车机PIP...');
     log('正在从车机下载易控车机PIP...\n');
     
     const downloadUrl = 'https://101.42.10.175:35070/down/qdieD4GPTDev.apk';
@@ -490,8 +560,10 @@ let ykpip = async () => {
                 alert("安装成功！");
                 await exec_shell('rm -f ' + savePath);
                 log('已删除安装文件: ' + savePath);
+                removeBlockingModal();
             } else {
                 log('安装失败: ' + installOutput);
+                removeBlockingModal();
                 listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
                     await installFromDevice(file.path);
                 });
@@ -499,6 +571,7 @@ let ykpip = async () => {
         }
     } catch (error) {
         log('下载失败: ' + error.message);
+        removeBlockingModal();
         listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
             await installFromDevice(file.path);
         });
@@ -524,6 +597,7 @@ let qzm = async () => {
     }
     clear();
     showProgress(true);
+    showBlockingModal('正在从车机下载氢桌面...');
     log('正在从车机下载氢桌面...\n');
     
     const downloadUrl = 'https://101.42.10.175:35070/down/x9g1UOPys0F2.apk';
@@ -563,12 +637,14 @@ let qzm = async () => {
                 alert("安装成功！");
                 await exec_shell('rm -f ' + savePath);
                 log('已删除安装文件: ' + savePath);
+                removeBlockingModal();
                 setTimeout(() => {
                     exec_shell('monkey -p com.hzsoft.sidebar -c android.intent.category.LAUNCHER 1');
                     log('正在启动侧边栏...');
                 }, 1000);
             } else {
                 log('安装失败: ' + installOutput);
+                removeBlockingModal();
                 listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
                     await installFromDevice(file.path);
                 });
@@ -576,6 +652,7 @@ let qzm = async () => {
         }
     } catch (error) {
         log('下载失败: ' + error.message);
+        removeBlockingModal();
         listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
             await installFromDevice(file.path);
         });
@@ -591,6 +668,7 @@ let cdb = async () => {
     }
     clear();
     showProgress(true);
+    showBlockingModal('正在从车机下载侧边栏...');
     log('正在从车机下载侧边栏...\n');
     
     const downloadUrl = 'https://101.42.10.175:35070/down/P32XjDMnyz3M.apk';
@@ -628,8 +706,12 @@ let cdb = async () => {
             if (installOutput.includes('Success')) {
                 log('安装成功！');
                 alert("安装成功！");
+                await exec_shell('rm -f ' + savePath);
+                log('已删除安装文件: ' + savePath);
+                removeBlockingModal();
             } else {
                 log('安装失败: ' + installOutput);
+                removeBlockingModal();
                 listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
                     await installFromDevice(file.path);
                 });
@@ -637,6 +719,7 @@ let cdb = async () => {
         }
     } catch (error) {
         log('下载失败: ' + error.message);
+        removeBlockingModal();
         listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
             await installFromDevice(file.path);
         });

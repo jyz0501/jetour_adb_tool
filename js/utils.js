@@ -106,8 +106,8 @@ function checkWebUSBSupport() {
 
     // 第三层：检测是否为支持的浏览器类型
     const userAgent = navigator.userAgent;
-    const isEdge = userAgent.indexOf('Edg') > -1;
-    const isChrome = userAgent.indexOf('Chrome') > -1 && userAgent.indexOf('Edg') === -1;
+    const isEdge = userAgent.indexOf('Edg') > -1 || userAgent.indexOf('EdgA') > -1;
+    const isChrome = userAgent.indexOf('Chrome') > -1 && userAgent.indexOf('Edg') === -1 && userAgent.indexOf('EdgA') === -1;
     const isOpera = userAgent.indexOf('OPR') > -1;
     const isSupportedBrowser = isEdge || isChrome || isOpera;
 
@@ -123,7 +123,7 @@ function checkWebUSBSupport() {
 
     // Edge 浏览器
     if (isEdge) {
-        const edgeMatch = userAgent.match(/Edg\/(\d+)/);
+        const edgeMatch = userAgent.match(/EdgA?\/(\d+)/);
         if (edgeMatch) {
             const edgeVersion = parseInt(edgeMatch[1]);
             isSupportedVersion = edgeVersion >= 79;

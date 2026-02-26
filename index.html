@@ -115,7 +115,7 @@
         
             <!-- 有线连接 -->
             <div style="margin: 10px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.175.0</span></h3>
+                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.176.0</span></h3>
                 <div class="warning" id="usb-warning">
                     注意！您的浏览器不支持WebUSB。请在Chrome或Edge浏览器中打开。
                 </div>
@@ -156,14 +156,26 @@
                         <button class="btn btn-connect" onclick="cdb()" style="flex-shrink: 0;">侧边栏</button>
                         <button class="btn btn-connect" onclick="qzm()" style="flex-shrink: 0;">氢桌面</button>
                         <button class="btn btn-connect" onclick="sfgj()" style="flex-shrink: 0;">沙发管家</button>    
-                        <button class="btn btn-connect" onclick="qxg()" style="flex-shrink: 0;">权限狗</button>        
                     </div>
                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
                         <button class="btn btn-connect" onclick="startGuanJia()" style="flex-shrink: 0; background-color: #28a745;">启动应用管家</button>
                         <button class="btn btn-connect" onclick="exec_shell('monkey -p com.mcar.auto -c android.intent.category.LAUNCHER 1')" style="flex-shrink: 0;">启动氢桌面</button>
                         <button class="btn btn-connect" onclick="exec_shell('monkey -p com.hzsoft.sidebar -c android.intent.category.LAUNCHER 1')" style="flex-shrink: 0;">启动侧边栏</button>
+                        <button class="btn btn-connect" onclick="exec_shell('monkey -p com.shafa.markethd -c android.intent.category.LAUNCHER 1')" style="flex-shrink: 0;">启动沙发管家</button>
                     </div>
                     <p style="margin-top: 10px; font-size: 12px; color: #6c757d;">请先安装以上软件，以确保系统正常运行。</p>
+                </div>
+                
+                <!-- 其他软件 -->
+                <div style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <h4 style="margin-top: 0; margin-bottom: 15px;">其他软件</h4>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-connect" onclick="qxg()" style="flex-shrink: 0;">权限狗</button>
+                        <button class="btn btn-connect" onclick="sentry()" style="flex-shrink: 0;">哨兵监控</button>
+                        <button class="btn btn-connect" onclick="hstrip()" style="flex-shrink: 0;">小横条</button>
+                        <button class="btn btn-connect" onclick="ykpip()" style="flex-shrink: 0;">易控车机PIP</button>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 12px; color: #6c757d;">根据需要选择安装其他软件。</p>
                 </div>
                 
                 <!-- 自选安装 -->

@@ -5,6 +5,34 @@
 window.adbDevice = null;
 window.adbTransport = null;
 
+// 获取浏览器名称和版本
+let getBrowserInfo = () => {
+    const ua = navigator.userAgent;
+    let browserName = 'Unknown';
+    let version = 'Unknown';
+    
+    // 检测主流浏览器
+    if (ua.indexOf('Chrome') !== -1 && ua.indexOf('Edg') === -1 && ua.indexOf('EdgA') === -1) {
+        browserName = 'Chrome';
+        version = ua.match(/Chrome\/(\d+\.\d+\.\d+\.\d+)/)[1];
+    } else if (ua.indexOf('Edg') !== -1 || ua.indexOf('EdgA') !== -1) {
+        browserName = 'Edge';
+        version = ua.match(/EdgA?\/(\d+\.\d+\.\d+\.\d+)/)[1];
+    } else if (ua.indexOf('Firefox') !== -1) {
+        browserName = 'Firefox';
+        version = ua.match(/Firefox\/(\d+\.\d+)/)[1];
+    } else if (ua.indexOf('Safari') !== -1 && ua.indexOf('Chrome') === -1) {
+        browserName = 'Safari';
+        version = ua.match(/Version\/(\d+\.\d+)/)[1];
+    } else if (ua.indexOf('MSIE') !== -1 || ua.indexOf('Trident') !== -1) {
+        browserName = 'Internet Explorer';
+        version = ua.match(/MSIE\s*(\d+\.\d+)/) || ua.match(/rv:(\d+\.\d+)/);
+        version = version ? version[1] : 'Unknown';
+    }
+    
+    return { browserName, version, userAgent: ua };
+};
+
 // 设备日志记录
 function logDevice(message) {
     console.log(message);
@@ -693,7 +721,10 @@ let checkBrowserSupportAndConnect = async () => {
             showChromeDownloadPopup();
             return;
         }
-        logDevice('使用 Tango ADB 连接设备...');
+        
+        // 调用重新编写的连接函数
+        const browserInfo = getBrowserInfo();
+        logDevice(`您使用的 ${browserInfo.browserName} ${browserInfo.version} 浏览器支持 WebUSB，开始连接设备...`);
         
         // 详细调试
         console.log('点击时检查:');
@@ -1067,7 +1098,8 @@ let initDeviceDetection = async () => {
         // 检测浏览器支持
         const isSupported = checkWebUSBSupport();
         if (isSupported && navigator.usb) {
-            logDevice('浏览器支持 WebUSB');
+            const browserInfo = getBrowserInfo();
+            logDevice(`您使用的 ${browserInfo.browserName} ${browserInfo.version} 浏览器支持 WebUSB`);
             
             // 初始化时检查是否有已连接的设备
             logDevice('初始化时检查已连接的设备...');

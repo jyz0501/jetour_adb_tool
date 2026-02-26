@@ -115,7 +115,7 @@
         
             <!-- 有线连接 -->
             <div style="margin: 10px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.187.0</span></h3>
+                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.188.0</span></h3>
                 <div class="warning" id="usb-warning">
                     注意！您的浏览器不支持WebUSB。请在Chrome或Edge浏览器中打开。
                 </div>
@@ -286,6 +286,8 @@
     <script>
         // 页面加载完成后检查浏览器是否支持WebUSB
         window.addEventListener('DOMContentLoaded', function() {
+            // 显示设备 UA 信息
+            log('设备 UA: ' + navigator.userAgent);
             // 检查浏览器支持
             checkWebUSBSupport();
         });

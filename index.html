@@ -115,7 +115,7 @@
         
             <!-- 有线连接 -->
             <div style="margin: 10px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.192.0</span></h3>
+                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.193.0</span></h3>
                 <div class="warning" id="usb-warning">
                     注意！您的浏览器不支持WebUSB。请在Chrome或Edge浏览器中打开。
                 </div>
@@ -309,15 +309,20 @@
             // 在本地开发环境中，我们可以使用一个默认值
             const versionElement = document.getElementById('app-version');
             if (versionElement) {
-                // 尝试从localStorage获取版本号
-                let version = localStorage.getItem('appVersion');
-                if (!version) {
-                    // 生成一个基于时间戳的临时版本号
-                    const timestamp = Math.floor(Date.now() / 1000);
-                    version = `v1.${timestamp}.0`;
-                    localStorage.setItem('appVersion', version);
+                // 检查是否在本地开发环境
+                const isLocalDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                if (isLocalDevelopment) {
+                    // 尝试从localStorage获取版本号
+                    let version = localStorage.getItem('appVersion');
+                    if (!version) {
+                        // 生成一个基于时间戳的临时版本号
+                        const timestamp = Math.floor(Date.now() / 1000);
+                        version = `v1.${timestamp}.0`;
+                        localStorage.setItem('appVersion', version);
+                    }
+                    versionElement.textContent = version;
                 }
-                versionElement.textContent = version;
+                // 在部署环境中，保持构建时设置的版本号
             }
         }
         

@@ -1,4 +1,4 @@
-name: 生成静态页面
+name: Deploy static pages to GitHub Pages
 
 on:
   push:
@@ -15,10 +15,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Inject commit count
+      - name: Update version
         run: |
-          COUNT=$(git rev-list --count HEAD)
-          sed -i "s/<!--version-->/v${COUNT}/" index.html
+          chmod +x update-version.sh
+          ./update-version.sh
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

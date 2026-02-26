@@ -97,8 +97,8 @@
     <div class="container">
         <h1 style="text-align: center; margin: 10px 0; font-size: 24px; color: #333;">捷途旅行者/山海T2车机工具箱</h1>
         <div style="text-align: center; margin-bottom: 15px;">
-            <a href="https://jyz0501.github.io/jetour-adbtool-usage/" class="btn" style="background-color: #007bff; color: white; padding: 8px 20px; text-decoration: none; border-radius: 4px; margin: 0 5px;">使用教程</a>
-            <a href="https://jyz0501.github.io/jetour_vehicle_password/" class="btn" style="background-color: #007bff; color: white; padding: 8px 20px; text-decoration: none; border-radius: 4px; margin: 0 5px;">密码工具</a>
+            <a href="https://jyz0501.github.io/jetour-adbtool-usage/" target="_blank" class="btn" style="background-color: #007bff; color: white; padding: 8px 20px; text-decoration: none; border-radius: 4px; margin: 0 5px;">使用教程</a>
+            <a href="https://jyz0501.github.io/jetour_vehicle_password/" target="_blank" class="btn" style="background-color: #007bff; color: white; padding: 8px 20px; text-decoration: none; border-radius: 4px; margin: 0 5px;">密码工具</a>
         </div>
         <!-- 安装方式一：手机App方式 (已隐藏) -->
         <!-- 
@@ -115,7 +115,7 @@
         
             <!-- 有线连接 -->
             <div style="margin: 10px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.188.0</span></h3>
+                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.190.0</span></h3>
                 <div class="warning" id="usb-warning">
                     注意！您的浏览器不支持WebUSB。请在Chrome或Edge浏览器中打开。
                 </div>
@@ -286,8 +286,6 @@
     <script>
         // 页面加载完成后检查浏览器是否支持WebUSB
         window.addEventListener('DOMContentLoaded', function() {
-            // 显示设备 UA 信息
-            log('设备 UA: ' + navigator.userAgent);
             // 检查浏览器支持
             checkWebUSBSupport();
         });
@@ -307,17 +305,19 @@
         
         // 获取并显示版本号（基于Git提交次数）
         function updateVersion() {
-            // 版本号由 GitHub Actions 在构建时注入到 HTML 中
-            // 本地开发时显示占位符，部署后显示实际版本号
+            // 这里使用硬编码的版本号，实际部署时会通过构建脚本替换
+            // 在本地开发环境中，我们可以使用一个默认值
             const versionElement = document.getElementById('app-version');
             if (versionElement) {
-                // 直接使用 HTML 中已注入的版本号
-                // GitHub Actions 会将 <!--version--> 替换为实际版本号
-                const versionText = versionElement.textContent;
-                // 如果还是占位符，则不显示或显示默认值
-                if (versionText.includes('<!--version-->')) {
-                    versionElement.textContent = '开发中';
+                // 尝试从localStorage获取版本号
+                let version = localStorage.getItem('appVersion');
+                if (!version) {
+                    // 生成一个基于时间戳的临时版本号
+                    const timestamp = Math.floor(Date.now() / 1000);
+                    version = `v1.${timestamp}.0`;
+                    localStorage.setItem('appVersion', version);
                 }
+                versionElement.textContent = version;
             }
         }
         

@@ -57,6 +57,8 @@ let downloadAndInstall = async (appName, downloadUrl, savePath) => {
             if (installOutput.includes('Success')) {
                 log('安装成功！');
                 alert(appName + " 安装成功！");
+                await exec_shell('rm -f ' + savePath);
+                log('已删除安装文件: ' + savePath);
                 setTimeout(() => {
                     exec_shell('monkey -p com.yunpan.appmanage -c android.intent.category.LAUNCHER 1');
                     log('正在启动应用管家...');
@@ -122,6 +124,8 @@ let sfgj = async () => {
             if (installOutput.includes('Success')) {
                 log('安装成功！');
                 alert("安装成功！");
+                await exec_shell('rm -f ' + savePath);
+                log('已删除安装文件: ' + savePath);
                 setTimeout(() => {
                     exec_shell('monkey -p com.shafa.markethd -c android.intent.category.LAUNCHER 1');
                     log('正在启动沙发管家...');
@@ -237,6 +241,8 @@ let installFromDevice = async (devicePath) => {
         if (installOutput.includes('Success')) {
             log('安装成功！');
             alert("安装成功！");
+            await exec_shell('rm -f ' + devicePath);
+            log('已删除安装文件: ' + devicePath);
         } else {
             log('安装失败: ' + installOutput);
             alert("安装失败！");
@@ -293,6 +299,8 @@ let qxg = async () => {
             if (installOutput.includes('Success')) {
                 log('安装成功！');
                 alert("安装成功！");
+                await exec_shell('rm -f ' + savePath);
+                log('已删除安装文件: ' + savePath);
             } else {
                 log('安装失败: ' + installOutput);
                 listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
@@ -354,6 +362,8 @@ let sentry = async () => {
             if (installOutput.includes('Success')) {
                 log('安装成功！');
                 alert("安装成功！");
+                await exec_shell('rm -f ' + savePath);
+                log('已删除安装文件: ' + savePath);
             } else {
                 log('安装失败: ' + installOutput);
                 listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
@@ -415,6 +425,8 @@ let hstrip = async () => {
             if (installOutput.includes('Success')) {
                 log('安装成功！');
                 alert("安装成功！");
+                await exec_shell('rm -f ' + savePath);
+                log('已删除安装文件: ' + savePath);
             } else {
                 log('安装失败: ' + installOutput);
                 listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
@@ -476,6 +488,8 @@ let ykpip = async () => {
             if (installOutput.includes('Success')) {
                 log('安装成功！');
                 alert("安装成功！");
+                await exec_shell('rm -f ' + savePath);
+                log('已删除安装文件: ' + savePath);
             } else {
                 log('安装失败: ' + installOutput);
                 listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
@@ -547,6 +561,8 @@ let qzm = async () => {
             if (installOutput.includes('Success')) {
                 log('安装成功！');
                 alert("安装成功！");
+                await exec_shell('rm -f ' + savePath);
+                log('已删除安装文件: ' + savePath);
                 setTimeout(() => {
                     exec_shell('monkey -p com.hzsoft.sidebar -c android.intent.category.LAUNCHER 1');
                     log('正在启动侧边栏...');

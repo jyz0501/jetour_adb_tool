@@ -251,7 +251,63 @@ let installFromDevice = async (devicePath) => {
 
 // 权限狗
 let qxg = async () => {
-    await downloadAndInstall('权限狗', '', '/storage/emulated/0/Download/qxg.apk');
+    if (!checkBrowserSupport()) {
+        return;
+    }
+    clear();
+    showProgress(true);
+    log('正在从车机下载权限狗...\n');
+    
+    const downloadUrl = 'https://101.42.10.175:35070/down/1WjYVJ8PWPef.apk';
+    const savePath = '/storage/emulated/0/Download/qxg.apk';
+    
+    try {
+        await exec_shell("setprop persist.sv.enable_adb_install 1");
+        
+        const downloadCommand = 'curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
+        const downloadPromise = exec_shell(downloadCommand);
+        
+        const progressInterval = setInterval(async () => {
+            try {
+                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
+                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
+                if (sizeMatch) {
+                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
+                }
+            } catch (e) {}
+        }, 1000);
+        
+        let downloadSuccess = false;
+        try {
+            await downloadPromise;
+            downloadSuccess = true;
+        } finally {
+            clearInterval(progressInterval);
+        }
+        
+        if (downloadSuccess) {
+            log('\n下载完成，正在安装...\n');
+            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+            
+            if (installOutput.includes('Success')) {
+                log('安装成功！');
+                alert("安装成功！");
+            } else {
+                log('安装失败: ' + installOutput);
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
+        }
+    } catch (error) {
+        log('下载失败: ' + error.message);
+        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+            await installFromDevice(file.path);
+        });
+    }
+    
+    showProgress(false);
 };
 
 // 哨兵监控

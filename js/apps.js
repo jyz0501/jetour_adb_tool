@@ -447,28 +447,11 @@ let loadPackageList = async () => {
         }
         let packageName = line.substring(8);
         
-        let appName = packageName;
-        try {
-            const dumpResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(["dumpsys", "package", packageName]);
-            const nameMatch = dumpResult.match(/^\s+name=([^\s]+)/m);
-            if (nameMatch) {
-                appName = nameMatch[1].trim();
-            }
-            const labelMatch = dumpResult.match(/^\s+applicationLabel=([^\s]+)/m);
-            if (labelMatch) {
-                appName = labelMatch[1].trim();
-            }
-        } catch (e) {}
-        
         var tr = document.createElement("tr");
         
         var tdIndex = document.createElement("td");
         tdIndex.textContent = index;
         tr.appendChild(tdIndex);
-        
-        var tdName = document.createElement("td");
-        tdName.textContent = appName;
-        tr.appendChild(tdName);
         
         var tdPackage = document.createElement("td");
         tdPackage.textContent = packageName;

@@ -115,7 +115,7 @@
         
             <!-- 有线连接 -->
             <div style="margin: 10px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.173.0</span></h3>
+                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.174.0</span></h3>
                 <div class="warning" id="usb-warning">
                     注意！您的浏览器不支持WebUSB。请在Chrome或Edge浏览器中打开。
                 </div>
@@ -195,14 +195,13 @@
                     <button class="btn btn-connect" onclick="loadPackageList()" style="margin-bottom: 15px;">刷新用户应用列表</button>
                     
                     <!-- 已安装应用列表 -->
-                    <table id="package-list" style="width: 100%; border-collapse: collapse;">
+                    <table id="package-list" style="width: 100%; border-collapse: collapse; table-layout: fixed;">
                         <thead>
                             <tr style="background-color: #e9ecef;">
                                 <th style="padding: 8px; border: 1px solid #dee2e6; width: 50px;">序号</th>
-                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 200px;">应用名</th>
-                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 300px; word-break: break-all;">包名</th>
-                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 80px;">操作</th>
-                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 80px;">卸载</th>
+                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 100%; word-break: break-all;">包名</th>
+                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 80px; white-space: nowrap;">操作</th>
+                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 80px; white-space: nowrap;">卸载</th>
                             </tr>
                         </thead>
                         <tbody>

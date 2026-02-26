@@ -115,7 +115,7 @@
         
             <!-- 有线连接 -->
             <div style="margin: 10px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.193.0</span></h3>
+                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.194.0</span></h3>
                 <div class="warning" id="usb-warning">
                     注意！您的浏览器不支持WebUSB。请在Chrome或Edge浏览器中打开。
                 </div>
@@ -305,24 +305,12 @@
         
         // 获取并显示版本号（基于Git提交次数）
         function updateVersion() {
-            // 这里使用硬编码的版本号，实际部署时会通过构建脚本替换
-            // 在本地开发环境中，我们可以使用一个默认值
+            // 版本号由构建脚本基于Git提交次数生成
+            // 直接使用构建时设置的版本号
             const versionElement = document.getElementById('app-version');
             if (versionElement) {
-                // 检查是否在本地开发环境
-                const isLocalDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                if (isLocalDevelopment) {
-                    // 尝试从localStorage获取版本号
-                    let version = localStorage.getItem('appVersion');
-                    if (!version) {
-                        // 生成一个基于时间戳的临时版本号
-                        const timestamp = Math.floor(Date.now() / 1000);
-                        version = `v1.${timestamp}.0`;
-                        localStorage.setItem('appVersion', version);
-                    }
-                    versionElement.textContent = version;
-                }
-                // 在部署环境中，保持构建时设置的版本号
+                // 保持构建时设置的版本号不变
+                // 移除localStorage逻辑，确保版本号始终与构建时一致
             }
         }
         

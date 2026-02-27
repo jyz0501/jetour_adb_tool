@@ -586,7 +586,7 @@ let qzm = async () => {
     showBlockingModal('正在从车机下载氢桌面...');
     log('正在从车机下载氢桌面...\n');
     
-    const downloadUrl = 'https://101.42.10.175:35070/down/x9g1UOPys0F2.apk';
+    const downloadUrl = 'https://101.42.10.175:35070/down/tY8gaYp7Wbjm.apk';
     const savePath = '/storage/emulated/0/Download/qzm.apk';
     
     try {

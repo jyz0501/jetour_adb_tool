@@ -297,7 +297,7 @@ let yygj = async () => {
         }
         
         if (downloadSuccess) {
-            updateBlockingModal('正在安装权限狗...', 'install');
+            updateBlockingModal('正在安装氢桌面...', 'install');
             log('\n下载完成，正在安装...\n');
             let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
             
@@ -1042,7 +1042,6 @@ try {
         module.exports = {
             sfgj,
             yygj,
-            qxg,
             qzm,
             cdb,
             startGuanJia,

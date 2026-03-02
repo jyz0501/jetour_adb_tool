@@ -22,6 +22,10 @@ let clear = async () => {
     if (logElement) {
         logElement.textContent = "";
     }
+    // 执行任务时自动展开执行结果
+    if (typeof expandExecResult === 'function') {
+        expandExecResult();
+    }
 };
 
 // 定义一个异步函数 showProgress，用于显示或隐藏进度条

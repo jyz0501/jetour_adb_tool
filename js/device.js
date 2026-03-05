@@ -940,7 +940,6 @@ let checkBrowserSupportAndConnect = async () => {
             const deviceName = device.trim();
             
             setDeviceName('🚗 ' + deviceName + ' | ' + serialNumber);
-            logDevice('===== ADB 连接成功 =====');
 
             // 开始监控
             startDeviceMonitoring();

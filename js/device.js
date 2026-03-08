@@ -937,12 +937,14 @@ let checkBrowserSupportAndConnect = async () => {
             const serialno = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.serialno"]);
             const id = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.id"]);
             const displayId = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.display.id"]);
+            const diagSn = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "persist.vendor.bosch.cfg.diag.sn"]);
             const modelName = model.trim();
             const serialNumber = serialno.trim();
             const deviceName = device.trim();
             
             logDevice('ro.build.version.release: ' + version.trim());
             logDevice('ro.build.display.id: ' + displayId.trim());
+            logDevice('persist.vendor.bosch.cfg.diag.sn: ' + diagSn.trim());
             
             setDeviceName('🚗 ' + deviceName + ' | ' + serialNumber);
 

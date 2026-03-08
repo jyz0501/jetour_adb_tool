@@ -924,6 +924,7 @@ let checkBrowserSupportAndConnect = async () => {
             const manufacturer = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.manufacturer"]);
             const brand = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.brand"]);
             const device = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.device"]);
+            const productName = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.name"]);
             const board = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.board"]);
             const hardware = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.hardware"]);
             
@@ -935,9 +936,16 @@ let checkBrowserSupportAndConnect = async () => {
             const securityPatch = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.version.security_patch"]);
             const serialno = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.serialno"]);
             const id = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.id"]);
+            const displayId = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.display.id"]);
             const modelName = model.trim();
             const serialNumber = serialno.trim();
             const deviceName = device.trim();
+            
+            logDevice('ro.build.version.release: ' + version.trim());
+            logDevice('ro.build.display.id: ' + displayId.trim());
+            logDevice('ro.product.model: ' + modelName);
+            logDevice('ro.product.name: ' + productName.trim());
+            logDevice('ro.build.id: ' + id.trim());
             
             setDeviceName('🚗 ' + deviceName + ' | ' + serialNumber);
 

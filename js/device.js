@@ -943,9 +943,6 @@ let checkBrowserSupportAndConnect = async () => {
             
             logDevice('ro.build.version.release: ' + version.trim());
             logDevice('ro.build.display.id: ' + displayId.trim());
-            logDevice('ro.product.model: ' + modelName);
-            logDevice('ro.product.name: ' + productName.trim());
-            logDevice('ro.build.id: ' + id.trim());
             
             setDeviceName('🚗 ' + deviceName + ' | ' + serialNumber);
 

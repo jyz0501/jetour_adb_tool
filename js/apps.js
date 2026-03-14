@@ -993,129 +993,21 @@ let bdui = async () => {
     showProgress(false);
 };
 
-// 蓝牙遥控
-let lyyk = async () => {
-    if (!checkBrowserSupport()) {
-        return;
-    }
-    clear();
-    showProgress(true);
-    showBlockingModal('正在从车机下载蓝牙遥控...');
-    log('正在从车机下载蓝牙遥控...\n');
-    
+// 蓝牙遥控 - 本地下载到手机
+let lyyk = () => {
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/蓝牙遥控2.0.9.apk';
     const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/蓝牙遥控2.0.9.apk';
-    const savePath = '/storage/emulated/0/Download/lyyk.apk';
     
-    try {
-        await exec_shell("setprop persist.sv.enable_adb_install 1");
-        
-        const downloadCommand = 'curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
-        const downloadPromise = exec_shell(downloadCommand);
-        
-        const progressInterval = setInterval(async () => {
-            try {
-                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
-                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
-                if (sizeMatch) {
-                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
-                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
-                }
-            } catch (e) {}
-        }, 1000);
-        
-        let downloadSuccess = false;
-        try {
-            await downloadPromise;
-            downloadSuccess = true;
-        } finally {
-            clearInterval(progressInterval);
-        }
-        
-        if (downloadSuccess) {
-            updateBlockingModal('正在安装蓝牙遥控...', 'install');
-            log('\n下载完成，正在安装...\n');
-            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
-            
-            if (installOutput.includes('Success')) {
-                log('安装成功！');
-                alert("安装成功！");
-                await exec_shell('rm -f ' + savePath);
-                log('已删除安装文件: ' + savePath);
-                removeBlockingModal();
-            } else {
-                log('安装失败: ' + installOutput);
-                removeBlockingModal();
-                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                    await installFromDevice(file.path);
-                });
-            }
-        }
-    } catch (error) {
-        log('下载失败: ' + error.message);
-        removeBlockingModal();
-        if (backupUrl) {
-            log('尝试使用备用链接下载...');
-            try {
-                const backupDownloadCommand = 'curl -sL -o ' + savePath + ' "' + backupUrl + '"';
-                const backupDownloadPromise = exec_shell(backupDownloadCommand);
-                
-                const backupProgressInterval = setInterval(async () => {
-                    try {
-                        const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
-                        const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
-                        if (sizeMatch) {
-                            const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
-                            log('备用链接下载中... 已下载 ' + sizeMB + ' MB\r');
-                        }
-                    } catch (e) {}
-                }, 1000);
-                
-                let backupDownloadSuccess = false;
-                try {
-                    await backupDownloadPromise;
-                    backupDownloadSuccess = true;
-                } finally {
-                    clearInterval(backupProgressInterval);
-                }
-                
-                if (backupDownloadSuccess) {
-                    log('\n备用链接下载完成，正在安装...\n');
-                    let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
-                    
-                    if (installOutput.includes('Success')) {
-                        log('安装成功！');
-                        alert("安装成功！");
-                        await exec_shell('rm -f ' + savePath);
-                        log('已删除安装文件: ' + savePath);
-                        removeBlockingModal();
-                    } else {
-                        log('安装失败: ' + installOutput);
-                        removeBlockingModal();
-                        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                            await installFromDevice(file.path);
-                        });
-                    }
-                } else {
-                    log('备用链接下载也失败，请手动下载安装');
-                    listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                        await installFromDevice(file.path);
-                    });
-                }
-            } catch (backupError) {
-                log('备用链接下载失败: ' + backupError.message);
-                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                    await installFromDevice(file.path);
-                });
-            }
-        } else {
-            listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                await installFromDevice(file.path);
-            });
-        }
-    }
+    // 创建隐藏的下载链接
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = '蓝牙遥控2.0.9.apk';
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     
-    showProgress(false);
+    log('蓝牙遥控下载已开始，请检查下载文件夹');
 };
 
 // 启动应用管家

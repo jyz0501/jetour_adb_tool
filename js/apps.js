@@ -114,7 +114,7 @@ function checkBrowserSupport() {
 }
 
 // 通用车机下载安装函数
-let downloadAndInstall = async (appName, downloadUrl, savePath) => {
+let downloadAndInstall = async (appName, downloadUrl, savePath, backupUrl = null) => {
     if (!checkBrowserSupport()) {
         return;
     }
@@ -197,6 +197,7 @@ let sfgj = async () => {
     log('正在从车机下载沙发管家...\n');
     
     const downloadUrl = 'https://101.42.10.175:35070/down/IvlRhguh57DO.apk';
+    const backupUrl = 'http://a14472357.328657.xyz/a14472357/沙发管家4.9.54.apk';
     const savePath = '/storage/emulated/0/Download/sfgj.apk';
     
     try {
@@ -248,9 +249,69 @@ let sfgj = async () => {
         }
     } catch (error) {
         log('下载失败: ' + error.message);
-        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-            await installFromDevice(file.path);
-        });
+        if (backupUrl) {
+            log('尝试使用备用链接下载...');
+            try {
+                const backupDownloadCommand = 'curl -sL -o ' + savePath + ' "' + backupUrl + '"';
+                const backupDownloadPromise = exec_shell(backupDownloadCommand);
+                
+                const backupProgressInterval = setInterval(async () => {
+                    try {
+                        const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
+                        const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
+                        if (sizeMatch) {
+                            const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                            log('备用链接下载中... 已下载 ' + sizeMB + ' MB\r');
+                        }
+                    } catch (e) {}
+                }, 1000);
+                
+                let backupDownloadSuccess = false;
+                try {
+                    await backupDownloadPromise;
+                    backupDownloadSuccess = true;
+                } finally {
+                    clearInterval(backupProgressInterval);
+                }
+                
+                if (backupDownloadSuccess) {
+                    updateBlockingModal('正在安装沙发管家...', 'install');
+                    log('\n备用链接下载完成，正在安装...\n');
+                    let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+                    
+                    if (installOutput.includes('Success')) {
+                        log('安装成功！');
+                        alert("安装成功！");
+                        await exec_shell('rm -f ' + savePath);
+                        log('已删除安装文件: ' + savePath);
+                        removeBlockingModal();
+                        setTimeout(() => {
+                            exec_shell('monkey -p com.shafa.markethd -c android.intent.category.LAUNCHER 1');
+                            log('正在启动沙发管家...');
+                        }, 1000);
+                    } else {
+                        log('安装失败: ' + installOutput);
+                        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                            await installFromDevice(file.path);
+                        });
+                    }
+                } else {
+                    log('备用链接下载也失败，请手动下载安装');
+                    listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                        await installFromDevice(file.path);
+                    });
+                }
+            } catch (backupError) {
+                log('备用链接下载失败: ' + backupError.message);
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
+        } else {
+            listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                await installFromDevice(file.path);
+            });
+        }
     }
     
     showProgress(false);
@@ -266,6 +327,7 @@ let yygj = async () => {
     log('正在从车机下载应用管家...\n');
     
     const downloadUrl = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%8E%86%E5%8F%B2%E7%89%88%E6%9C%AC/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6v1.8.3%28%E6%AD%A3%E5%BC%8F%E7%89%88%29%E5%85%AC%E7%AD%BE%E7%89%88.apk';
+    const backupUrl = 'http://a14472357.328657.xyz/a14472357/应用管家1.8.3.apk';
     const savePath = '/storage/emulated/0/Download/yygj.apk';
     
     try {
@@ -331,10 +393,76 @@ let yygj = async () => {
         } else {
             log('错误: 下载过程中发生未知错误');
         }
-        log('请在车机浏览器中手动下载 APK，然后从设备选择安装');
-        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-            await installFromDevice(file.path);
-        });
+        if (backupUrl) {
+            log('尝试使用备用链接下载...');
+            try {
+                const backupDownloadCommand = 'curl -sL -o ' + savePath + ' "' + backupUrl + '"';
+                const backupDownloadPromise = exec_shell(backupDownloadCommand);
+                
+                const backupProgressInterval = setInterval(async () => {
+                    try {
+                        const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText([
+                            'ls', '-l', savePath
+                        ]);
+                        const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
+                        if (sizeMatch) {
+                            const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                            log('备用链接下载中... 已下载 ' + sizeMB + ' MB\r');
+                        }
+                    } catch (e) {
+                        // 文件还不存在，继续等待
+                    }
+                }, 1000);
+                
+                let backupDownloadSuccess = false;
+                try {
+                    await backupDownloadPromise;
+                    backupDownloadSuccess = true;
+                } finally {
+                    clearInterval(backupProgressInterval);
+                }
+                
+                if (backupDownloadSuccess) {
+                    updateBlockingModal('正在安装应用管家...', 'install');
+                    log('\n备用链接下载完成，正在安装...\n');
+                    let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+                    
+                    if (installOutput.includes('Success')) {
+                        log('安装成功！');
+                        alert("安装成功！");
+                        await exec_shell('rm -f ' + savePath);
+                        log('已删除安装文件: ' + savePath);
+                        removeBlockingModal();
+                        setTimeout(() => {
+                            exec_shell('monkey -p com.vjoycar.gj -c android.intent.category.LAUNCHER 1');
+                            log('正在启动应用管家...');
+                        }, 1000);
+                    } else {
+                        log('安装失败: ' + installOutput);
+                        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                            await installFromDevice(file.path);
+                        });
+                    }
+                } else {
+                    log('备用链接下载也失败，请手动下载安装');
+                    log('请在车机浏览器中手动下载 APK，然后从设备选择安装');
+                    listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                        await installFromDevice(file.path);
+                    });
+                }
+            } catch (backupError) {
+                log('备用链接下载失败: ' + backupError.message);
+                log('请在车机浏览器中手动下载 APK，然后从设备选择安装');
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
+        } else {
+            log('请在车机浏览器中手动下载 APK，然后从设备选择安装');
+            listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                await installFromDevice(file.path);
+            });
+        }
     }
     
     showProgress(false);
@@ -680,6 +808,7 @@ let cdb = async () => {
     log('正在从车机下载侧边栏...\n');
     
     const downloadUrl = 'https://101.42.10.175:35070/down/P32XjDMnyz3M.apk';
+    const backupUrl = 'http://a14472357.328657.xyz/a14472357/侧边栏_1.0.apk';
     const savePath = '/storage/emulated/0/Download/cdb.apk';
     
     try {

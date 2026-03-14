@@ -171,6 +171,13 @@ let downloadAndInstall = async (appName, downloadUrl, savePath) => {
         }
     } catch (error) {
         log('下载失败: ' + error.message);
+        if (error.message.includes('404') || error.message.includes('Not Found')) {
+            log('错误: 文件不存在或链接无法抵达');
+        } else if (error.message.includes('Connection') || error.message.includes('Network')) {
+            log('错误: 网络连接失败，请检查网络');
+        } else {
+            log('错误: 下载过程中发生未知错误');
+        }
         listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
             await installFromDevice(file.path);
         });
@@ -258,7 +265,7 @@ let yygj = async () => {
     showProgress(true);
     log('正在从车机下载应用管家...\n');
     
-    const downloadUrl = 'https://101.42.10.175:35070/down/mnfds48btpxq.apk';
+    const downloadUrl = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%8E%86%E5%8F%B2%E7%89%88%E6%9C%AC/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6v1.8.3%28%E6%AD%A3%E5%BC%8F%E7%89%88%29%E5%85%AC%E7%AD%BE%E7%89%88.apk';
     const savePath = '/storage/emulated/0/Download/yygj.apk';
     
     try {
@@ -285,7 +292,7 @@ let yygj = async () => {
                     log('下载中... 已下载 ' + sizeMB + ' MB\r');
                 }
             } catch (e) {
-                // 文件还不存在
+                // 文件还不存在，继续等待
             }
         }, 1000);
         
@@ -317,6 +324,13 @@ let yygj = async () => {
         }
     } catch (error) {
         log('下载失败: ' + error.message);
+        if (error.message.includes('404') || error.message.includes('Not Found')) {
+            log('错误: 文件不存在或链接无法抵达');
+        } else if (error.message.includes('Connection') || error.message.includes('Network')) {
+            log('错误: 网络连接失败，请检查网络');
+        } else {
+            log('错误: 下载过程中发生未知错误');
+        }
         log('请在车机浏览器中手动下载 APK，然后从设备选择安装');
         listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
             await installFromDevice(file.path);
@@ -421,6 +435,13 @@ let sentry = async () => {
         }
     } catch (error) {
         log('下载失败: ' + error.message);
+        if (error.message.includes('404') || error.message.includes('Not Found')) {
+            log('错误: 文件不存在或链接无法抵达');
+        } else if (error.message.includes('Connection') || error.message.includes('Network')) {
+            log('错误: 网络连接失败，请检查网络');
+        } else {
+            log('错误: 下载过程中发生未知错误');
+        }
         removeBlockingModal();
         listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
             await installFromDevice(file.path);

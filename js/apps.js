@@ -265,7 +265,7 @@ let yygj = async () => {
     showProgress(true);
     log('正在从车机下载应用管家...\n');
     
-    const downloadUrl = 'https://101.42.10.175:35070/down/mnfds48btpxq.apk';
+    const downloadUrl = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%8E%86%E5%8F%B2%E7%89%88%E6%9C%AC/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6v1.8.3%28%E6%AD%A3%E5%BC%8F%E7%89%88%29%E5%85%AC%E7%AD%BE%E7%89%88.apk';
     const savePath = '/storage/emulated/0/Download/yygj.apk';
     
     try {

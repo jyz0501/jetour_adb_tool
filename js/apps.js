@@ -196,8 +196,8 @@ let sfgj = async () => {
     showBlockingModal('正在从车机下载沙发管家...');
     log('正在从车机下载沙发管家...\n');
     
-    const downloadUrl = 'https://101.42.10.175:35070/down/IvlRhguh57DO.apk';
-    const backupUrl = 'http://a14472357.328657.xyz/a14472357/沙发管家4.9.54.apk';
+    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/沙发管家4.9.54.apk';
+    const backupUrl = 'https://101.42.10.175:35070/down/IvlRhguh57DO.apk';
     const savePath = '/storage/emulated/0/Download/sfgj.apk';
     
     try {
@@ -807,8 +807,8 @@ let cdb = async () => {
     showBlockingModal('正在从车机下载侧边栏...');
     log('正在从车机下载侧边栏...\n');
     
-    const downloadUrl = 'https://101.42.10.175:35070/down/P32XjDMnyz3M.apk';
-    const backupUrl = 'http://a14472357.328657.xyz/a14472357/侧边栏_1.0.apk';
+    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/侧边栏_1.0.apk';
+    const backupUrl = 'https://101.42.10.175:35070/down/P32XjDMnyz3M.apk';
     const savePath = '/storage/emulated/0/Download/cdb.apk';
     
     try {

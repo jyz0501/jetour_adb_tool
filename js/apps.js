@@ -514,7 +514,8 @@ let sentry = async () => {
     showBlockingModal('正在从车机下载哨兵监控...');
     log('正在从车机下载哨兵监控...\n');
     
-    const downloadUrl = 'https://101.42.10.175:35070/down/tZyE46IwtbVf.apk';
+    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/哨兵监控v1.1.8.apk';
+    const backupUrl = 'https://101.42.10.175:35070/down/tZyE46IwtbVf.apk';
     const savePath = '/storage/emulated/0/Download/sentry.apk';
     
     try {
@@ -589,7 +590,8 @@ let hstrip = async () => {
     showBlockingModal('正在从车机下载小横条...');
     log('正在从车机下载小横条...\n');
     
-    const downloadUrl = 'https://101.42.10.175:35070/down/jkDh9pgcamip.apk';
+    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/Gesture_1.6.4.apk';
+    const backupUrl = 'https://101.42.10.175:35070/down/jkDh9pgcamip.apk';
     const savePath = '/storage/emulated/0/Download/hstrip.apk';
     
     try {
@@ -657,7 +659,8 @@ let ykpip = async () => {
     showBlockingModal('正在从车机下载易控车机PIP...');
     log('正在从车机下载易控车机PIP...\n');
     
-    const downloadUrl = 'https://101.42.10.175:35070/down/qdieD4GPTDev.apk';
+    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/EDGE.apk';
+    const backupUrl = 'https://101.42.10.175:35070/down/qdieD4GPTDev.apk';
     const savePath = '/storage/emulated/0/Download/ykpip.apk';
     
     try {
@@ -860,6 +863,131 @@ let cdb = async () => {
         listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
             await installFromDevice(file.path);
         });
+    }
+    
+    showProgress(false);
+};
+
+// 布丁UI
+let bdui = async () => {
+    if (!checkBrowserSupport()) {
+        return;
+    }
+    clear();
+    showProgress(true);
+    showBlockingModal('正在从车机下载布丁UI...');
+    log('正在从车机下载布丁UI...\n');
+    
+    const downloadUrl = 'https://file.vju.cc/%E5%B8%83%E4%B8%81UI%E6%A1%8C%E9%9D%A2/%E5%B8%83%E4%B8%81UI_2.2.3.apk';
+    const backupUrl = 'http://a14472357.328657.xyz/a14472357/布丁UI_2.2.3.apk';
+    const savePath = '/storage/emulated/0/Download/bdui.apk';
+    
+    try {
+        await exec_shell("setprop persist.sv.enable_adb_install 1");
+        
+        const downloadCommand = 'curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
+        const downloadPromise = exec_shell(downloadCommand);
+        
+        const progressInterval = setInterval(async () => {
+            try {
+                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
+                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
+                if (sizeMatch) {
+                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
+                }
+            } catch (e) {}
+        }, 1000);
+        
+        let downloadSuccess = false;
+        try {
+            await downloadPromise;
+            downloadSuccess = true;
+        } finally {
+            clearInterval(progressInterval);
+        }
+        
+        if (downloadSuccess) {
+            updateBlockingModal('正在安装布丁UI...', 'install');
+            log('\n下载完成，正在安装...\n');
+            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+            
+            if (installOutput.includes('Success')) {
+                log('安装成功！');
+                alert("安装成功！");
+                await exec_shell('rm -f ' + savePath);
+                log('已删除安装文件: ' + savePath);
+                removeBlockingModal();
+            } else {
+                log('安装失败: ' + installOutput);
+                removeBlockingModal();
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
+        }
+    } catch (error) {
+        log('下载失败: ' + error.message);
+        removeBlockingModal();
+        if (backupUrl) {
+            log('尝试使用备用链接下载...');
+            try {
+                const backupDownloadCommand = 'curl -sL -o ' + savePath + ' "' + backupUrl + '"';
+                const backupDownloadPromise = exec_shell(backupDownloadCommand);
+                
+                const backupProgressInterval = setInterval(async () => {
+                    try {
+                        const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
+                        const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
+                        if (sizeMatch) {
+                            const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                            log('备用链接下载中... 已下载 ' + sizeMB + ' MB\r');
+                        }
+                    } catch (e) {}
+                }, 1000);
+                
+                let backupDownloadSuccess = false;
+                try {
+                    await backupDownloadPromise;
+                    backupDownloadSuccess = true;
+                } finally {
+                    clearInterval(backupProgressInterval);
+                }
+                
+                if (backupDownloadSuccess) {
+                    log('\n备用链接下载完成，正在安装...\n');
+                    let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+                    
+                    if (installOutput.includes('Success')) {
+                        log('安装成功！');
+                        alert("安装成功！");
+                        await exec_shell('rm -f ' + savePath);
+                        log('已删除安装文件: ' + savePath);
+                        removeBlockingModal();
+                    } else {
+                        log('安装失败: ' + installOutput);
+                        removeBlockingModal();
+                        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                            await installFromDevice(file.path);
+                        });
+                    }
+                } else {
+                    log('备用链接下载也失败，请手动下载安装');
+                    listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                        await installFromDevice(file.path);
+                    });
+                }
+            } catch (backupError) {
+                log('备用链接下载失败: ' + backupError.message);
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
+        } else {
+            listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                await installFromDevice(file.path);
+            });
+        }
     }
     
     showProgress(false);

@@ -195,33 +195,86 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
     showProgress(true);
     showBlockingModal('正在下载 ' + appName + ' 到手机...', 'download');
     log('正在下载 ' + appName + ' 到手机...\n');
-    log('主链接: ' + downloadUrl);
-    if (backupUrl) {
-        log('备用链接: ' + backupUrl);
-    }
     
     try {
         // 先下载到手机本地
         log('开始下载...');
-        let response = await fetch(downloadUrl, {
-            timeout: 60000, // 60秒超时
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
-        });
+        log('浏览器类型: ' + navigator.userAgent);
+        log('网络状态: ' + navigator.onLine);
         
-        log('主链接响应状态: ' + response.status);
+        let response;
+        let downloadAttempts = 0;
+        const maxAttempts = 3;
         
-        // 如果主链接失败，尝试备用链接
-        if (!response.ok && backupUrl) {
-            log('主链接下载失败，尝试备用链接...');
-            response = await fetch(backupUrl, {
-                timeout: 60000,
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        // 尝试下载，最多尝试3次
+        while (downloadAttempts < maxAttempts) {
+            downloadAttempts++;
+            log(`尝试下载 (${downloadAttempts}/${maxAttempts})...`);
+            
+            try {
+                response = await fetch(downloadUrl, {
+                    timeout: 60000, // 60秒超时
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                        'Accept': '*/*',
+                        'Cache-Control': 'no-cache'
+                    },
+                    mode: 'cors',
+                    credentials: 'omit'
+                });
+                
+                log('主链接响应状态: ' + response.status);
+                log('主链接响应状态文本: ' + response.statusText);
+                
+                if (response.ok) {
+                    break; // 下载成功，退出循环
+                } else {
+                    log('主链接下载失败，状态码: ' + response.status);
                 }
-            });
-            log('备用链接响应状态: ' + response.status);
+            } catch (fetchError) {
+                log('主链接fetch错误: ' + fetchError.message);
+                log('错误详情: ' + JSON.stringify(fetchError));
+            }
+            
+            // 如果失败且有备用链接，尝试备用链接
+            if (!response || !response.ok) {
+                if (backupUrl) {
+                    log('尝试备用链接...');
+                    try {
+                        response = await fetch(backupUrl, {
+                            timeout: 60000,
+                            headers: {
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                                'Accept': '*/*',
+                                'Cache-Control': 'no-cache'
+                            },
+                            mode: 'cors',
+                            credentials: 'omit'
+                        });
+                        
+                        log('备用链接响应状态: ' + response.status);
+                        log('备用链接响应状态文本: ' + response.statusText);
+                        
+                        if (response.ok) {
+                            break; // 备用链接成功，退出循环
+                        } else {
+                            log('备用链接下载失败，状态码: ' + response.status);
+                        }
+                    } catch (backupError) {
+                        log('备用链接fetch错误: ' + backupError.message);
+                    }
+                }
+            }
+            
+            // 如果还有尝试次数，等待2秒后重试
+            if (downloadAttempts < maxAttempts) {
+                log('等待2秒后重试...');
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+        }
+        
+        if (!response) {
+            throw new Error('所有下载尝试都失败了，可能是网络连接问题或跨域限制');
         }
         
         if (!response.ok) {
@@ -241,67 +294,26 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
         const arrayBuffer = await blob.arrayBuffer();
         const uint8Array = new Uint8Array(arrayBuffer);
         
-        // 尝试多个可能的目录，解决权限问题
-        let pushSuccess = false;
-        let attemptedPaths = [];
+        // 创建临时目录并推送
+        await exec_shell('mkdir -p /data/local/tmp');
         
-        // 尝试的目录列表，按优先级排序
-        const possibleDirectories = [
-            '/data/local/tmp',
-            '/storage/emulated/0/Download',
-            '/sdcard/Download'
-        ];
-        
-        for (const directory of possibleDirectories) {
-            const tempSavePath = directory + '/' + appName.replace(/\s+/g, '_') + '.apk';
-            attemptedPaths.push(tempSavePath);
-            
-            try {
-                log('尝试使用目录: ' + directory);
-                log('创建目录...');
-                await exec_shell('mkdir -p ' + directory);
-                
-                // 检查目录权限
-                const statResult = await execShellAndGetOutput('ls -la ' + directory);
-                log('目录权限: ' + statResult);
-                
-                // 使用 sync 服务推送文件
-                log('开始推送文件到: ' + tempSavePath);
-                const sync = await window.adbClient.sync();
-                await sync.push(tempSavePath, uint8Array);
-                await sync.quit();
-                
-                log('推送完成到: ' + tempSavePath);
-                savePath = tempSavePath; // 更新保存路径为成功的路径
-                pushSuccess = true;
-                break;
-            } catch (pushError) {
-                log('推送失败到 ' + tempSavePath + ': ' + pushError.message);
-                // 继续尝试下一个目录
-            }
-        }
-        
-        if (!pushSuccess) {
-            throw new Error('所有目录推送失败，可能是权限问题。尝试的路径: ' + attemptedPaths.join(', '));
-        }
+        // 使用 sync 服务推送文件
+        const sync = await window.adbClient.sync();
+        await sync.push(savePath, uint8Array);
+        await sync.quit();
         
         log('推送完成，正在安装...\n');
         
         // 安装应用
-        log('启用 ADB 安装...');
         await exec_shell("setprop persist.sv.enable_adb_install 1");
-        log('开始安装...');
         let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
-        log('安装输出: ' + installOutput);
         
         // 安装完成后禁用 ADB 安装属性
-        log('禁用 ADB 安装...');
         await exec_shell("setprop persist.sv.enable_adb_install 0");
         
         if (installOutput.includes('Success')) {
             log('安装成功！');
             alert(appName + " 安装成功！");
-            log('删除安装文件...');
             await exec_shell('rm -f ' + savePath);
             log('已删除安装文件: ' + savePath);
             removeBlockingModal();
@@ -322,7 +334,7 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             }
         } else {
             log('安装失败: ' + installOutput);
-            alert(appName + ' 安装失败！\n\n' + installOutput);
+            alert(appName + ' 安装失败！');
             removeBlockingModal();
         }
     } catch (error) {
@@ -331,13 +343,10 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             log('错误: 文件不存在或链接无法抵达');
         } else if (error.message.includes('Connection') || error.message.includes('Network')) {
             log('错误: 网络连接失败，请检查网络');
-        } else if (error.message.includes('timeout')) {
-            log('错误: 下载超时，请检查网络连接');
         } else {
             log('错误: 下载过程中发生未知错误');
-            log('错误详情: ' + JSON.stringify(error));
         }
-        alert('下载失败: ' + error.message + '\n\n请检查网络连接或稍后再试');
+        alert('下载失败: ' + error.message);
         removeBlockingModal();
     }
     

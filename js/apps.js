@@ -317,6 +317,35 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             }
         }
         
+        // 如果所有下载方式都失败，提示用户手动下载
+        if (!blob) {
+            log('所有自动下载方式都失败了');
+            log('建议：请手动下载APK文件，然后使用「自选APK」功能安装');
+            
+            // 显示手动下载提示
+            const manualDownload = confirm(
+                '自动下载失败，可能原因：\n' +
+                '1. 浏览器的CORS安全限制\n' +
+                '2. 网络连接问题\n' +
+                '3. 链接暂时不可用\n\n' +
+                '是否打开下载链接手动下载？\n' +
+                '下载完成后请使用「自选APK」功能安装。'
+            );
+            
+            if (manualDownload) {
+                // 打开下载链接
+                window.open(downloadUrl, '_blank');
+                log('已打开下载链接，请手动下载APK文件');
+                
+                // 提示用户使用自选APK功能
+                setTimeout(() => {
+                    alert('下载完成后，请点击「自选APK」按钮选择下载的文件进行安装。');
+                }, 500);
+            }
+            
+            throw new Error('自动下载失败，请手动下载后使用「自选APK」功能安装');
+        }
+        
         if (!blob) {
             throw new Error('所有下载尝试都失败了。\n可能的原因：\n1. 网络连接问题\n2. 跨域限制\n3. 链接失效\n4. 浏览器安全限制\n\n请检查网络连接，或尝试使用Chrome浏览器。');
         }

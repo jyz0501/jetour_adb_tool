@@ -25,6 +25,14 @@ let clear = async () => {
     // 执行任务时自动展开执行结果
     if (typeof expandExecResult === 'function') {
         expandExecResult();
+    } else {
+        // 如果 expandExecResult 函数未定义，直接操作 DOM
+        const execResult = document.getElementById('exec-result');
+        const toggleBtn = document.getElementById('exec-result-toggle');
+        if (execResult && execResult.classList.contains('collapsed')) {
+            execResult.classList.remove('collapsed');
+            if (toggleBtn) toggleBtn.textContent = '▼ 点击折叠执行结果';
+        }
     }
 };
 

@@ -125,17 +125,15 @@ async function downloadAndInstall(url, backupUrl, packageName, appName, progress
         const totalSize = parseInt(response.headers.get('content-length') || '0');
         const reader = response.body.getReader();
         let receivedSize = 0;
+        let chunks = [];
         
-        // 创建临时文件
-        const tempFile = await adb.createFile('/data/local/tmp/' + appName + '.apk');
-        
-        // 写入文件
+        // 下载到本地内存
         while (true) {
             const { done, value } = await reader.read();
             if (done) break;
             
             receivedSize += value.length;
-            await tempFile.write(value);
+            chunks.push(value);
             
             // 计算进度
             const progress = totalSize > 0 ? (receivedSize / totalSize) * 100 : 0;
@@ -147,19 +145,37 @@ async function downloadAndInstall(url, backupUrl, packageName, appName, progress
             updateBlockingModal(`正在下载${appName}，请稍候... ${Math.round(progress)}%`, 'download');
         }
         
-        await tempFile.close();
+        // 合并所有 chunks
+        const blob = new Blob(chunks);
+        
+        // 推送文件到车机
+        updateBlockingModal(`正在推送${appName}到车机，请稍候...`, 'install');
+        log(`正在推送${appName}到车机...`);
+        
+        const tempFilePath = '/data/local/tmp/' + appName + '.apk';
+        
+        // 使用 adb.push 方法推送文件
+        try {
+            await adb.push(blob, tempFilePath);
+            log(`成功: ${appName}推送成功`);
+        } catch (pushError) {
+            log(`错误: ${appName}推送失败: ${pushError.message}`);
+            alert('推送失败，请检查设备连接');
+            removeBlockingModal();
+            return false;
+        }
         
         // 安装应用
         updateBlockingModal(`正在安装${appName}，请稍候...`, 'install');
         log(`开始安装${appName}...`);
         
-        const result = await adb.shell(`pm install -r /data/local/tmp/${appName}.apk`);
+        const result = await adb.shell(`pm install -r ${tempFilePath}`);
         
         if (result.includes('Success')) {
             log(`成功: ${appName}安装成功`);
             
             // 安装完成后删除安装文件
-            await adb.shell(`rm /data/local/tmp/${appName}.apk`);
+            await adb.shell(`rm ${tempFilePath}`);
             log(`已删除${appName}安装文件`);
             
             removeBlockingModal();

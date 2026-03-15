@@ -99,7 +99,6 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
     }
     clear();
     showProgress(true);
-    showBlockingModal('正在从车机下载 ' + appName + '...', 'download');
     log('正在从车机下载 ' + appName + '...\n');
     log('下载链接: ' + downloadUrl);
     
@@ -157,7 +156,6 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
         }
         
         if (downloadSuccess) {
-            updateBlockingModal('正在安装 ' + appName + '...', 'install');
             log('\n下载完成，正在安装...\n');
             
             let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
@@ -170,7 +168,6 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
                 alert(appName + " 安装成功！");
                 await execShellAndGetOutput('rm -f ' + savePath);
                 log('已删除安装文件: ' + savePath);
-                removeBlockingModal();
                 
                 // 如果指定了包名，启动应用
                 if (packageName) {
@@ -189,12 +186,10 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             } else {
                 log('安装失败: ' + installOutput);
                 alert(appName + ' 安装失败！\n\n' + installOutput);
-                removeBlockingModal();
             }
         } else {
             // 下载失败，提供手动下载和自选APK选项
             log('车机下载失败');
-            removeBlockingModal();
             
             const userChoice = confirm(
                 '车机下载失败，可能原因：\n' +
@@ -224,7 +219,6 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
     } catch (error) {
         log('安装过程出错: ' + error.message);
         alert('安装失败: ' + error.message);
-        removeBlockingModal();
     }
     
     showProgress(false);
@@ -314,78 +308,6 @@ let wzagl = async () => {
 // 返回菜单键
 let fhcdj = async () => {
     await downloadAndInstall('返回菜单键', '', '/storage/emulated/0/Download/fhcdj.apk');
-};
-
-// 氢桌面
-let qzm = async () => {
-    if (!checkBrowserSupport()) {
-        return;
-    }
-    clear();
-    showProgress(true);
-    showBlockingModal('正在从车机下载氢桌面...');
-    log('正在从车机下载氢桌面...\n');
-    
-    const downloadUrl = 'https://101.42.10.175:35070/down/tY8gaYp7Wbjm.apk';
-    const savePath = '/storage/emulated/0/Download/qzm.apk';
-    
-    try {
-        await exec_shell("setprop persist.sv.enable_adb_install 1");
-        
-        const downloadCommand = 'curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
-        const downloadPromise = exec_shell(downloadCommand);
-        
-        const progressInterval = setInterval(async () => {
-            try {
-                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
-                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
-                if (sizeMatch) {
-                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
-                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
-                }
-            } catch (e) {}
-        }, 1000);
-        
-        let downloadSuccess = false;
-        try {
-            await downloadPromise;
-            downloadSuccess = true;
-        } finally {
-            clearInterval(progressInterval);
-        }
-        
-        if (downloadSuccess) {
-            updateBlockingModal('正在安装侧边栏...', 'install');
-            log('\n下载完成，正在安装...\n');
-            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
-            
-            if (installOutput.includes('Success')) {
-                log('安装成功！');
-                alert("安装成功！");
-                await exec_shell('rm -f ' + savePath);
-                log('已删除安装文件: ' + savePath);
-                removeBlockingModal();
-                setTimeout(() => {
-                    exec_shell('monkey -p com.hzsoft.sidebar -c android.intent.category.LAUNCHER 1');
-                    log('正在启动侧边栏...');
-                }, 1000);
-            } else {
-                log('安装失败: ' + installOutput);
-                removeBlockingModal();
-                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                    await installFromDevice(file.path);
-                });
-            }
-        }
-    } catch (error) {
-        log('下载失败: ' + error.message);
-        removeBlockingModal();
-        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-            await installFromDevice(file.path);
-        });
-    }
-    
-    showProgress(false);
 };
 
 // 侧边栏

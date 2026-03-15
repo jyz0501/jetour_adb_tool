@@ -1,5 +1,14 @@
 // 应用安装相关功能
 
+// 检查浏览器是否支持 WebUSB
+let checkBrowserSupport = () => {
+    if (!('usb' in navigator)) {
+        alert('您的浏览器不支持 WebUSB API，请使用 Chrome 或 Edge 浏览器');
+        return false;
+    }
+    return true;
+};
+
 // 无法关闭的弹窗
 let blockingModal = null;
 

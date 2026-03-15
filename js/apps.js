@@ -223,8 +223,8 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
         const arrayBuffer = await blob.arrayBuffer();
         const uint8Array = new Uint8Array(arrayBuffer);
         
-        // 创建临时文件并推送
-        await exec_shell('mkdir -p /storage/emulated/0/Download');
+        // 创建临时目录并推送
+        await exec_shell('mkdir -p /data/local/tmp');
         
         // 使用 sync 服务推送文件
         const sync = await window.adbClient.sync();
@@ -237,6 +237,9 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
         await exec_shell("setprop persist.sv.enable_adb_install 1");
         let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
         
+        // 安装完成后禁用 ADB 安装属性
+        await exec_shell("setprop persist.sv.enable_adb_install 0");
+        
         if (installOutput.includes('Success')) {
             log('安装成功！');
             alert(appName + " 安装成功！");
@@ -246,9 +249,16 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             
             // 如果指定了包名，启动应用
             if (packageName) {
-                setTimeout(() => {
-                    exec_shell('monkey -p ' + packageName + ' -c android.intent.category.LAUNCHER 1');
+                setTimeout(async () => {
                     log('正在启动 ' + appName + '...');
+                    await exec_shell('monkey -p ' + packageName + ' -c android.intent.category.LAUNCHER 1');
+                    
+                    // 启用无线 ADB 连接（设置为 5555 端口）
+                    log('正在启用无线 ADB 连接...');
+                    await exec_shell('setprop service.adb.tcp.port 5555');
+                    await exec_shell('stop adbd');
+                    await exec_shell('start adbd');
+                    log('无线 ADB 已启用，端口：5555');
                 }, 1000);
             }
         } else {
@@ -276,7 +286,7 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
 let sfgj = async () => {
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/沙发管家4.9.54.apk';
     const backupUrl = 'https://101.42.10.175:35070/down/IvlRhguh57DO.apk';
-    const savePath = '/storage/emulated/0/Download/sfgj.apk';
+    const savePath = '/data/local/tmp/sfgj.apk';
     await downloadToPhoneAndPush('沙发管家', downloadUrl, savePath, backupUrl, 'com.shafa.markethd');
 };
 
@@ -284,7 +294,7 @@ let sfgj = async () => {
 let yygj = async () => {
     const downloadUrl = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%8E%86%E5%8F%B2%E7%89%88%E6%9C%AC/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6v1.8.3%28%E6%AD%A3%E5%BC%8F%E7%89%88%29%E5%85%AC%E7%AD%BE%E7%89%88.apk';
     const backupUrl = 'http://a14472357.328657.xyz/a14472357/应用管家1.8.3.apk';
-    const savePath = '/storage/emulated/0/Download/yygj.apk';
+    const savePath = '/data/local/tmp/yygj.apk';
     await downloadToPhoneAndPush('应用管家', downloadUrl, savePath, backupUrl, 'com.vjoycar.gj');
 };
 
@@ -328,7 +338,7 @@ let installFromDevice = async (devicePath) => {
 let sentry = async () => {
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/哨兵监控v1.1.8.apk';
     const backupUrl = 'https://101.42.10.175:35070/down/tZyE46IwtbVf.apk';
-    const savePath = '/storage/emulated/0/Download/sentry.apk';
+    const savePath = '/data/local/tmp/sentry.apk';
     await downloadToPhoneAndPush('哨兵监控', downloadUrl, savePath, backupUrl);
 };
 
@@ -336,7 +346,7 @@ let sentry = async () => {
 let hstrip = async () => {
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/Gesture_1.6.4.apk';
     const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/小横条_2.0.0.apk';
-    const savePath = '/storage/emulated/0/Download/hstrip.apk';
+    const savePath = '/data/local/tmp/hstrip.apk';
     await downloadToPhoneAndPush('小横条', downloadUrl, savePath, backupUrl);
 };
 
@@ -344,7 +354,7 @@ let hstrip = async () => {
 let ykpip = async () => {
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/EDGE.apk';
     const backupUrl = 'https://101.42.10.175:35070/down/qdieD4GPTDev.apk';
-    const savePath = '/storage/emulated/0/Download/ykpip.apk';
+    const savePath = '/data/local/tmp/ykpip.apk';
     await downloadToPhoneAndPush('易控车机PIP', downloadUrl, savePath, backupUrl);
 };
 
@@ -434,7 +444,7 @@ let qzm = async () => {
 let cdb = async () => {
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/侧边栏_1.0.apk';
     const backupUrl = 'https://101.42.10.175:35070/down/P32XjDMnyz3M.apk';
-    const savePath = '/storage/emulated/0/Download/cdb.apk';
+    const savePath = '/data/local/tmp/cdb.apk';
     await downloadToPhoneAndPush('侧边栏', downloadUrl, savePath, backupUrl, 'com.hzsoft.sidebar');
 };
 
@@ -442,7 +452,7 @@ let cdb = async () => {
 let bdui = async () => {
     const downloadUrl = 'https://file.vju.cc/%E5%B8%83%E4%B8%81UI%E6%A1%8C%E9%9D%A2/%E5%B8%83%E4%B8%81UI_2.2.3.apk';
     const backupUrl = 'http://a14472357.328657.xyz/a14472357/布丁UI_2.2.3.apk';
-    const savePath = '/storage/emulated/0/Download/bdui.apk';
+    const savePath = '/data/local/tmp/bdui.apk';
     await downloadToPhoneAndPush('布丁UI', downloadUrl, savePath, backupUrl, 'com.buding.ui');
 };
 

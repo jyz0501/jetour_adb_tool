@@ -229,9 +229,8 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
 // 沙发管家
 let sfgj = async () => {
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/沙发管家4.9.54.apk';
-    const backupUrl = 'https://101.42.10.175:35070/down/IvlRhguh57DO.apk';
     const savePath = '/data/local/tmp/sfgj.apk';
-    await downloadToPhoneAndPush('沙发管家', downloadUrl, savePath, backupUrl, 'com.shafa.markethd');
+    await downloadToPhoneAndPush('沙发管家', downloadUrl, savePath, null, 'com.shafa.markethd');
 };
 
 // 应用管家
@@ -281,9 +280,8 @@ let installFromDevice = async (devicePath) => {
 // 哨兵监控
 let sentry = async () => {
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/哨兵监控v1.1.8.apk';
-    const backupUrl = 'https://101.42.10.175:35070/down/tZyE46IwtbVf.apk';
     const savePath = '/data/local/tmp/sentry.apk';
-    await downloadToPhoneAndPush('哨兵监控', downloadUrl, savePath, backupUrl);
+    await downloadToPhoneAndPush('哨兵监控', downloadUrl, savePath, null);
 };
 
 // 小横条
@@ -297,9 +295,8 @@ let hstrip = async () => {
 // 易控车机PIP
 let ykpip = async () => {
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/EDGE.apk';
-    const backupUrl = 'https://101.42.10.175:35070/down/qdieD4GPTDev.apk';
     const savePath = '/data/local/tmp/ykpip.apk';
-    await downloadToPhoneAndPush('易控车机PIP', downloadUrl, savePath, backupUrl);
+    await downloadToPhoneAndPush('易控车机PIP', downloadUrl, savePath, null);
 };
 
 // 无障碍管理器
@@ -315,9 +312,8 @@ let fhcdj = async () => {
 // 侧边栏
 let cdb = async () => {
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/侧边栏_1.0.apk';
-    const backupUrl = 'https://101.42.10.175:35070/down/P32XjDMnyz3M.apk';
     const savePath = '/data/local/tmp/cdb.apk';
-    await downloadToPhoneAndPush('侧边栏', downloadUrl, savePath, backupUrl, 'com.hzsoft.sidebar');
+    await downloadToPhoneAndPush('侧边栏', downloadUrl, savePath, null, 'com.hzsoft.sidebar');
 };
 
 // 布丁UI

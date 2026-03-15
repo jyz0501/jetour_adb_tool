@@ -291,7 +291,7 @@ let hstrip = async () => {
 
 // 易控车机PIP
 let ykpip = async () => {
-    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/EDGE.apk';
+    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/易控车机版V1.6.10_PIP.apk';
     const savePath = '/storage/emulated/0/Download/ykpip.apk';
     await downloadToPhoneAndPush('易控车机PIP', downloadUrl, savePath, null);
 };

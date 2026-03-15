@@ -1195,7 +1195,7 @@ let initDeviceDetection = async () => {
                 } else {
                     logDevice('PC设备，车机允许USB调试后将自动连接');
                     logDevice('请在车机上点击"允许USB调试"');
-                    // 延迟一下让设备完全就绪，然后自动连接
+                    // 延迟5秒让用户有时间点击允许，然后自动连接
                     setTimeout(async () => {
                         // 检查是否已经在连接中
                         if (!window.isConnecting) {
@@ -1203,7 +1203,7 @@ let initDeviceDetection = async () => {
                         } else {
                             logDevice('正在连接中，跳过自动连接');
                         }
-                    }, 2000);
+                    }, 5000);
                 }
             });
             

@@ -814,14 +814,24 @@ let checkBrowserSupportAndConnect = async () => {
                     }
                     alert('请在车机上点击"允许USB调试"');
                     
-                    // 只请求一次授权
-                    logDevice('正在请求授权...');
-                    setTimeout(async () => {
+                    const requestAuth = async (attempt) => {
+                        if (attempt > 3) {
+                            logDevice('3次授权请求已完成');
+                            await checkBrowserSupportAndConnect();
+                            return;
+                        }
+                        
+                        logDevice(`正在请求第${attempt}次授权...`);
                         try {
                             await manager.requestDevice();
                         } catch(e) {}
-                        await checkBrowserSupportAndConnect();
-                    }, 2000); // 增加初始延迟
+                        
+                        setTimeout(async () => {
+                            await requestAuth(attempt + 1);
+                        }, 5000); // 增大授权请求间隔到 5 秒
+                    };
+                    
+                    setTimeout(() => requestAuth(1), 2000); // 增加初始延迟
                     return;
                 } else {
                     logDevice('用户取消了设备选择');

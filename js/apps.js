@@ -33,509 +33,1318 @@ function showBlockingModal(message, stage = 'download') {
     `;
     
     let stageText = '';
-    let stageColor = '';
+    let waitText = '';
     
     if (stage === 'download') {
-        stageText = '下载中';
-        stageColor = '#3498db';
+        stageText = '正在下载';
+        waitText = '请耐心等待，下载完成后将自动开始安装';
     } else if (stage === 'install') {
-        stageText = '安装中';
-        stageColor = '#27ae60';
+        stageText = '正在安装';
+        waitText = '请耐心等待，安装完成后将自动关闭此窗口';
+    } else {
+        stageText = '正在处理';
+        waitText = '请耐心等待，操作完成后将自动关闭此窗口';
     }
     
     content.innerHTML = `
-        <h3 style="margin-top: 0; color: ${stageColor};">${stageText}</h3>
-        <p style="margin: 20px 0;">${message}</p>
-        <div style="display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid ${stageColor}; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-        <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+        <div style="font-size: 24px; margin-bottom: 15px; color: #333;">${stageText}</div>
+        <div style="font-size: 16px; color: #666; line-height: 1.6;">${message}</div>
+        <div style="margin-top: 20px; color: #999; font-size: 14px;">${waitText}</div>
+        <div style="margin-top: 10px; color: #ff6b6b; font-size: 14px; font-weight: bold;">请勿关闭页面或刷新浏览器</div>
     `;
     
     blockingModal.appendChild(content);
     document.body.appendChild(blockingModal);
 }
 
-function updateBlockingModal(message, stage = 'download') {
+function updateBlockingModal(message, stage) {
     if (!blockingModal) {
         return;
     }
     
+    const content = blockingModal.querySelector('div > div');
+    if (!content) {
+        return;
+    }
+    
     let stageText = '';
-    let stageColor = '';
+    let waitText = '';
     
     if (stage === 'download') {
-        stageText = '下载中';
-        stageColor = '#3498db';
+        stageText = '正在下载';
+        waitText = '请耐心等待，下载完成后将自动开始安装';
     } else if (stage === 'install') {
-        stageText = '安装中';
-        stageColor = '#27ae60';
+        stageText = '正在安装';
+        waitText = '请耐心等待，安装完成后将自动关闭此窗口';
+    } else {
+        stageText = '正在处理';
+        waitText = '请耐心等待，操作完成后将自动关闭此窗口';
     }
     
-    const content = blockingModal.querySelector('div');
-    if (content) {
-        content.innerHTML = `
-            <h3 style="margin-top: 0; color: ${stageColor};">${stageText}</h3>
-            <p style="margin: 20px 0;">${message}</p>
-            <div style="display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid ${stageColor}; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
-        `;
-    }
+    content.innerHTML = `
+        <div style="font-size: 24px; margin-bottom: 15px; color: #333;">${stageText}</div>
+        <div style="font-size: 16px; color: #666; line-height: 1.6;">${message}</div>
+        <div style="margin-top: 20px; color: #999; font-size: 14px;">${waitText}</div>
+        <div style="margin-top: 10px; color: #ff6b6b; font-size: 14px; font-weight: bold;">请勿关闭页面或刷新浏览器</div>
+    `;
 }
 
 function removeBlockingModal() {
     if (blockingModal) {
-        document.body.removeChild(blockingModal);
+        blockingModal.remove();
         blockingModal = null;
     }
 }
 
-// 下载并安装应用
-async function downloadAndInstall(url, backupUrl, packageName, appName, progressCallback) {
-    showBlockingModal(`正在下载${appName}，请稍候...`, 'download');
-    
-    try {
-        // 首先尝试主链接
-        let downloadUrl = url;
-        let response = await fetch(downloadUrl, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/octet-stream'
-            }
-        });
-        
-        // 如果主链接失败，尝试备用链接
-        if (!response.ok) {
-            log(`${appName}主链接下载失败，尝试备用链接...`);
-            downloadUrl = backupUrl;
-            response = await fetch(downloadUrl, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/octet-stream'
-                }
-            });
-            
-            // 如果备用链接也失败，显示错误信息
-            if (!response.ok) {
-                log(`错误: ${appName}下载失败，主链接和备用链接都无法访问`);
-                alert('安装失败，请检查网络连接或手动下载安装');
-                removeBlockingModal();
-                return false;
-            }
-        }
-        
-        const totalSize = parseInt(response.headers.get('content-length') || '0');
-        const reader = response.body.getReader();
-        let receivedSize = 0;
-        let chunks = [];
-        
-        // 下载到本地内存
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            
-            receivedSize += value.length;
-            chunks.push(value);
-            
-            // 计算进度
-            const progress = totalSize > 0 ? (receivedSize / totalSize) * 100 : 0;
-            if (progressCallback) {
-                progressCallback(progress);
-            }
-            
-            // 更新弹窗
-            updateBlockingModal(`正在下载${appName}，请稍候... ${Math.round(progress)}%`, 'download');
-        }
-        
-        // 合并所有 chunks
-        const blob = new Blob(chunks);
-        
-        // 推送文件到车机
-        updateBlockingModal(`正在推送${appName}到车机，请稍候...`, 'install');
-        log(`正在推送${appName}到车机...`);
-        
-        const tempFilePath = '/data/local/tmp/' + appName + '.apk';
-        
-        // 使用 adb.push 方法推送文件
-        try {
-            await adb.push(blob, tempFilePath);
-            log(`成功: ${appName}推送成功`);
-        } catch (pushError) {
-            log(`错误: ${appName}推送失败: ${pushError.message}`);
-            alert('推送失败，请检查设备连接');
-            removeBlockingModal();
-            return false;
-        }
-        
-        // 安装应用
-        updateBlockingModal(`正在安装${appName}，请稍候...`, 'install');
-        log(`开始安装${appName}...`);
-        
-        const result = await adb.shell(`pm install -r ${tempFilePath}`);
-        
-        if (result.includes('Success')) {
-            log(`成功: ${appName}安装成功`);
-            
-            // 安装完成后删除安装文件
-            await adb.shell(`rm ${tempFilePath}`);
-            log(`已删除${appName}安装文件`);
-            
-            removeBlockingModal();
-            alert(`${appName}安装成功！`);
-            return true;
-        } else {
-            log(`错误: ${appName}安装失败: ${result}`);
-            alert('安装失败，请检查网络连接或手动下载安装');
-            removeBlockingModal();
-            return false;
-        }
-    } catch (error) {
-        log(`错误: ${appName}下载失败: ${error.message}`);
-        alert('安装失败，请检查网络连接或手动下载安装');
-        removeBlockingModal();
+// 检查浏览器支持
+function checkBrowserSupport() {
+    const isSupported = checkWebUSBSupport();
+    if (!isSupported || !navigator.usb) {
+        alert('检测到您的浏览器不支持，请根据顶部的 "警告提示" 更换指定浏览器使用。');
         return false;
     }
+    
+    // 检查是否已连接设备
+    if (!window.adbClient) {
+        alert('未连接到设备，请先点击"开始连接"按钮连接设备');
+        return false;
+    }
+    
+    return true;
 }
 
-// 安装应用管家
-async function installYingyongGuanjia() {
-    const url = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%8E%86%E5%8F%B2%E7%89%88%E6%9C%AC/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6v1.8.3%28%E6%AD%A3%E5%BC%8F%E7%89%88%29%E5%85%AC%E7%AD%BE%E7%89%88.apk';
-    const backupUrl = 'http://a14472357.328657.xyz/a14472357/应用管家1.8.3.apk';
-    await downloadAndInstall(url, backupUrl, 'com.vju.yingyongguanjia', '应用管家');
-}
-
-// 安装侧边栏
-async function installCebianlan() {
-    const url = 'http://a14472357.328657.xyz/a14472357/侧边栏_1.0.apk';
-    const backupUrl = 'https://file.vju.cc/%E4%BE%A7%E8%BE%B9%E6%A0%8F/%E4%BE%A7%E8%BE%B9%E6%A0%8F_1.0.apk';
-    await downloadAndInstall(url, backupUrl, 'com.example.cebianlan', '侧边栏');
-}
-
-// 安装沙发管家
-async function installShafaGuanjia() {
-    const url = 'http://a14472357.328657.xyz/a14472357/沙发管家4.9.54.apk';
-    const backupUrl = 'https://file.vju.cc/%E6%B2%99%E5%8F%8B%E7%AE%A1%E5%AE%B6/%E6%B2%99%E5%8F%8B%E7%AE%A1%E5%AE%B64.9.54.apk';
-    await downloadAndInstall(url, backupUrl, 'com.muzhiwan', '沙发管家');
-}
-
-// 安装布丁UI
-async function installBudingUI() {
-    const url = 'https://file.vju.cc/%E5%B8%83%E4%B8%81UI%E6%A1%8C%E9%9D%A2/%E5%B8%83%E4%B8%81UI_2.2.3.apk';
-    const backupUrl = 'http://a14472357.328657.xyz/a14472357/布丁UI_2.2.3.apk';
-    await downloadAndInstall(url, backupUrl, 'com.buding.ui', '布丁UI');
-}
-
-// 安装哨兵监控
-async function installShaobing() {
-    const url = 'http://a14472357.328657.xyz/a14472357/哨兵监控v1.1.8.apk';
-    const backupUrl = '';
-    await downloadAndInstall(url, backupUrl, 'com.shaobing.monitor', '哨兵监控');
-}
-
-// 安装小横条
-async function installXiaohengtiao() {
-    const url = 'http://a14472357.328657.xyz/a14472357/Gesture_1.6.4.apk';
-    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/小横条_2.0.0.apk';
-    await downloadAndInstall(url, backupUrl, 'com.gesture', '小横条');
-}
-
-// 启动应用
-async function startApp(packageName, activityName, appName) {
+// 通用车机下载安装函数
+let downloadAndInstall = async (appName, downloadUrl, savePath, backupUrl = null) => {
+    if (!checkBrowserSupport()) {
+        return;
+    }
+    clear();
+    showProgress(true);
+    showBlockingModal('正在从车机下载 ' + appName + '...');
+    log('正在从车机下载 ' + appName + '...\n');
+    
     try {
-        log(`正在启动${appName}...`);
-        const result = await adb.shell(`am start -n ${packageName}/${activityName}`);
-        if (result.includes('Starting')) {
-            log(`成功: ${appName}启动成功`);
-        } else {
-            log(`错误: ${appName}启动失败: ${result}`);
+        await exec_shell("setprop persist.sv.enable_adb_install 1");
+        
+        let downloadSuccess = false;
+        const downloadPromise = exec_shell('curl -sL -o ' + savePath + ' "' + downloadUrl + '"');
+        
+        const progressInterval = setInterval(async () => {
+            try {
+                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
+                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
+                if (sizeMatch) {
+                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
+                }
+            } catch (e) {}
+        }, 1000);
+        
+        try {
+            await downloadPromise;
+            downloadSuccess = true;
+        } finally {
+            clearInterval(progressInterval);
+        }
+        
+        if (downloadSuccess) {
+            updateBlockingModal('正在安装 ' + appName + '...', 'install');
+            log('\n下载完成，正在安装...\n');
+            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+            
+            if (installOutput.includes('Success')) {
+                log('安装成功！');
+                alert(appName + " 安装成功！");
+                await exec_shell('rm -f ' + savePath);
+                log('已删除安装文件: ' + savePath);
+                removeBlockingModal();
+                setTimeout(() => {
+                    exec_shell('monkey -p com.yunpan.appmanage -c android.intent.category.LAUNCHER 1');
+                    log('正在启动应用管家...');
+                }, 1000);
+            } else {
+                log('安装失败: ' + installOutput);
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
         }
     } catch (error) {
-        log(`错误: ${appName}启动失败: ${error.message}`);
+        log('下载失败: ' + error.message);
+        if (error.message.includes('404') || error.message.includes('Not Found')) {
+            log('错误: 文件不存在或链接无法抵达');
+        } else if (error.message.includes('Connection') || error.message.includes('Network')) {
+            log('错误: 网络连接失败，请检查网络');
+        } else {
+            log('错误: 下载过程中发生未知错误');
+        }
+        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+            await installFromDevice(file.path);
+        });
     }
-}
+    
+    showProgress(false);
+};
 
-// 启动应用管家
-async function startYingyongGuanjia() {
-    await startApp('com.vju.yingyongguanjia', 'com.vju.yingyongguanjia.MainActivity', '应用管家');
-}
+// 沙发管家
+let sfgj = async () => {
+    if (!checkBrowserSupport()) {
+        return;
+    }
+    clear();
+    showProgress(true);
+    showBlockingModal('正在从车机下载沙发管家...');
+    log('正在从车机下载沙发管家...\n');
+    
+    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/沙发管家4.9.54.apk';
+    const backupUrl = 'https://101.42.10.175:35070/down/IvlRhguh57DO.apk';
+    const savePath = '/storage/emulated/0/Download/sfgj.apk';
+    
+    try {
+        await exec_shell("setprop persist.sv.enable_adb_install 1");
+        
+        const downloadCommand = 'curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
+        const downloadPromise = exec_shell(downloadCommand);
+        
+        const progressInterval = setInterval(async () => {
+            try {
+                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
+                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
+                if (sizeMatch) {
+                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
+                }
+            } catch (e) {}
+        }, 1000);
+        
+        let downloadSuccess = false;
+        try {
+            await downloadPromise;
+            downloadSuccess = true;
+        } finally {
+            clearInterval(progressInterval);
+        }
+        
+        if (downloadSuccess) {
+            updateBlockingModal('正在安装沙发管家...', 'install');
+            log('\n下载完成，正在安装...\n');
+            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+            
+            if (installOutput.includes('Success')) {
+                log('安装成功！');
+                alert("安装成功！");
+                await exec_shell('rm -f ' + savePath);
+                log('已删除安装文件: ' + savePath);
+                removeBlockingModal();
+                setTimeout(() => {
+                    exec_shell('monkey -p com.shafa.markethd -c android.intent.category.LAUNCHER 1');
+                    log('正在启动沙发管家...');
+                }, 1000);
+            } else {
+                log('安装失败: ' + installOutput);
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
+        }
+    } catch (error) {
+        log('下载失败: ' + error.message);
+        if (backupUrl) {
+            log('尝试使用备用链接下载...');
+            try {
+                const backupDownloadCommand = 'curl -sL -o ' + savePath + ' "' + backupUrl + '"';
+                const backupDownloadPromise = exec_shell(backupDownloadCommand);
+                
+                const backupProgressInterval = setInterval(async () => {
+                    try {
+                        const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
+                        const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
+                        if (sizeMatch) {
+                            const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                            log('备用链接下载中... 已下载 ' + sizeMB + ' MB\r');
+                        }
+                    } catch (e) {}
+                }, 1000);
+                
+                let backupDownloadSuccess = false;
+                try {
+                    await backupDownloadPromise;
+                    backupDownloadSuccess = true;
+                } finally {
+                    clearInterval(backupProgressInterval);
+                }
+                
+                if (backupDownloadSuccess) {
+                    updateBlockingModal('正在安装沙发管家...', 'install');
+                    log('\n备用链接下载完成，正在安装...\n');
+                    let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+                    
+                    if (installOutput.includes('Success')) {
+                        log('安装成功！');
+                        alert("安装成功！");
+                        await exec_shell('rm -f ' + savePath);
+                        log('已删除安装文件: ' + savePath);
+                        removeBlockingModal();
+                        setTimeout(() => {
+                            exec_shell('monkey -p com.shafa.markethd -c android.intent.category.LAUNCHER 1');
+                            log('正在启动沙发管家...');
+                        }, 1000);
+                    } else {
+                        log('安装失败: ' + installOutput);
+                        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                            await installFromDevice(file.path);
+                        });
+                    }
+                } else {
+                    log('备用链接下载也失败，请手动下载安装');
+                    listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                        await installFromDevice(file.path);
+                    });
+                }
+            } catch (backupError) {
+                log('备用链接下载失败: ' + backupError.message);
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
+        } else {
+            listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                await installFromDevice(file.path);
+            });
+        }
+    }
+    
+    showProgress(false);
+};
 
-// 启动侧边栏
-async function startCebianlan() {
-    await startApp('com.example.cebianlan', 'com.example.cebianlan.MainActivity', '侧边栏');
-}
+// 应用管家
+let yygj = async () => {
+    if (!checkBrowserSupport()) {
+        return;
+    }
+    clear();
+    showProgress(true);
+    log('正在从车机下载应用管家...\n');
+    
+    const downloadUrl = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%8E%86%E5%8F%B2%E7%89%88%E6%9C%AC/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6v1.8.3%28%E6%AD%A3%E5%BC%8F%E7%89%88%29%E5%85%AC%E7%AD%BE%E7%89%88.apk';
+    const backupUrl = 'http://a14472357.328657.xyz/a14472357/应用管家1.8.3.apk';
+    const savePath = '/storage/emulated/0/Download/yygj.apk';
+    
+    try {
+        await exec_shell("setprop persist.sv.enable_adb_install 1");
+        
+        // 使用车机上的 curl 下载（带进度显示）
+        let downloadSuccess = false;
+        
+        // 启动下载命令
+        const downloadCommand = 'curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
+        
+        // 启动下载
+        const downloadPromise = exec_shell(downloadCommand);
+        
+        // 启动进度监控
+        const progressInterval = setInterval(async () => {
+            try {
+                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText([
+                    'ls', '-l', savePath
+                ]);
+                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
+                if (sizeMatch) {
+                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
+                }
+            } catch (e) {
+                // 文件还不存在，继续等待
+            }
+        }, 1000);
+        
+        try {
+            await downloadPromise;
+            downloadSuccess = true;
+        } finally {
+            clearInterval(progressInterval);
+        }
+        
+        if (downloadSuccess) {
+            updateBlockingModal('正在安装氢桌面...', 'install');
+            log('\n下载完成，正在安装...\n');
+            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+            
+            if (installOutput.includes('Success')) {
+                log('安装成功！');
+                alert("安装成功！");
+                setTimeout(() => {
+                    exec_shell('monkey -p com.mcar.auto -c android.intent.category.LAUNCHER 1');
+                    log('正在启动氢桌面...');
+                }, 1000);
+            } else {
+                log('安装失败: ' + installOutput);
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
+        }
+    } catch (error) {
+        log('下载失败: ' + error.message);
+        if (error.message.includes('404') || error.message.includes('Not Found')) {
+            log('错误: 文件不存在或链接无法抵达');
+        } else if (error.message.includes('Connection') || error.message.includes('Network')) {
+            log('错误: 网络连接失败，请检查网络');
+        } else {
+            log('错误: 下载过程中发生未知错误');
+        }
+        if (backupUrl) {
+            log('尝试使用备用链接下载...');
+            try {
+                const backupDownloadCommand = 'curl -sL -o ' + savePath + ' "' + backupUrl + '"';
+                const backupDownloadPromise = exec_shell(backupDownloadCommand);
+                
+                const backupProgressInterval = setInterval(async () => {
+                    try {
+                        const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText([
+                            'ls', '-l', savePath
+                        ]);
+                        const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
+                        if (sizeMatch) {
+                            const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                            log('备用链接下载中... 已下载 ' + sizeMB + ' MB\r');
+                        }
+                    } catch (e) {
+                        // 文件还不存在，继续等待
+                    }
+                }, 1000);
+                
+                let backupDownloadSuccess = false;
+                try {
+                    await backupDownloadPromise;
+                    backupDownloadSuccess = true;
+                } finally {
+                    clearInterval(backupProgressInterval);
+                }
+                
+                if (backupDownloadSuccess) {
+                    updateBlockingModal('正在安装应用管家...', 'install');
+                    log('\n备用链接下载完成，正在安装...\n');
+                    let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+                    
+                    if (installOutput.includes('Success')) {
+                        log('安装成功！');
+                        alert("安装成功！");
+                        await exec_shell('rm -f ' + savePath);
+                        log('已删除安装文件: ' + savePath);
+                        removeBlockingModal();
+                        setTimeout(() => {
+                            exec_shell('monkey -p com.vjoycar.gj -c android.intent.category.LAUNCHER 1');
+                            log('正在启动应用管家...');
+                        }, 1000);
+                    } else {
+                        log('安装失败: ' + installOutput);
+                        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                            await installFromDevice(file.path);
+                        });
+                    }
+                } else {
+                    log('备用链接下载也失败，请手动下载安装');
+                    log('请在车机浏览器中手动下载 APK，然后从设备选择安装');
+                    listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                        await installFromDevice(file.path);
+                    });
+                }
+            } catch (backupError) {
+                log('备用链接下载失败: ' + backupError.message);
+                log('请在车机浏览器中手动下载 APK，然后从设备选择安装');
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
+        } else {
+            log('请在车机浏览器中手动下载 APK，然后从设备选择安装');
+            listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                await installFromDevice(file.path);
+            });
+        }
+    }
+    
+    showProgress(false);
+};
 
-// 启动沙发管家
-async function startShafaGuanjia() {
-    await startApp('com.muzhiwan', 'com.muzhiwan.MainActivity', '沙发管家');
-}
+// 从设备安装APK
+let installFromDevice = async (devicePath) => {
+    if (!window.adbClient) {
+        alert('请先连接设备');
+        return;
+    }
+    
+    clear();
+    showProgress(true);
+    showBlockingModal('正在安装 ' + devicePath);
+    log('正在安装 ' + devicePath + ' ...\n');
+    
+    try {
+        await exec_shell("setprop persist.sv.enable_adb_install 1");
+        let installOutput = await execShellAndGetOutput("pm install -g -r " + devicePath);
+        
+        if (installOutput.includes('Success')) {
+            log('安装成功！');
+            alert("安装成功！");
+            await exec_shell('rm -f ' + devicePath);
+            log('已删除安装文件: ' + devicePath);
+            removeBlockingModal();
+        } else {
+            log('安装失败: ' + installOutput);
+            alert("安装失败！");
+            removeBlockingModal();
+        }
+    } catch (error) {
+        log('安装失败: ' + error.message);
+        alert("安装失败: " + error.message);
+        removeBlockingModal();
+    }
+    
+    showProgress(false);
+};
 
-// 本地下载
-function downloadToLocal(url, filename) {
+// 哨兵监控
+let sentry = async () => {
+    if (!checkBrowserSupport()) {
+        return;
+    }
+    clear();
+    showProgress(true);
+    showBlockingModal('正在从车机下载哨兵监控...');
+    log('正在从车机下载哨兵监控...\n');
+    
+    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/哨兵监控v1.1.8.apk';
+    const backupUrl = 'https://101.42.10.175:35070/down/tZyE46IwtbVf.apk';
+    const savePath = '/storage/emulated/0/Download/sentry.apk';
+    
+    try {
+        await exec_shell("setprop persist.sv.enable_adb_install 1");
+        
+        const downloadCommand = 'curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
+        const downloadPromise = exec_shell(downloadCommand);
+        
+        const progressInterval = setInterval(async () => {
+            try {
+                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
+                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
+                if (sizeMatch) {
+                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
+                }
+            } catch (e) {}
+        }, 1000);
+        
+        let downloadSuccess = false;
+        try {
+            await downloadPromise;
+            downloadSuccess = true;
+        } finally {
+            clearInterval(progressInterval);
+        }
+        
+        if (downloadSuccess) {
+            updateBlockingModal('正在安装小横条...', 'install');
+            log('\n下载完成，正在安装...\n');
+            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+            
+            if (installOutput.includes('Success')) {
+                log('安装成功！');
+                alert("安装成功！");
+                await exec_shell('rm -f ' + savePath);
+                log('已删除安装文件: ' + savePath);
+                removeBlockingModal();
+            } else {
+                log('安装失败: ' + installOutput);
+                removeBlockingModal();
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
+        }
+    } catch (error) {
+        log('下载失败: ' + error.message);
+        if (error.message.includes('404') || error.message.includes('Not Found')) {
+            log('错误: 文件不存在或链接无法抵达');
+        } else if (error.message.includes('Connection') || error.message.includes('Network')) {
+            log('错误: 网络连接失败，请检查网络');
+        } else {
+            log('错误: 下载过程中发生未知错误');
+        }
+        removeBlockingModal();
+        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+            await installFromDevice(file.path);
+        });
+    }
+    
+    showProgress(false);
+};
+
+// 小横条
+let hstrip = async () => {
+    if (!checkBrowserSupport()) {
+        return;
+    }
+    clear();
+    showProgress(true);
+    showBlockingModal('正在从车机下载小横条...');
+    log('正在从车机下载小横条...\n');
+    
+    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/Gesture_1.6.4.apk';
+    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/小横条_2.0.0.apk';
+    const savePath = '/storage/emulated/0/Download/hstrip.apk';
+    
+    try {
+        await exec_shell("setprop persist.sv.enable_adb_install 1");
+        
+        const downloadCommand = 'curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
+        const downloadPromise = exec_shell(downloadCommand);
+        
+        const progressInterval = setInterval(async () => {
+            try {
+                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
+                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
+                if (sizeMatch) {
+                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
+                }
+            } catch (e) {}
+        }, 1000);
+        
+        let downloadSuccess = false;
+        try {
+            await downloadPromise;
+            downloadSuccess = true;
+        } finally {
+            clearInterval(progressInterval);
+        }
+        
+        if (downloadSuccess) {
+            updateBlockingModal('正在安装易控车机PIP...', 'install');
+            log('\n下载完成，正在安装...\n');
+            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+            
+            if (installOutput.includes('Success')) {
+                log('安装成功！');
+                alert("安装成功！");
+                await exec_shell('rm -f ' + savePath);
+                log('已删除安装文件: ' + savePath);
+                removeBlockingModal();
+            } else {
+                log('安装失败: ' + installOutput);
+                removeBlockingModal();
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
+        }
+    } catch (error) {
+        log('下载失败: ' + error.message);
+        removeBlockingModal();
+        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+            await installFromDevice(file.path);
+        });
+    }
+    
+    showProgress(false);
+};
+
+// 易控车机PIP
+let ykpip = async () => {
+    if (!checkBrowserSupport()) {
+        return;
+    }
+    clear();
+    showProgress(true);
+    showBlockingModal('正在从车机下载易控车机PIP...');
+    log('正在从车机下载易控车机PIP...\n');
+    
+    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/EDGE.apk';
+    const backupUrl = 'https://101.42.10.175:35070/down/qdieD4GPTDev.apk';
+    const savePath = '/storage/emulated/0/Download/ykpip.apk';
+    
+    try {
+        await exec_shell("setprop persist.sv.enable_adb_install 1");
+        
+        const downloadCommand = 'curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
+        const downloadPromise = exec_shell(downloadCommand);
+        
+        const progressInterval = setInterval(async () => {
+            try {
+                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
+                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
+                if (sizeMatch) {
+                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
+                }
+            } catch (e) {}
+        }, 1000);
+        
+        let downloadSuccess = false;
+        try {
+            await downloadPromise;
+            downloadSuccess = true;
+        } finally {
+            clearInterval(progressInterval);
+        }
+        
+        if (downloadSuccess) {
+            updateBlockingModal('正在安装氢桌面...', 'install');
+            log('\n下载完成，正在安装...\n');
+            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+            
+            if (installOutput.includes('Success')) {
+                log('安装成功！');
+                alert("安装成功！");
+                await exec_shell('rm -f ' + savePath);
+                log('已删除安装文件: ' + savePath);
+                removeBlockingModal();
+            } else {
+                log('安装失败: ' + installOutput);
+                removeBlockingModal();
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
+        }
+    } catch (error) {
+        log('下载失败: ' + error.message);
+        removeBlockingModal();
+        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+            await installFromDevice(file.path);
+        });
+    }
+    
+    showProgress(false);
+};
+
+// 无障碍管理器
+let wzagl = async () => {
+    await downloadAndInstall('无障碍管理器', '', '/storage/emulated/0/Download/wzagl.apk');
+};
+
+// 返回菜单键
+let fhcdj = async () => {
+    await downloadAndInstall('返回菜单键', '', '/storage/emulated/0/Download/fhcdj.apk');
+};
+
+// 氢桌面
+let qzm = async () => {
+    if (!checkBrowserSupport()) {
+        return;
+    }
+    clear();
+    showProgress(true);
+    showBlockingModal('正在从车机下载氢桌面...');
+    log('正在从车机下载氢桌面...\n');
+    
+    const downloadUrl = 'https://101.42.10.175:35070/down/tY8gaYp7Wbjm.apk';
+    const savePath = '/storage/emulated/0/Download/qzm.apk';
+    
+    try {
+        await exec_shell("setprop persist.sv.enable_adb_install 1");
+        
+        const downloadCommand = 'curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
+        const downloadPromise = exec_shell(downloadCommand);
+        
+        const progressInterval = setInterval(async () => {
+            try {
+                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
+                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
+                if (sizeMatch) {
+                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
+                }
+            } catch (e) {}
+        }, 1000);
+        
+        let downloadSuccess = false;
+        try {
+            await downloadPromise;
+            downloadSuccess = true;
+        } finally {
+            clearInterval(progressInterval);
+        }
+        
+        if (downloadSuccess) {
+            updateBlockingModal('正在安装侧边栏...', 'install');
+            log('\n下载完成，正在安装...\n');
+            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+            
+            if (installOutput.includes('Success')) {
+                log('安装成功！');
+                alert("安装成功！");
+                await exec_shell('rm -f ' + savePath);
+                log('已删除安装文件: ' + savePath);
+                removeBlockingModal();
+                setTimeout(() => {
+                    exec_shell('monkey -p com.hzsoft.sidebar -c android.intent.category.LAUNCHER 1');
+                    log('正在启动侧边栏...');
+                }, 1000);
+            } else {
+                log('安装失败: ' + installOutput);
+                removeBlockingModal();
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
+        }
+    } catch (error) {
+        log('下载失败: ' + error.message);
+        removeBlockingModal();
+        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+            await installFromDevice(file.path);
+        });
+    }
+    
+    showProgress(false);
+};
+
+// 侧边栏
+let cdb = async () => {
+    if (!checkBrowserSupport()) {
+        return;
+    }
+    clear();
+    showProgress(true);
+    showBlockingModal('正在从车机下载侧边栏...');
+    log('正在从车机下载侧边栏...\n');
+    
+    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/侧边栏_1.0.apk';
+    const backupUrl = 'https://101.42.10.175:35070/down/P32XjDMnyz3M.apk';
+    const savePath = '/storage/emulated/0/Download/cdb.apk';
+    
+    try {
+        await exec_shell("setprop persist.sv.enable_adb_install 1");
+        
+        const downloadCommand = 'curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
+        const downloadPromise = exec_shell(downloadCommand);
+        
+        const progressInterval = setInterval(async () => {
+            try {
+                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
+                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
+                if (sizeMatch) {
+                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
+                }
+            } catch (e) {}
+        }, 1000);
+        
+        let downloadSuccess = false;
+        try {
+            await downloadPromise;
+            downloadSuccess = true;
+        } finally {
+            clearInterval(progressInterval);
+        }
+        
+        if (downloadSuccess) {
+            log('\n下载完成，正在安装...\n');
+            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+            
+            if (installOutput.includes('Success')) {
+                log('安装成功！');
+                alert("安装成功！");
+                await exec_shell('rm -f ' + savePath);
+                log('已删除安装文件: ' + savePath);
+                removeBlockingModal();
+            } else {
+                log('安装失败: ' + installOutput);
+                removeBlockingModal();
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
+        }
+    } catch (error) {
+        log('下载失败: ' + error.message);
+        removeBlockingModal();
+        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+            await installFromDevice(file.path);
+        });
+    }
+    
+    showProgress(false);
+};
+
+// 布丁UI
+let bdui = async () => {
+    if (!checkBrowserSupport()) {
+        return;
+    }
+    clear();
+    showProgress(true);
+    showBlockingModal('正在从车机下载布丁UI...');
+    log('正在从车机下载布丁UI...\n');
+    
+    const downloadUrl = 'https://file.vju.cc/%E5%B8%83%E4%B8%81UI%E6%A1%8C%E9%9D%A2/%E5%B8%83%E4%B8%81UI_2.2.3.apk';
+    const backupUrl = 'http://a14472357.328657.xyz/a14472357/布丁UI_2.2.3.apk';
+    const savePath = '/storage/emulated/0/Download/bdui.apk';
+    
+    try {
+        await exec_shell("setprop persist.sv.enable_adb_install 1");
+        
+        const downloadCommand = 'curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
+        const downloadPromise = exec_shell(downloadCommand);
+        
+        const progressInterval = setInterval(async () => {
+            try {
+                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
+                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
+                if (sizeMatch) {
+                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
+                }
+            } catch (e) {}
+        }, 1000);
+        
+        let downloadSuccess = false;
+        try {
+            await downloadPromise;
+            downloadSuccess = true;
+        } finally {
+            clearInterval(progressInterval);
+        }
+        
+        if (downloadSuccess) {
+            updateBlockingModal('正在安装布丁UI...', 'install');
+            log('\n下载完成，正在安装...\n');
+            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+            
+            if (installOutput.includes('Success')) {
+                log('安装成功！');
+                alert("安装成功！");
+                await exec_shell('rm -f ' + savePath);
+                log('已删除安装文件: ' + savePath);
+                removeBlockingModal();
+            } else {
+                log('安装失败: ' + installOutput);
+                removeBlockingModal();
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
+        }
+    } catch (error) {
+        log('下载失败: ' + error.message);
+        removeBlockingModal();
+        if (backupUrl) {
+            log('尝试使用备用链接下载...');
+            try {
+                const backupDownloadCommand = 'curl -sL -o ' + savePath + ' "' + backupUrl + '"';
+                const backupDownloadPromise = exec_shell(backupDownloadCommand);
+                
+                const backupProgressInterval = setInterval(async () => {
+                    try {
+                        const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
+                        const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
+                        if (sizeMatch) {
+                            const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                            log('备用链接下载中... 已下载 ' + sizeMB + ' MB\r');
+                        }
+                    } catch (e) {}
+                }, 1000);
+                
+                let backupDownloadSuccess = false;
+                try {
+                    await backupDownloadPromise;
+                    backupDownloadSuccess = true;
+                } finally {
+                    clearInterval(backupProgressInterval);
+                }
+                
+                if (backupDownloadSuccess) {
+                    log('\n备用链接下载完成，正在安装...\n');
+                    let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+                    
+                    if (installOutput.includes('Success')) {
+                        log('安装成功！');
+                        alert("安装成功！");
+                        await exec_shell('rm -f ' + savePath);
+                        log('已删除安装文件: ' + savePath);
+                        removeBlockingModal();
+                    } else {
+                        log('安装失败: ' + installOutput);
+                        removeBlockingModal();
+                        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                            await installFromDevice(file.path);
+                        });
+                    }
+                } else {
+                    log('备用链接下载也失败，请手动下载安装');
+                    listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                        await installFromDevice(file.path);
+                    });
+                }
+            } catch (backupError) {
+                log('备用链接下载失败: ' + backupError.message);
+                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                    await installFromDevice(file.path);
+                });
+            }
+        } else {
+            listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
+                await installFromDevice(file.path);
+            });
+        }
+    }
+    
+    showProgress(false);
+};
+
+// 蓝牙遥控 - 本地下载到手机
+let lyyk = () => {
+    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/蓝牙遥控2.0.9.apk';
+    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/蓝牙遥控2.0.9.apk';
+    
+    // 创建隐藏的下载链接
     const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
+    link.href = downloadUrl;
+    link.download = '蓝牙遥控2.0.9.apk';
+    link.target = '_blank';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-}
-
-// 下载蓝牙遥控
-function downloadLanyaYaokong() {
-    const url = 'http://a14472357.328657.xyz/a14472357/蓝牙遥控2.0.9.apk';
-    downloadToLocal(url, '蓝牙遥控2.0.9.apk');
-}
-
-// 下载蓝牙遥控（备用）
-function downloadLanyaYaokongBackup() {
-    const url = 'http://a14472357.a.328657.xyz/a14472357/蓝牙遥控2.0.9.apk';
-    downloadToLocal(url, '蓝牙遥控2.0.9.apk');
-}
-
-// 必装软件：先下载到手机，再推送到车机安装
-
-// 应用管家 - 下载到手机后推送安装
-async function yygj() {
-    const url = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%8E%86%E5%8F%B2%E7%89%88%E6%9C%AC/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6v1.8.3%28%E6%AD%A3%E5%BC%8F%E7%89%88%29%E5%85%AC%E7%AD%BE%E7%89%88.apk';
-    const backupUrl = 'http://a14472357.328657.xyz/a14472357/应用管家1.8.3.apk';
-    await downloadToPhoneThenPush(url, backupUrl, '应用管家');
-}
-
-// 侧边栏 - 下载到手机后推送安装
-async function cdb() {
-    const url = 'http://a14472357.328657.xyz/a14472357/侧边栏_1.0.apk';
-    const backupUrl = 'https://file.vju.cc/%E4%BE%A7%E8%BE%B9%E6%A0%8F/%E4%BE%A7%E8%BE%B9%E6%A0%8F_1.0.apk';
-    await downloadToPhoneThenPush(url, backupUrl, '侧边栏');
-}
-
-// 沙发管家 - 下载到手机后推送安装
-async function sfgj() {
-    const url = 'http://a14472357.328657.xyz/a14472357/沙发管家4.9.54.apk';
-    const backupUrl = 'https://file.vju.cc/%E6%B2%99%E5%8F%8B%E7%AE%A1%E5%AE%B6/%E6%B2%99%E5%8F%8B%E7%AE%A1%E5%AE%B64.9.54.apk';
-    await downloadToPhoneThenPush(url, backupUrl, '沙发管家');
-}
-
-// 布丁UI - 下载到手机后推送安装
-async function bdui() {
-    const url = 'https://file.vju.cc/%E5%B8%83%E4%B8%81UI%E6%A1%8C%E9%9D%A2/%E5%B8%83%E4%B8%81UI_2.2.3.apk';
-    const backupUrl = 'http://a14472357.328657.xyz/a14472357/布丁UI_2.2.3.apk';
-    await downloadToPhoneThenPush(url, backupUrl, '布丁UI');
-}
-
-// 下载到手机后推送到车机安装
-async function downloadToPhoneThenPush(url, backupUrl, appName) {
-    showBlockingModal(`正在下载${appName}到手机，请稍候...`, 'download');
     
+    log('蓝牙遥控下载已开始，请检查下载文件夹');
+};
+
+// 启动应用管家
+function startGuanJia() {
+    // 检查是否有 Tango ADB 客户端
+    if (window.adbClient) {
+        clear();
+        showProgress(true);
+        log('开始启动应用管家...\n');
+        try {
+            // 使用 Tango ADB 执行启动命令
+            window.adbClient.subprocess.noneProtocol.spawnWaitText([
+                'monkey', '-p', 'com.yunpan.appmanage', '-c', 'android.intent.category.LAUNCHER', '1'
+            ]).then(result => {
+                log(result);
+                showProgress(false);
+            }).catch(error => {
+                console.error('启动应用管家失败:', error);
+                log('启动失败: ' + (error.message || error.toString()));
+                showProgress(false);
+            });
+        } catch (error) {
+            console.error('启动应用管家失败:', error);
+            log('启动失败: ' + (error.message || error.toString()));
+            showProgress(false);
+        }
+        return;
+    }
+    
+    // 未连接设备
+    alert("未连接到设备，请先点击'开始连接'按钮连接设备");
+}
+
+// 刷新用户应用列表
+let loadPackageList = async () => {
+    if (!checkBrowserSupport()) {
+        return;
+    }
+    clear();
+    showProgress(true);
+    var packageContent = "";
     try {
-        // 首先尝试主链接
-        let downloadUrl = url;
-        let response = await fetch(downloadUrl, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/octet-stream'
+        const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText(["pm", "list", "packages", "-3"]);
+        packageContent = result;
+    } catch (error) {
+        log(error);
+    }
+    let packageList = document.getElementById('package-list').getElementsByTagName('tbody')[0];
+    packageList.innerHTML = "";
+    let arryAll = packageContent.split("\n");
+    let index = 1;
+    
+    for (var i = 0, len = arryAll.length; i < len; i++) {
+        let line = arryAll[i];
+        if (line.indexOf("package:") != 0) {
+            continue;
+        }
+        let packageName = line.substring(8);
+        
+        var tr = document.createElement("tr");
+        
+        var tdIndex = document.createElement("td");
+        tdIndex.textContent = index;
+        tr.appendChild(tdIndex);
+        
+        var tdPackage = document.createElement("td");
+        tdPackage.textContent = packageName;
+        tdPackage.style.wordBreak = "break-all";
+        tr.appendChild(tdPackage);
+        
+        var tdActions = document.createElement("td");
+        tdActions.className = "text-nowrap";
+        
+        var launchButton = document.createElement("button");
+        launchButton.className = "btn btn-connect btn-sm";
+        launchButton.style.marginRight = "5px";
+        launchButton.onclick = function(pkg) {
+            return function() {
+                exec_shell('monkey -p ' + pkg + ' -c android.intent.category.LAUNCHER 1');
+            };
+        }(packageName);
+        launchButton.textContent = "启动";
+        tdActions.appendChild(launchButton);
+        
+        var stopButton = document.createElement("button");
+        stopButton.className = "btn btn-connect btn-sm";
+        stopButton.style.marginRight = "5px";
+        stopButton.style.backgroundColor = "#2196f3";
+        stopButton.onclick = function(pkg) {
+            return function() {
+                exec_shell('am force-stop ' + pkg);
+            };
+        }(packageName);
+        stopButton.textContent = "停止";
+        tdActions.appendChild(stopButton);
+        tr.appendChild(tdActions);
+        
+        var tdRemove = document.createElement("td");
+        var removeButton = document.createElement("button");
+        removeButton.className = "btn btn-disconnect btn-sm";
+        removeButton.onclick = function(pkg) {
+            return function() {
+                if (confirm("确定要卸载 " + pkg + " 吗？")) {
+                    exec_shell('pm uninstall ' + pkg);
+                }
+            };
+        }(packageName);
+        removeButton.textContent = "卸载";
+        tdRemove.appendChild(removeButton);
+        tr.appendChild(tdRemove);
+        
+        packageList.appendChild(tr);
+        index++;
+    }
+    showProgress(false);
+};
+
+// 自选apk
+let loadApkFile = async () => {
+    document.getElementById('apkFile').click();
+};
+
+// 处理 APK 文件选择事件
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        initFileInput();
+    });
+} else {
+    initFileInput();
+}
+
+function initFileInput() {
+    if (navigator.usb) {
+        // 隐藏不支持提示
+    }
+    let apkFile = document.getElementById('apkFile');
+    if (apkFile) {
+        apkFile.addEventListener('change', function() {
+            const fileNameEl = document.getElementById('apkFileName');
+            const files = Array.from(this.files).filter(file =>
+                file.name.toLowerCase().endsWith('.apk')
+            );
+            if (files.length === 0) {
+                fileNameEl.textContent = "未选择文件";
+                this.value = '';
+            } else if (files.length === 1) {
+                fileNameEl.textContent = files[0].name;
+            } else {
+                fileNameEl.textContent = `已选择 ${files.length} 个 文件`;
             }
         });
-        
-        // 如果主链接失败，尝试备用链接
-        if (!response.ok) {
-            log(`${appName}主链接下载失败，尝试备用链接...`);
-            downloadUrl = backupUrl;
-            response = await fetch(downloadUrl, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/octet-stream'
-                }
-            });
-            
-            // 如果备用链接也失败，显示错误信息
-            if (!response.ok) {
-                log(`错误: ${appName}下载失败，主链接和备用链接都无法访问`);
-                alert('下载失败，请检查网络连接');
-                removeBlockingModal();
-                return false;
-            }
-        }
-        
-        const totalSize = parseInt(response.headers.get('content-length') || '0');
-        const reader = response.body.getReader();
-        let receivedSize = 0;
-        let chunks = [];
-        
-        // 下载到本地内存
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            
-            receivedSize += value.length;
-            chunks.push(value);
-            
-            // 计算进度
-            const progress = totalSize > 0 ? (receivedSize / totalSize) * 100 : 0;
-            
-            // 更新弹窗
-            updateBlockingModal(`正在下载${appName}到手机... ${Math.round(progress)}%`, 'download');
-        }
-        
-        // 合并所有 chunks
-        const blob = new Blob(chunks);
-        
-        // 保存到手机下载目录
-        updateBlockingModal(`正在保存${appName}到手机...`, 'download');
-        
-        // 创建下载链接保存到手机
-        const downloadLink = document.createElement('a');
-        downloadLink.href = URL.createObjectURL(blob);
-        downloadLink.download = `${appName}.apk`;
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-        
-        log(`${appName}已下载到手机下载目录`);
-        
-        // 推送到车机
-        updateBlockingModal(`正在推送${appName}到车机...`, 'install');
-        log(`正在推送${appName}到车机...`);
-        
-        const tempFilePath = '/data/local/tmp/' + appName + '.apk';
-        
-        // 使用 adb.push 方法推送文件
-        try {
-            await adb.push(blob, tempFilePath);
-            log(`成功: ${appName}推送成功`);
-        } catch (pushError) {
-            log(`错误: ${appName}推送失败: ${pushError.message}`);
-            alert('推送失败，请检查设备连接');
-            removeBlockingModal();
-            return false;
-        }
-        
-        // 安装应用
-        updateBlockingModal(`正在安装${appName}...`, 'install');
-        log(`开始安装${appName}...`);
-        
-        const result = await adb.shell(`pm install -r ${tempFilePath}`);
-        
-        if (result.includes('Success')) {
-            log(`成功: ${appName}安装成功`);
-            
-            // 安装完成后删除安装文件
-            await adb.shell(`rm ${tempFilePath}`);
-            log(`已删除${appName}安装文件`);
-            
-            removeBlockingModal();
-            alert(`${appName}安装成功！`);
-            return true;
-        } else {
-            log(`错误: ${appName}安装失败: ${result}`);
-            alert('安装失败，请检查设备连接');
-            removeBlockingModal();
-            return false;
-        }
-    } catch (error) {
-        log(`错误: ${appName}下载失败: ${error.message}`);
-        alert('下载失败，请检查网络连接');
-        removeBlockingModal();
-        return false;
     }
 }
 
-// 直接通过网络地址下载到车机并安装（使用车机的curl/wget命令）
-async function downloadDirectToCar(url, backupUrl, appName) {
-    showBlockingModal(`正在直接在车机下载${appName}，请稍候...`, 'download');
+// 安装自选apk
+let installApkFile = async () => {
+    if (!checkBrowserSupport()) {
+        return;
+    }
+    const input = document.getElementById('apkFile');
+    const validFiles = Array.from(input.files).filter(file =>
+        file.name.toLowerCase().endsWith('.apk')
+    );
+    if (validFiles.length === 0) {
+        alert("未选择 apk 文件");
+        return;
+    }
+    clear();
+    showProgress(true);
+    log(`开始安装 ${validFiles.length} 个 APK 文件...\n`);
+    try {
+        for (let i = 0; i < validFiles.length; i++) {
+            const file = validFiles[i];
+            const remotePath = `/storage/emulated/0/Download/upload_${Date.now()}_${i}.apk`;
+            log(`[${i + 1}/${validFiles.length}] 推送: ${file.name}`);
+            await push(remotePath, file);
+            // 安装 APK（-r 表示覆盖安装，-g 自动授予权限）
+            log(`正在安装: ${file.name}`);
+            const output = await execShellAndGetOutput(`pm install -g -r ${remotePath}`);
+            if (output.includes('Success')) {
+                log(`✅ ${file.name} 安装成功\n`);
+            } else {
+                log(`❌ ${file.name} 安装失败\n`);
+            }
+        }
+        alert(`🎉 共 ${validFiles.length} 个应用安装完成！`);
+        loadPackageList();
+    } catch (error) {
+        console.error("批量安装出错:", error);
+        log("❌ 批量安装过程中发生错误，请查看控制台。");
+        alert("安装过程中出错，请查看日志。");
+    } finally {
+        showProgress(false);
+    }
+};
+
+// 列出设备上的APK文件
+let listDeviceApkFiles = async (directory, onSelect) => {
+    if (!window.adbClient) {
+        alert('请先连接设备');
+        return;
+    }
+    
+    clear();
+    showProgress(true);
+    log('正在扫描 ' + directory + ' 目录下的APK文件...\n');
+    log('提示：如果找不到APK文件，请先将APK文件通过数据线传到车机存储目录\n');
+    
+    alert('即将扫描 ' + directory + ' 目录下的APK文件。\n\n如果找不到文件，请先将APK文件传到车机的「下载」或「存储」目录。');
     
     try {
-        const tempFilePath = '/data/local/tmp/' + appName + '.apk';
+        const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText([
+            'ls', '-la', directory + '/*.apk'
+        ]);
         
-        // 首先尝试使用主链接下载
-        let downloadUrl = url;
-        log(`尝试使用主链接下载${appName}...`);
+        const lines = result.trim().split('\n').filter(line => line.endsWith('.apk'));
+        const files = lines.map(line => {
+            const match = line.match(/^[-drwx]+\s+\d+\s+\w+\s+\w+\s+(\d+)\s+.+\s+(.+)$/);
+            const size = match ? match[1] : '0';
+            const filename = match ? match[2] : line.trim().split(/\s+/).pop();
+            return {
+                name: filename,
+                path: directory + '/' + filename,
+                size: parseInt(size) || 0
+            };
+        });
         
-        // 尝试使用 curl 下载
-        let result = await adb.shell(`curl -L -o ${tempFilePath} "${downloadUrl}" 2>&1`);
+        showProgress(false);
         
-        // 检查下载是否成功（检查文件是否存在且大小大于0）
-        let fileCheck = await adb.shell(`ls -l ${tempFilePath} 2>&1`);
-        
-        if (fileCheck.includes('No such file') || fileCheck.includes('not found')) {
-            // 主链接失败，尝试备用链接
-            if (backupUrl) {
-                log(`${appName}主链接下载失败，尝试备用链接...`);
-                downloadUrl = backupUrl;
-                result = await adb.shell(`curl -L -o ${tempFilePath} "${downloadUrl}" 2>&1`);
-                fileCheck = await adb.shell(`ls -l ${tempFilePath} 2>&1`);
-            }
+        if (files.length === 0) {
+            alert('未找到APK文件！\n\n请确认：\n1. APK文件是否已传到车机存储\n2. 尝试切换到其他目录（下载/存储）\n3. 或使用车机浏览器下载APK后再安装');
+            return;
         }
         
-        // 如果 curl 失败，尝试 wget
-        if (fileCheck.includes('No such file') || fileCheck.includes('not found')) {
-            log(`curl下载失败，尝试使用wget...`);
-            result = await adb.shell(`wget -O ${tempFilePath} "${downloadUrl}" 2>&1`);
-            fileCheck = await adb.shell(`ls -l ${tempFilePath} 2>&1`);
-        }
+        showApkFilePicker(files, directory, onSelect);
         
-        // 检查文件是否成功下载
-        if (fileCheck.includes('No such file') || fileCheck.includes('not found')) {
-            log(`错误: ${appName}下载失败，无法访问下载链接`);
-            alert('下载失败，请检查网络连接或链接是否有效');
-            removeBlockingModal();
-            return false;
-        }
-        
-        // 获取文件大小
-        const fileSize = await adb.shell(`stat -c%s ${tempFilePath} 2>&1`);
-        log(`${appName}下载完成，文件大小: ${fileSize.trim()} 字节`);
-        
-        // 安装应用
-        updateBlockingModal(`正在安装${appName}...`, 'install');
-        log(`开始安装${appName}...`);
-        
-        const installResult = await adb.shell(`pm install -r ${tempFilePath}`);
-        
-        if (installResult.includes('Success')) {
-            log(`成功: ${appName}安装成功`);
-            
-            // 安装完成后删除安装文件
-            await adb.shell(`rm ${tempFilePath}`);
-            log(`已删除${appName}安装文件`);
-            
-            removeBlockingModal();
-            alert(`${appName}安装成功！`);
-            return true;
-        } else {
-            log(`错误: ${appName}安装失败: ${installResult}`);
-            alert('安装失败，请检查APK文件是否完整');
-            removeBlockingModal();
-            return false;
-        }
     } catch (error) {
-        log(`错误: ${appName}下载或安装失败: ${error.message}`);
-        alert('下载或安装失败，请检查设备连接和网络');
-        removeBlockingModal();
-        return false;
+        showProgress(false);
+        alert('扫描失败: ' + error.message);
     }
-}
+};
 
-// 应用管家 - 直接下载到车机
-async function yygjDirect() {
-    const url = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%8E%86%E5%8F%B2%E7%89%88%E6%9C%AC/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6v1.8.3%28%E6%AD%A3%E5%BC%8F%E7%89%88%29%E5%85%AC%E7%AD%BE%E7%89%88.apk';
-    const backupUrl = 'http://a14472357.328657.xyz/a14472357/应用管家1.8.3.apk';
-    await downloadDirectToCar(url, backupUrl, '应用管家');
-}
+// 显示APK文件选择弹窗
+let showApkFilePicker = (files, currentDir, onSelect) => {
+    // 创建弹窗
+    const modal = document.createElement('div');
+    modal.id = 'apk-picker-modal';
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;display:flex;justify-content:center;align-items:center;';
+    
+    const content = document.createElement('div');
+    content.style.cssText = 'background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:16px;padding:24px;max-width:600px;width:90%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);';
+    
+    let html = '<div style="background:white;border-radius:12px;padding:20px;">';
+    html += '<h3 style="margin-top:0;color:#333;font-size:20px;display:flex;align-items:center;gap:10px;">📦 选择APK文件</h3>';
+    html += '<p style="color:#666;background:#f5f5f5;padding:10px;border-radius:8px;font-size:13px;">📂 当前目录: <code style="background:#e8f4fd;padding:2px 6px;border-radius:4px;">' + currentDir + '</code></p>';
+    html += '<div style="display:flex;gap:8px;margin-bottom:15px;flex-wrap:wrap;">';
+    html += '<button onclick="listDeviceApkFiles(\'/storage/emulated/0/Download\', window.currentApkSelectCallback)" style="padding:8px 14px;cursor:pointer;background:#4CAF50;color:white;border:none;border-radius:6px;font-weight:bold;">📥 Download文件夹</button>';
+    html += '<button onclick="listDeviceApkFiles(\'/storage/emulated/0\', window.currentApkSelectCallback)" style="padding:8px 14px;cursor:pointer;background:#2196F3;color:white;border:none;border-radius:6px;font-weight:bold;">💾 车机内部存储</button>';
+    html += '</div>';
+    html += '<div style="margin-bottom:15px;display:flex;gap:8px;">';
+    html += '<input type="text" id="custom-apk-path" placeholder="输入其他目录路径" style="flex:1;padding:10px;border:2px solid #ddd;border-radius:8px;font-size:14px;">';
+    html += '<button onclick="var path=document.getElementById(\'custom-apk-path\').value;if(path)listDeviceApkFiles(path, window.currentApkSelectCallback)" style="padding:10px 16px;cursor:pointer;background:#FF9800;color:white;border:none;border-radius:8px;font-weight:bold;">🔍 跳转</button>';
+    html += '</div>';
+    html += '<div style="background:#f8f9fa;border-radius:8px;padding:10px;margin-bottom:15px;font-size:12px;color:#666;">';
+    html += '💡 提示: 点击文件选中后点击确定按钮安装';
+    html += '</div>';
+    html += '<div id="selected-file-info" style="display:none;background:#e3f2fd;border-radius:8px;padding:10px;margin-bottom:15px;font-size:13px;color:#1565c0;">';
+    html += '</div>';
+    html += '<div id="apk-file-list" style="max-height:350px;overflow-y:auto;border:1px solid #e0e0e0;border-radius:8px;background:white;">';
+    
+    files.forEach((file, index) => {
+        const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+        const displayName = file.name.replace(/\.apk$/i, '');
+        html += '<div onclick="window.selectApkFile(' + index + ')" style="padding:12px;cursor:pointer;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:12px;transition:all 0.2s;" onmouseover="this.style.background=\'#f8f9fa\'" onmouseout="this.style.background=\'#fff\'">';
+        html += '<div style="width:40px;height:40px;background:linear-gradient(135deg,#4CAF50,#2E7D32);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;">📦</div>';
+        html += '<div style="flex:1;overflow:hidden;"><div style="font-weight:600;color:#333;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + displayName + '</div></div>';
+        html += '<div style="background:#e8f5e9;color:#2e7d32;padding:4px 8px;border-radius:12px;font-size:12px;font-weight:bold;">' + sizeMB + ' MB</div>';
+        html += '</div>';
+    });
+    
+    html += '</div>';
+    html += '<div style="margin-top:20px;text-align:right;display:flex;gap:10px;justify-content:flex-end;">';
+    html += '<button onclick="document.getElementById(\'apk-picker-modal\').remove()" style="padding:10px 20px;cursor:pointer;background:#9e9e9e;color:white;border:none;border-radius:8px;font-size:14px;">取消</button>';
+    html += '<button id="confirm-apk-btn" onclick="window.confirmApkSelect()" disabled style="padding:10px 24px;cursor:pointer;background:#9e9e9e;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:bold;">确定安装</button>';
+    html += '</div>';
+    html += '</div>';
+    
+    content.innerHTML = html;
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+    
+    // 存储文件和回调
+    window.apkFileList = files;
+    window.currentApkSelectCallback = onSelect;
+    
+    // 全局选择函数
+    window.selectApkFile = (index) => {
+        document.querySelectorAll('#apk-file-list > div').forEach(d => d.style.background = '#fff');
+        document.querySelectorAll('#apk-file-list > div')[index].style.background = '#e3f2fd';
+        window.selectedApkIndex = index;
+        const btn = document.getElementById('confirm-apk-btn');
+        btn.disabled = false;
+        btn.style.background = '#28a745';
+        btn.style.cursor = 'pointer';
+        
+        // 显示选中文件的路径
+        const file = files[index];
+        const selectedInfo = document.getElementById('selected-file-info');
+        if (selectedInfo) {
+            selectedInfo.style.display = 'block';
+            selectedInfo.innerHTML = '✅ 已选择: ' + file.name.replace(/\.apk$/i, '');
+        }
+    };
+    
+    window.confirmApkSelect = () => {
+        if (window.selectedApkIndex !== undefined && window.currentApkSelectCallback) {
+            const file = window.apkFileList[window.selectedApkIndex];
+            modal.remove();
+            window.currentApkSelectCallback(file);
+        }
+    };
+};
 
-// 侧边栏 - 直接下载到车机
-async function cdbDirect() {
-    const url = 'http://a14472357.328657.xyz/a14472357/侧边栏_1.0.apk';
-    const backupUrl = 'https://file.vju.cc/%E4%BE%A7%E8%BE%B9%E6%A0%8F/%E4%BE%A7%E8%BE%B9%E6%A0%8F_1.0.apk';
-    await downloadDirectToCar(url, backupUrl, '侧边栏');
-}
-
-// 沙发管家 - 直接下载到车机
-async function sfgjDirect() {
-    const url = 'http://a14472357.328657.xyz/a14472357/沙发管家4.9.54.apk';
-    const backupUrl = 'https://file.vju.cc/%E6%B2%99%E5%8F%8B%E7%AE%A1%E5%AE%B6/%E6%B2%99%E5%8F%8B%E7%AE%A1%E5%AE%B64.9.54.apk';
-    await downloadDirectToCar(url, backupUrl, '沙发管家');
-}
-
-// 布丁UI - 直接下载到车机
-async function bduiDirect() {
-    const url = 'https://file.vju.cc/%E5%B8%83%E4%B8%81UI%E6%A1%8C%E9%9D%A2/%E5%B8%83%E4%B8%81UI_2.2.3.apk';
-    const backupUrl = 'http://a14472357.328657.xyz/a14472357/布丁UI_2.2.3.apk';
-    await downloadDirectToCar(url, backupUrl, '布丁UI');
+// 导出函数
+try {
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = {
+            sfgj,
+            yygj,
+            qzm,
+            cdb,
+            startGuanJia,
+            loadPackageList,
+            loadApkFile,
+            installApkFile
+        };
+    }
+} catch (e) {
+    // 浏览器环境，不需要导出
 }

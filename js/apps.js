@@ -186,203 +186,75 @@ let downloadAndInstall = async (appName, downloadUrl, savePath, backupUrl = null
     showProgress(false);
 };
 
-// 沙发管家
-let sfgj = async () => {
+// 通用下载到手机再推送到车机安装函数
+let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = null, packageName = null) => {
     if (!checkBrowserSupport()) {
         return;
     }
     clear();
     showProgress(true);
-    showBlockingModal('正在从车机下载沙发管家...');
-    log('正在从车机下载沙发管家...\n');
-    
-    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/沙发管家4.9.54.apk';
-    const backupUrl = 'https://101.42.10.175:35070/down/IvlRhguh57DO.apk';
-    const savePath = '/storage/emulated/0/Download/sfgj.apk';
+    showBlockingModal('正在下载 ' + appName + ' 到手机...', 'download');
+    log('正在下载 ' + appName + ' 到手机...\n');
     
     try {
+        // 先下载到手机本地
+        let response = await fetch(downloadUrl);
+        
+        // 如果主链接失败，尝试备用链接
+        if (!response.ok && backupUrl) {
+            log('主链接下载失败，尝试备用链接...');
+            response = await fetch(backupUrl);
+        }
+        
+        if (!response.ok) {
+            throw new Error('下载失败: ' + response.status);
+        }
+        
+        // 获取文件数据
+        const blob = await response.blob();
+        const fileSize = (blob.size / 1024 / 1024).toFixed(2);
+        log('下载完成，文件大小: ' + fileSize + ' MB');
+        
+        // 推送到车机
+        updateBlockingModal('正在推送 ' + appName + ' 到车机...', 'install');
+        log('正在推送 ' + appName + ' 到车机...\n');
+        
+        // 使用 ADB push 将文件推送到车机
+        const arrayBuffer = await blob.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        
+        // 创建临时文件并推送
+        await exec_shell('mkdir -p /storage/emulated/0/Download');
+        
+        // 使用 sync 服务推送文件
+        const sync = await window.adbClient.sync();
+        await sync.push(savePath, uint8Array);
+        await sync.quit();
+        
+        log('推送完成，正在安装...\n');
+        
+        // 安装应用
         await exec_shell("setprop persist.sv.enable_adb_install 1");
+        let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
         
-        const downloadCommand = 'curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
-        const downloadPromise = exec_shell(downloadCommand);
-        
-        const progressInterval = setInterval(async () => {
-            try {
-                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
-                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
-                if (sizeMatch) {
-                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
-                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
-                }
-            } catch (e) {}
-        }, 1000);
-        
-        let downloadSuccess = false;
-        try {
-            await downloadPromise;
-            downloadSuccess = true;
-        } finally {
-            clearInterval(progressInterval);
-        }
-        
-        if (downloadSuccess) {
-            updateBlockingModal('正在安装沙发管家...', 'install');
-            log('\n下载完成，正在安装...\n');
-            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+        if (installOutput.includes('Success')) {
+            log('安装成功！');
+            alert(appName + " 安装成功！");
+            await exec_shell('rm -f ' + savePath);
+            log('已删除安装文件: ' + savePath);
+            removeBlockingModal();
             
-            if (installOutput.includes('Success')) {
-                log('安装成功！');
-                alert("安装成功！");
-                await exec_shell('rm -f ' + savePath);
-                log('已删除安装文件: ' + savePath);
-                removeBlockingModal();
+            // 如果指定了包名，启动应用
+            if (packageName) {
                 setTimeout(() => {
-                    exec_shell('monkey -p com.shafa.markethd -c android.intent.category.LAUNCHER 1');
-                    log('正在启动沙发管家...');
+                    exec_shell('monkey -p ' + packageName + ' -c android.intent.category.LAUNCHER 1');
+                    log('正在启动 ' + appName + '...');
                 }, 1000);
-            } else {
-                log('安装失败: ' + installOutput);
-                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                    await installFromDevice(file.path);
-                });
-            }
-        }
-    } catch (error) {
-        log('下载失败: ' + error.message);
-        if (backupUrl) {
-            log('尝试使用备用链接下载...');
-            try {
-                const backupDownloadCommand = 'curl -sL -o ' + savePath + ' "' + backupUrl + '"';
-                const backupDownloadPromise = exec_shell(backupDownloadCommand);
-                
-                const backupProgressInterval = setInterval(async () => {
-                    try {
-                        const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
-                        const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
-                        if (sizeMatch) {
-                            const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
-                            log('备用链接下载中... 已下载 ' + sizeMB + ' MB\r');
-                        }
-                    } catch (e) {}
-                }, 1000);
-                
-                let backupDownloadSuccess = false;
-                try {
-                    await backupDownloadPromise;
-                    backupDownloadSuccess = true;
-                } finally {
-                    clearInterval(backupProgressInterval);
-                }
-                
-                if (backupDownloadSuccess) {
-                    updateBlockingModal('正在安装沙发管家...', 'install');
-                    log('\n备用链接下载完成，正在安装...\n');
-                    let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
-                    
-                    if (installOutput.includes('Success')) {
-                        log('安装成功！');
-                        alert("安装成功！");
-                        await exec_shell('rm -f ' + savePath);
-                        log('已删除安装文件: ' + savePath);
-                        removeBlockingModal();
-                        setTimeout(() => {
-                            exec_shell('monkey -p com.shafa.markethd -c android.intent.category.LAUNCHER 1');
-                            log('正在启动沙发管家...');
-                        }, 1000);
-                    } else {
-                        log('安装失败: ' + installOutput);
-                        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                            await installFromDevice(file.path);
-                        });
-                    }
-                } else {
-                    log('备用链接下载也失败，请手动下载安装');
-                    listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                        await installFromDevice(file.path);
-                    });
-                }
-            } catch (backupError) {
-                log('备用链接下载失败: ' + backupError.message);
-                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                    await installFromDevice(file.path);
-                });
             }
         } else {
-            listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                await installFromDevice(file.path);
-            });
-        }
-    }
-    
-    showProgress(false);
-};
-
-// 应用管家
-let yygj = async () => {
-    if (!checkBrowserSupport()) {
-        return;
-    }
-    clear();
-    showProgress(true);
-    log('正在从车机下载应用管家...\n');
-    
-    const downloadUrl = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%8E%86%E5%8F%B2%E7%89%88%E6%9C%AC/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6v1.8.3%28%E6%AD%A3%E5%BC%8F%E7%89%88%29%E5%85%AC%E7%AD%BE%E7%89%88.apk';
-    const backupUrl = 'http://a14472357.328657.xyz/a14472357/应用管家1.8.3.apk';
-    const savePath = '/storage/emulated/0/Download/yygj.apk';
-    
-    try {
-        await exec_shell("setprop persist.sv.enable_adb_install 1");
-        
-        // 使用车机上的 curl 下载（带进度显示）
-        let downloadSuccess = false;
-        
-        // 启动下载命令
-        const downloadCommand = 'curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
-        
-        // 启动下载
-        const downloadPromise = exec_shell(downloadCommand);
-        
-        // 启动进度监控
-        const progressInterval = setInterval(async () => {
-            try {
-                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText([
-                    'ls', '-l', savePath
-                ]);
-                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
-                if (sizeMatch) {
-                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
-                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
-                }
-            } catch (e) {
-                // 文件还不存在，继续等待
-            }
-        }, 1000);
-        
-        try {
-            await downloadPromise;
-            downloadSuccess = true;
-        } finally {
-            clearInterval(progressInterval);
-        }
-        
-        if (downloadSuccess) {
-            updateBlockingModal('正在安装氢桌面...', 'install');
-            log('\n下载完成，正在安装...\n');
-            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
-            
-            if (installOutput.includes('Success')) {
-                log('安装成功！');
-                alert("安装成功！");
-                setTimeout(() => {
-                    exec_shell('monkey -p com.mcar.auto -c android.intent.category.LAUNCHER 1');
-                    log('正在启动氢桌面...');
-                }, 1000);
-            } else {
-                log('安装失败: ' + installOutput);
-                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                    await installFromDevice(file.path);
-                });
-            }
+            log('安装失败: ' + installOutput);
+            alert(appName + ' 安装失败！');
+            removeBlockingModal();
         }
     } catch (error) {
         log('下载失败: ' + error.message);
@@ -393,79 +265,27 @@ let yygj = async () => {
         } else {
             log('错误: 下载过程中发生未知错误');
         }
-        if (backupUrl) {
-            log('尝试使用备用链接下载...');
-            try {
-                const backupDownloadCommand = 'curl -sL -o ' + savePath + ' "' + backupUrl + '"';
-                const backupDownloadPromise = exec_shell(backupDownloadCommand);
-                
-                const backupProgressInterval = setInterval(async () => {
-                    try {
-                        const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText([
-                            'ls', '-l', savePath
-                        ]);
-                        const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
-                        if (sizeMatch) {
-                            const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
-                            log('备用链接下载中... 已下载 ' + sizeMB + ' MB\r');
-                        }
-                    } catch (e) {
-                        // 文件还不存在，继续等待
-                    }
-                }, 1000);
-                
-                let backupDownloadSuccess = false;
-                try {
-                    await backupDownloadPromise;
-                    backupDownloadSuccess = true;
-                } finally {
-                    clearInterval(backupProgressInterval);
-                }
-                
-                if (backupDownloadSuccess) {
-                    updateBlockingModal('正在安装应用管家...', 'install');
-                    log('\n备用链接下载完成，正在安装...\n');
-                    let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
-                    
-                    if (installOutput.includes('Success')) {
-                        log('安装成功！');
-                        alert("安装成功！");
-                        await exec_shell('rm -f ' + savePath);
-                        log('已删除安装文件: ' + savePath);
-                        removeBlockingModal();
-                        setTimeout(() => {
-                            exec_shell('monkey -p com.vjoycar.gj -c android.intent.category.LAUNCHER 1');
-                            log('正在启动应用管家...');
-                        }, 1000);
-                    } else {
-                        log('安装失败: ' + installOutput);
-                        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                            await installFromDevice(file.path);
-                        });
-                    }
-                } else {
-                    log('备用链接下载也失败，请手动下载安装');
-                    log('请在车机浏览器中手动下载 APK，然后从设备选择安装');
-                    listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                        await installFromDevice(file.path);
-                    });
-                }
-            } catch (backupError) {
-                log('备用链接下载失败: ' + backupError.message);
-                log('请在车机浏览器中手动下载 APK，然后从设备选择安装');
-                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                    await installFromDevice(file.path);
-                });
-            }
-        } else {
-            log('请在车机浏览器中手动下载 APK，然后从设备选择安装');
-            listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                await installFromDevice(file.path);
-            });
-        }
+        alert('下载失败: ' + error.message);
+        removeBlockingModal();
     }
     
     showProgress(false);
+};
+
+// 沙发管家
+let sfgj = async () => {
+    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/沙发管家4.9.54.apk';
+    const backupUrl = 'https://101.42.10.175:35070/down/IvlRhguh57DO.apk';
+    const savePath = '/storage/emulated/0/Download/sfgj.apk';
+    await downloadToPhoneAndPush('沙发管家', downloadUrl, savePath, backupUrl, 'com.shafa.markethd');
+};
+
+// 应用管家
+let yygj = async () => {
+    const downloadUrl = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%8E%86%E5%8F%B2%E7%89%88%E6%9C%AC/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6v1.8.3%28%E6%AD%A3%E5%BC%8F%E7%89%88%29%E5%85%AC%E7%AD%BE%E7%89%88.apk';
+    const backupUrl = 'http://a14472357.328657.xyz/a14472357/应用管家1.8.3.apk';
+    const savePath = '/storage/emulated/0/Download/yygj.apk';
+    await downloadToPhoneAndPush('应用管家', downloadUrl, savePath, backupUrl, 'com.vjoycar.gj');
 };
 
 // 从设备安装APK
@@ -506,216 +326,26 @@ let installFromDevice = async (devicePath) => {
 
 // 哨兵监控
 let sentry = async () => {
-    if (!checkBrowserSupport()) {
-        return;
-    }
-    clear();
-    showProgress(true);
-    showBlockingModal('正在从车机下载哨兵监控...');
-    log('正在从车机下载哨兵监控...\n');
-    
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/哨兵监控v1.1.8.apk';
     const backupUrl = 'https://101.42.10.175:35070/down/tZyE46IwtbVf.apk';
     const savePath = '/storage/emulated/0/Download/sentry.apk';
-    
-    try {
-        await exec_shell("setprop persist.sv.enable_adb_install 1");
-        
-        const downloadCommand = 'curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
-        const downloadPromise = exec_shell(downloadCommand);
-        
-        const progressInterval = setInterval(async () => {
-            try {
-                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
-                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
-                if (sizeMatch) {
-                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
-                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
-                }
-            } catch (e) {}
-        }, 1000);
-        
-        let downloadSuccess = false;
-        try {
-            await downloadPromise;
-            downloadSuccess = true;
-        } finally {
-            clearInterval(progressInterval);
-        }
-        
-        if (downloadSuccess) {
-            updateBlockingModal('正在安装小横条...', 'install');
-            log('\n下载完成，正在安装...\n');
-            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
-            
-            if (installOutput.includes('Success')) {
-                log('安装成功！');
-                alert("安装成功！");
-                await exec_shell('rm -f ' + savePath);
-                log('已删除安装文件: ' + savePath);
-                removeBlockingModal();
-            } else {
-                log('安装失败: ' + installOutput);
-                removeBlockingModal();
-                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                    await installFromDevice(file.path);
-                });
-            }
-        }
-    } catch (error) {
-        log('下载失败: ' + error.message);
-        if (error.message.includes('404') || error.message.includes('Not Found')) {
-            log('错误: 文件不存在或链接无法抵达');
-        } else if (error.message.includes('Connection') || error.message.includes('Network')) {
-            log('错误: 网络连接失败，请检查网络');
-        } else {
-            log('错误: 下载过程中发生未知错误');
-        }
-        removeBlockingModal();
-        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-            await installFromDevice(file.path);
-        });
-    }
-    
-    showProgress(false);
+    await downloadToPhoneAndPush('哨兵监控', downloadUrl, savePath, backupUrl);
 };
 
 // 小横条
 let hstrip = async () => {
-    if (!checkBrowserSupport()) {
-        return;
-    }
-    clear();
-    showProgress(true);
-    showBlockingModal('正在从车机下载小横条...');
-    log('正在从车机下载小横条...\n');
-    
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/Gesture_1.6.4.apk';
     const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/小横条_2.0.0.apk';
     const savePath = '/storage/emulated/0/Download/hstrip.apk';
-    
-    try {
-        await exec_shell("setprop persist.sv.enable_adb_install 1");
-        
-        const downloadCommand = 'curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
-        const downloadPromise = exec_shell(downloadCommand);
-        
-        const progressInterval = setInterval(async () => {
-            try {
-                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
-                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
-                if (sizeMatch) {
-                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
-                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
-                }
-            } catch (e) {}
-        }, 1000);
-        
-        let downloadSuccess = false;
-        try {
-            await downloadPromise;
-            downloadSuccess = true;
-        } finally {
-            clearInterval(progressInterval);
-        }
-        
-        if (downloadSuccess) {
-            updateBlockingModal('正在安装易控车机PIP...', 'install');
-            log('\n下载完成，正在安装...\n');
-            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
-            
-            if (installOutput.includes('Success')) {
-                log('安装成功！');
-                alert("安装成功！");
-                await exec_shell('rm -f ' + savePath);
-                log('已删除安装文件: ' + savePath);
-                removeBlockingModal();
-            } else {
-                log('安装失败: ' + installOutput);
-                removeBlockingModal();
-                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                    await installFromDevice(file.path);
-                });
-            }
-        }
-    } catch (error) {
-        log('下载失败: ' + error.message);
-        removeBlockingModal();
-        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-            await installFromDevice(file.path);
-        });
-    }
-    
-    showProgress(false);
+    await downloadToPhoneAndPush('小横条', downloadUrl, savePath, backupUrl);
 };
 
 // 易控车机PIP
 let ykpip = async () => {
-    if (!checkBrowserSupport()) {
-        return;
-    }
-    clear();
-    showProgress(true);
-    showBlockingModal('正在从车机下载易控车机PIP...');
-    log('正在从车机下载易控车机PIP...\n');
-    
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/EDGE.apk';
     const backupUrl = 'https://101.42.10.175:35070/down/qdieD4GPTDev.apk';
     const savePath = '/storage/emulated/0/Download/ykpip.apk';
-    
-    try {
-        await exec_shell("setprop persist.sv.enable_adb_install 1");
-        
-        const downloadCommand = 'curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
-        const downloadPromise = exec_shell(downloadCommand);
-        
-        const progressInterval = setInterval(async () => {
-            try {
-                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
-                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
-                if (sizeMatch) {
-                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
-                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
-                }
-            } catch (e) {}
-        }, 1000);
-        
-        let downloadSuccess = false;
-        try {
-            await downloadPromise;
-            downloadSuccess = true;
-        } finally {
-            clearInterval(progressInterval);
-        }
-        
-        if (downloadSuccess) {
-            updateBlockingModal('正在安装氢桌面...', 'install');
-            log('\n下载完成，正在安装...\n');
-            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
-            
-            if (installOutput.includes('Success')) {
-                log('安装成功！');
-                alert("安装成功！");
-                await exec_shell('rm -f ' + savePath);
-                log('已删除安装文件: ' + savePath);
-                removeBlockingModal();
-            } else {
-                log('安装失败: ' + installOutput);
-                removeBlockingModal();
-                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                    await installFromDevice(file.path);
-                });
-            }
-        }
-    } catch (error) {
-        log('下载失败: ' + error.message);
-        removeBlockingModal();
-        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-            await installFromDevice(file.path);
-        });
-    }
-    
-    showProgress(false);
+    await downloadToPhoneAndPush('易控车机PIP', downloadUrl, savePath, backupUrl);
 };
 
 // 无障碍管理器
@@ -802,195 +432,18 @@ let qzm = async () => {
 
 // 侧边栏
 let cdb = async () => {
-    if (!checkBrowserSupport()) {
-        return;
-    }
-    clear();
-    showProgress(true);
-    showBlockingModal('正在从车机下载侧边栏...');
-    log('正在从车机下载侧边栏...\n');
-    
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/侧边栏_1.0.apk';
     const backupUrl = 'https://101.42.10.175:35070/down/P32XjDMnyz3M.apk';
     const savePath = '/storage/emulated/0/Download/cdb.apk';
-    
-    try {
-        await exec_shell("setprop persist.sv.enable_adb_install 1");
-        
-        const downloadCommand = 'curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
-        const downloadPromise = exec_shell(downloadCommand);
-        
-        const progressInterval = setInterval(async () => {
-            try {
-                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
-                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
-                if (sizeMatch) {
-                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
-                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
-                }
-            } catch (e) {}
-        }, 1000);
-        
-        let downloadSuccess = false;
-        try {
-            await downloadPromise;
-            downloadSuccess = true;
-        } finally {
-            clearInterval(progressInterval);
-        }
-        
-        if (downloadSuccess) {
-            log('\n下载完成，正在安装...\n');
-            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
-            
-            if (installOutput.includes('Success')) {
-                log('安装成功！');
-                alert("安装成功！");
-                await exec_shell('rm -f ' + savePath);
-                log('已删除安装文件: ' + savePath);
-                removeBlockingModal();
-            } else {
-                log('安装失败: ' + installOutput);
-                removeBlockingModal();
-                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                    await installFromDevice(file.path);
-                });
-            }
-        }
-    } catch (error) {
-        log('下载失败: ' + error.message);
-        removeBlockingModal();
-        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-            await installFromDevice(file.path);
-        });
-    }
-    
-    showProgress(false);
+    await downloadToPhoneAndPush('侧边栏', downloadUrl, savePath, backupUrl, 'com.hzsoft.sidebar');
 };
 
 // 布丁UI
 let bdui = async () => {
-    if (!checkBrowserSupport()) {
-        return;
-    }
-    clear();
-    showProgress(true);
-    showBlockingModal('正在从车机下载布丁UI...');
-    log('正在从车机下载布丁UI...\n');
-    
     const downloadUrl = 'https://file.vju.cc/%E5%B8%83%E4%B8%81UI%E6%A1%8C%E9%9D%A2/%E5%B8%83%E4%B8%81UI_2.2.3.apk';
     const backupUrl = 'http://a14472357.328657.xyz/a14472357/布丁UI_2.2.3.apk';
     const savePath = '/storage/emulated/0/Download/bdui.apk';
-    
-    try {
-        await exec_shell("setprop persist.sv.enable_adb_install 1");
-        
-        const downloadCommand = 'curl -sL -o ' + savePath + ' "' + downloadUrl + '"';
-        const downloadPromise = exec_shell(downloadCommand);
-        
-        const progressInterval = setInterval(async () => {
-            try {
-                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
-                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
-                if (sizeMatch) {
-                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
-                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
-                }
-            } catch (e) {}
-        }, 1000);
-        
-        let downloadSuccess = false;
-        try {
-            await downloadPromise;
-            downloadSuccess = true;
-        } finally {
-            clearInterval(progressInterval);
-        }
-        
-        if (downloadSuccess) {
-            updateBlockingModal('正在安装布丁UI...', 'install');
-            log('\n下载完成，正在安装...\n');
-            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
-            
-            if (installOutput.includes('Success')) {
-                log('安装成功！');
-                alert("安装成功！");
-                await exec_shell('rm -f ' + savePath);
-                log('已删除安装文件: ' + savePath);
-                removeBlockingModal();
-            } else {
-                log('安装失败: ' + installOutput);
-                removeBlockingModal();
-                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                    await installFromDevice(file.path);
-                });
-            }
-        }
-    } catch (error) {
-        log('下载失败: ' + error.message);
-        removeBlockingModal();
-        if (backupUrl) {
-            log('尝试使用备用链接下载...');
-            try {
-                const backupDownloadCommand = 'curl -sL -o ' + savePath + ' "' + backupUrl + '"';
-                const backupDownloadPromise = exec_shell(backupDownloadCommand);
-                
-                const backupProgressInterval = setInterval(async () => {
-                    try {
-                        const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
-                        const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
-                        if (sizeMatch) {
-                            const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
-                            log('备用链接下载中... 已下载 ' + sizeMB + ' MB\r');
-                        }
-                    } catch (e) {}
-                }, 1000);
-                
-                let backupDownloadSuccess = false;
-                try {
-                    await backupDownloadPromise;
-                    backupDownloadSuccess = true;
-                } finally {
-                    clearInterval(backupProgressInterval);
-                }
-                
-                if (backupDownloadSuccess) {
-                    log('\n备用链接下载完成，正在安装...\n');
-                    let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
-                    
-                    if (installOutput.includes('Success')) {
-                        log('安装成功！');
-                        alert("安装成功！");
-                        await exec_shell('rm -f ' + savePath);
-                        log('已删除安装文件: ' + savePath);
-                        removeBlockingModal();
-                    } else {
-                        log('安装失败: ' + installOutput);
-                        removeBlockingModal();
-                        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                            await installFromDevice(file.path);
-                        });
-                    }
-                } else {
-                    log('备用链接下载也失败，请手动下载安装');
-                    listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                        await installFromDevice(file.path);
-                    });
-                }
-            } catch (backupError) {
-                log('备用链接下载失败: ' + backupError.message);
-                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                    await installFromDevice(file.path);
-                });
-            }
-        } else {
-            listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                await installFromDevice(file.path);
-            });
-        }
-    }
-    
-    showProgress(false);
+    await downloadToPhoneAndPush('布丁UI', downloadUrl, savePath, backupUrl, 'com.buding.ui');
 };
 
 // 蓝牙遥控 - 本地下载到手机

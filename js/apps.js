@@ -435,3 +435,107 @@ async function downloadToPhoneThenPush(url, backupUrl, appName) {
         return false;
     }
 }
+
+// 直接通过网络地址下载到车机并安装（使用车机的curl/wget命令）
+async function downloadDirectToCar(url, backupUrl, appName) {
+    showBlockingModal(`正在直接在车机下载${appName}，请稍候...`, 'download');
+    
+    try {
+        const tempFilePath = '/data/local/tmp/' + appName + '.apk';
+        
+        // 首先尝试使用主链接下载
+        let downloadUrl = url;
+        log(`尝试使用主链接下载${appName}...`);
+        
+        // 尝试使用 curl 下载
+        let result = await adb.shell(`curl -L -o ${tempFilePath} "${downloadUrl}" 2>&1`);
+        
+        // 检查下载是否成功（检查文件是否存在且大小大于0）
+        let fileCheck = await adb.shell(`ls -l ${tempFilePath} 2>&1`);
+        
+        if (fileCheck.includes('No such file') || fileCheck.includes('not found')) {
+            // 主链接失败，尝试备用链接
+            if (backupUrl) {
+                log(`${appName}主链接下载失败，尝试备用链接...`);
+                downloadUrl = backupUrl;
+                result = await adb.shell(`curl -L -o ${tempFilePath} "${downloadUrl}" 2>&1`);
+                fileCheck = await adb.shell(`ls -l ${tempFilePath} 2>&1`);
+            }
+        }
+        
+        // 如果 curl 失败，尝试 wget
+        if (fileCheck.includes('No such file') || fileCheck.includes('not found')) {
+            log(`curl下载失败，尝试使用wget...`);
+            result = await adb.shell(`wget -O ${tempFilePath} "${downloadUrl}" 2>&1`);
+            fileCheck = await adb.shell(`ls -l ${tempFilePath} 2>&1`);
+        }
+        
+        // 检查文件是否成功下载
+        if (fileCheck.includes('No such file') || fileCheck.includes('not found')) {
+            log(`错误: ${appName}下载失败，无法访问下载链接`);
+            alert('下载失败，请检查网络连接或链接是否有效');
+            removeBlockingModal();
+            return false;
+        }
+        
+        // 获取文件大小
+        const fileSize = await adb.shell(`stat -c%s ${tempFilePath} 2>&1`);
+        log(`${appName}下载完成，文件大小: ${fileSize.trim()} 字节`);
+        
+        // 安装应用
+        updateBlockingModal(`正在安装${appName}...`, 'install');
+        log(`开始安装${appName}...`);
+        
+        const installResult = await adb.shell(`pm install -r ${tempFilePath}`);
+        
+        if (installResult.includes('Success')) {
+            log(`成功: ${appName}安装成功`);
+            
+            // 安装完成后删除安装文件
+            await adb.shell(`rm ${tempFilePath}`);
+            log(`已删除${appName}安装文件`);
+            
+            removeBlockingModal();
+            alert(`${appName}安装成功！`);
+            return true;
+        } else {
+            log(`错误: ${appName}安装失败: ${installResult}`);
+            alert('安装失败，请检查APK文件是否完整');
+            removeBlockingModal();
+            return false;
+        }
+    } catch (error) {
+        log(`错误: ${appName}下载或安装失败: ${error.message}`);
+        alert('下载或安装失败，请检查设备连接和网络');
+        removeBlockingModal();
+        return false;
+    }
+}
+
+// 应用管家 - 直接下载到车机
+async function yygjDirect() {
+    const url = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%8E%86%E5%8F%B2%E7%89%88%E6%9C%AC/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6v1.8.3%28%E6%AD%A3%E5%BC%8F%E7%89%88%29%E5%85%AC%E7%AD%BE%E7%89%88.apk';
+    const backupUrl = 'http://a14472357.328657.xyz/a14472357/应用管家1.8.3.apk';
+    await downloadDirectToCar(url, backupUrl, '应用管家');
+}
+
+// 侧边栏 - 直接下载到车机
+async function cdbDirect() {
+    const url = 'http://a14472357.328657.xyz/a14472357/侧边栏_1.0.apk';
+    const backupUrl = 'https://file.vju.cc/%E4%BE%A7%E8%BE%B9%E6%A0%8F/%E4%BE%A7%E8%BE%B9%E6%A0%8F_1.0.apk';
+    await downloadDirectToCar(url, backupUrl, '侧边栏');
+}
+
+// 沙发管家 - 直接下载到车机
+async function sfgjDirect() {
+    const url = 'http://a14472357.328657.xyz/a14472357/沙发管家4.9.54.apk';
+    const backupUrl = 'https://file.vju.cc/%E6%B2%99%E5%8F%8B%E7%AE%A1%E5%AE%B6/%E6%B2%99%E5%8F%8B%E7%AE%A1%E5%AE%B64.9.54.apk';
+    await downloadDirectToCar(url, backupUrl, '沙发管家');
+}
+
+// 布丁UI - 直接下载到车机
+async function bduiDirect() {
+    const url = 'https://file.vju.cc/%E5%B8%83%E4%B8%81UI%E6%A1%8C%E9%9D%A2/%E5%B8%83%E4%B8%81UI_2.2.3.apk';
+    const backupUrl = 'http://a14472357.328657.xyz/a14472357/布丁UI_2.2.3.apk';
+    await downloadDirectToCar(url, backupUrl, '布丁UI');
+}

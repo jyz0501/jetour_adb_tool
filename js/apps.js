@@ -241,16 +241,49 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
         const arrayBuffer = await blob.arrayBuffer();
         const uint8Array = new Uint8Array(arrayBuffer);
         
-        // 创建临时目录并推送
-        log('创建临时目录...');
-        await exec_shell('mkdir -p /data/local/tmp');
+        // 尝试多个可能的目录，解决权限问题
+        let pushSuccess = false;
+        let attemptedPaths = [];
         
-        // 使用 sync 服务推送文件
-        log('开始推送文件...');
-        const sync = await window.adbClient.sync();
-        await sync.push(savePath, uint8Array);
-        await sync.quit();
-        log('推送完成');
+        // 尝试的目录列表，按优先级排序
+        const possibleDirectories = [
+            '/data/local/tmp',
+            '/storage/emulated/0/Download',
+            '/sdcard/Download'
+        ];
+        
+        for (const directory of possibleDirectories) {
+            const tempSavePath = directory + '/' + appName.replace(/\s+/g, '_') + '.apk';
+            attemptedPaths.push(tempSavePath);
+            
+            try {
+                log('尝试使用目录: ' + directory);
+                log('创建目录...');
+                await exec_shell('mkdir -p ' + directory);
+                
+                // 检查目录权限
+                const statResult = await execShellAndGetOutput('ls -la ' + directory);
+                log('目录权限: ' + statResult);
+                
+                // 使用 sync 服务推送文件
+                log('开始推送文件到: ' + tempSavePath);
+                const sync = await window.adbClient.sync();
+                await sync.push(tempSavePath, uint8Array);
+                await sync.quit();
+                
+                log('推送完成到: ' + tempSavePath);
+                savePath = tempSavePath; // 更新保存路径为成功的路径
+                pushSuccess = true;
+                break;
+            } catch (pushError) {
+                log('推送失败到 ' + tempSavePath + ': ' + pushError.message);
+                // 继续尝试下一个目录
+            }
+        }
+        
+        if (!pushSuccess) {
+            throw new Error('所有目录推送失败，可能是权限问题。尝试的路径: ' + attemptedPaths.join(', '));
+        }
         
         log('推送完成，正在安装...\n');
         

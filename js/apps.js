@@ -385,8 +385,17 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
         } else {
             log('错误: 下载过程中发生未知错误');
         }
-        alert('下载失败: ' + error.message);
-        removeBlockingModal();
+        
+        // 提示用户使用本地文件选择功能
+        const useLocalFile = confirm('下载失败: ' + error.message + '\n\n是否改用「本地文件选择」方式安装？\n\n点击「确定」将打开文件选择器，您可以从手机中选择已下载的APK文件进行安装。');
+        if (useLocalFile) {
+            removeBlockingModal();
+            // 触发文件选择
+            document.getElementById('apkFile').click();
+        } else {
+            alert('下载失败: ' + error.message);
+            removeBlockingModal();
+        }
     }
     
     showProgress(false);

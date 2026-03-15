@@ -48,109 +48,121 @@ function showBlockingModal(message, stage = 'download') {
     
     content.innerHTML = `
         <div style="font-size: 24px; margin-bottom: 15px; color: #333;">${stageText}</div>
-        <div style="font-size: 16px; color: #666; line-height: 1.6;">${message}</div>
-        <div style="margin-top: 20px; color: #999; font-size: 14px;">${waitText}</div>
-        <div style="margin-top: 10px; color: #ff6b6b; font-size: 14px; font-weight: bold;">请勿关闭页面或刷新浏览器</div>
+        <div style="font-size: 16px; color: #666; margin-bottom: 20px;">${message}</div>
+        <div style="width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+        <div style="font-size: 14px; color: #999; margin-top: 20px;">${waitText}</div>
+        <style>
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        </style>
     `;
     
     blockingModal.appendChild(content);
     document.body.appendChild(blockingModal);
 }
 
-function updateBlockingModal(message, stage) {
+function updateBlockingModal(message, stage = 'install') {
     if (!blockingModal) {
         return;
     }
     
-    const content = blockingModal.querySelector('div > div');
-    if (!content) {
-        return;
-    }
-    
-    let stageText = '';
-    let waitText = '';
-    
-    if (stage === 'download') {
-        stageText = '正在下载';
-        waitText = '请耐心等待，下载完成后将自动开始安装';
-    } else if (stage === 'install') {
-        stageText = '正在安装';
-        waitText = '请耐心等待，安装完成后将自动关闭此窗口';
-    } else {
-        stageText = '正在处理';
-        waitText = '请耐心等待，操作完成后将自动关闭此窗口';
-    }
+    const content = blockingModal.querySelector('div');
+    const stageText = stage === 'download' ? '正在下载' : '正在安装';
     
     content.innerHTML = `
         <div style="font-size: 24px; margin-bottom: 15px; color: #333;">${stageText}</div>
-        <div style="font-size: 16px; color: #666; line-height: 1.6;">${message}</div>
-        <div style="margin-top: 20px; color: #999; font-size: 14px;">${waitText}</div>
-        <div style="margin-top: 10px; color: #ff6b6b; font-size: 14px; font-weight: bold;">请勿关闭页面或刷新浏览器</div>
+        <div style="font-size: 16px; color: #666; margin-bottom: 20px;">${message}</div>
+        <div style="width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+        <div style="font-size: 14px; color: #999; margin-top: 20px;">请耐心等待，操作完成后将自动关闭此窗口</div>
+        <style>
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        </style>
     `;
 }
 
 function removeBlockingModal() {
     if (blockingModal) {
-        blockingModal.remove();
+        document.body.removeChild(blockingModal);
         blockingModal = null;
     }
 }
 
-// 检查浏览器支持
-function checkBrowserSupport() {
-    const isSupported = checkWebUSBSupport();
-    if (!isSupported || !navigator.usb) {
-        alert('检测到您的浏览器不支持，请根据顶部的 "警告提示" 更换指定浏览器使用。');
-        return false;
-    }
-    
-    // 检查是否已连接设备
-    if (!window.adbClient) {
-        alert('未连接到设备，请先点击"开始连接"按钮连接设备');
-        return false;
-    }
-    
-    return true;
-}
-
 // 通用车机下载安装函数
-let downloadAndInstall = async (appName, downloadUrl, savePath, backupUrl = null) => {
+let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = null, packageName = null) => {
     if (!checkBrowserSupport()) {
         return;
     }
     clear();
     showProgress(true);
-    showBlockingModal('正在从车机下载 ' + appName + '...');
+    showBlockingModal('正在从车机下载 ' + appName + '...', 'download');
     log('正在从车机下载 ' + appName + '...\n');
+    log('下载链接: ' + downloadUrl);
     
     try {
+        // 启用ADB安装
         await exec_shell("setprop persist.sv.enable_adb_install 1");
         
+        // 创建临时目录
+        await exec_shell('mkdir -p /data/local/tmp');
+        
         let downloadSuccess = false;
-        const downloadPromise = exec_shell('curl -sL -o ' + savePath + ' "' + downloadUrl + '"');
+        let currentUrl = downloadUrl;
         
-        const progressInterval = setInterval(async () => {
+        // 尝试下载，最多2次（主链接和备用链接）
+        for (let attempt = 1; attempt <= 2; attempt++) {
+            if (attempt === 2 && backupUrl) {
+                log('主链接失败，尝试备用链接...');
+                currentUrl = backupUrl;
+            } else if (attempt === 2 && !backupUrl) {
+                break;
+            }
+            
+            log(`尝试下载 (${attempt}/2)...`);
+            
+            // 使用curl下载，30秒超时
+            const downloadPromise = exec_shell('curl -sL --max-time 30 -o ' + savePath + ' "' + currentUrl + '"');
+            
+            // 显示下载进度
+            const progressInterval = setInterval(async () => {
+                try {
+                    const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
+                    const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
+                    if (sizeMatch) {
+                        const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
+                        log('下载中... 已下载 ' + sizeMB + ' MB\r');
+                    }
+                } catch (e) {}
+            }, 1000);
+            
             try {
-                const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
-                const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
-                if (sizeMatch) {
-                    const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
-                    log('下载中... 已下载 ' + sizeMB + ' MB\r');
+                await downloadPromise;
+                // 检查文件是否存在且大小正常
+                const checkResult = await execShellAndGetOutput('ls -l ' + savePath);
+                if (checkResult.includes('.apk') && !checkResult.includes('No such file')) {
+                    downloadSuccess = true;
+                    clearInterval(progressInterval);
+                    break;
                 }
-            } catch (e) {}
-        }, 1000);
-        
-        try {
-            await downloadPromise;
-            downloadSuccess = true;
-        } finally {
-            clearInterval(progressInterval);
+            } catch (e) {
+                log('下载失败: ' + e.message);
+            } finally {
+                clearInterval(progressInterval);
+            }
         }
         
         if (downloadSuccess) {
             updateBlockingModal('正在安装 ' + appName + '...', 'install');
             log('\n下载完成，正在安装...\n');
+            
             let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+            
+            // 安装完成后禁用ADB安装属性
+            await exec_shell("setprop persist.sv.enable_adb_install 0");
             
             if (installOutput.includes('Success')) {
                 log('安装成功！');
@@ -158,273 +170,60 @@ let downloadAndInstall = async (appName, downloadUrl, savePath, backupUrl = null
                 await exec_shell('rm -f ' + savePath);
                 log('已删除安装文件: ' + savePath);
                 removeBlockingModal();
-                setTimeout(() => {
-                    exec_shell('monkey -p com.yunpan.appmanage -c android.intent.category.LAUNCHER 1');
-                    log('正在启动应用管家...');
-                }, 1000);
+                
+                // 如果指定了包名，启动应用
+                if (packageName) {
+                    setTimeout(async () => {
+                        log('正在启动 ' + appName + '...');
+                        await exec_shell('monkey -p ' + packageName + ' -c android.intent.category.LAUNCHER 1');
+                        
+                        // 启用无线ADB连接
+                        log('正在启用无线ADB连接...');
+                        await exec_shell('setprop service.adb.tcp.port 5555');
+                        await exec_shell('stop adbd');
+                        await exec_shell('start adbd');
+                        log('无线ADB已启用，端口：5555');
+                    }, 1000);
+                }
             } else {
                 log('安装失败: ' + installOutput);
-                listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-                    await installFromDevice(file.path);
-                });
+                alert(appName + ' 安装失败！\n\n' + installOutput);
+                removeBlockingModal();
             }
-        }
-    } catch (error) {
-        log('下载失败: ' + error.message);
-        if (error.message.includes('404') || error.message.includes('Not Found')) {
-            log('错误: 文件不存在或链接无法抵达');
-        } else if (error.message.includes('Connection') || error.message.includes('Network')) {
-            log('错误: 网络连接失败，请检查网络');
         } else {
-            log('错误: 下载过程中发生未知错误');
-        }
-        listDeviceApkFiles('/storage/emulated/0/Download', async (file) => {
-            await installFromDevice(file.path);
-        });
-    }
-    
-    showProgress(false);
-};
-
-// 通用下载到手机再推送到车机安装函数
-let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = null, packageName = null) => {
-    if (!checkBrowserSupport()) {
-        return;
-    }
-    clear();
-    showProgress(true);
-    showBlockingModal('正在下载 ' + appName + ' 到手机...', 'download');
-    log('正在下载 ' + appName + ' 到手机...\n');
-    
-    try {
-        // 先下载到手机本地
-        log('开始下载...');
-        log('浏览器类型: ' + navigator.userAgent);
-        log('网络状态: ' + navigator.onLine);
-        
-        let blob;
-        let downloadAttempts = 0;
-        const maxAttempts = 3;
-        
-        // 尝试下载，最多尝试3次
-        while (downloadAttempts < maxAttempts) {
-            downloadAttempts++;
-            log(`尝试下载 (${downloadAttempts}/${maxAttempts})...`);
+            // 下载失败，提供手动下载和自选APK选项
+            log('车机下载失败');
+            removeBlockingModal();
             
-            // 尝试使用 fetch
-            try {
-                log('使用 fetch 尝试下载...');
-                const response = await fetch(downloadUrl, {
-                    timeout: 8000, // 8秒超时
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                        'Accept': '*/*',
-                        'Cache-Control': 'no-cache'
-                    },
-                    mode: 'cors',
-                    credentials: 'omit'
-                });
-                
-                log('主链接响应状态: ' + response.status);
-                log('主链接响应状态文本: ' + response.statusText);
-                
-                if (response.ok) {
-                    blob = await response.blob();
-                    log('fetch 下载成功');
-                    break;
-                } else {
-                    log('主链接下载失败，状态码: ' + response.status);
-                }
-            } catch (fetchError) {
-                log('主链接fetch错误: ' + fetchError.message);
-                log('错误详情: ' + JSON.stringify(fetchError));
-            }
-            
-            // 如果失败且有备用链接，尝试备用链接
-            if (!blob) {
-                if (backupUrl) {
-                    log('尝试备用链接...');
-                    try {
-                        const response = await fetch(backupUrl, {
-                            timeout: 8000, // 8秒超时 
-                            headers: {
-                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                                'Accept': '*/*',
-                                'Cache-Control': 'no-cache'
-                            },
-                            mode: 'cors',
-                            credentials: 'omit'
-                        });
-                        
-                        log('备用链接响应状态: ' + response.status);
-                        log('备用链接响应状态文本: ' + response.statusText);
-                        
-                        if (response.ok) {
-                            blob = await response.blob();
-                            log('备用链接下载成功');
-                            break;
-                        } else {
-                            log('备用链接下载失败，状态码: ' + response.status);
-                        }
-                    } catch (backupError) {
-                        log('备用链接fetch错误: ' + backupError.message);
-                    }
-                }
-            }
-            
-            // 如果 fetch 失败，尝试使用 XMLHttpRequest
-            if (!blob) {
-                log('尝试使用 XMLHttpRequest 下载...');
-                try {
-                    blob = await new Promise((resolve, reject) => {
-                        const xhr = new XMLHttpRequest();
-                        xhr.open('GET', downloadUrl, true);
-                        xhr.responseType = 'blob';
-                        xhr.setRequestHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
-                        xhr.setRequestHeader('Accept', '*/*');
-                        xhr.setRequestHeader('Cache-Control', 'no-cache');
-                        
-                        xhr.onload = function() {
-                            if (xhr.status === 200) {
-                                resolve(xhr.response);
-                            } else {
-                                reject(new Error('XMLHttpRequest 失败: ' + xhr.status));
-                            }
-                        };
-                        
-                        xhr.onerror = function() {
-                            reject(new Error('XMLHttpRequest 网络错误'));
-                        };
-                        
-                        xhr.timeout = 30000; // 30秒超时
-                        xhr.ontimeout = function() {
-                            reject(new Error('XMLHttpRequest 超时'));
-                        };
-                        
-                        xhr.send();
-                    });
-                    log('XMLHttpRequest 下载成功');
-                    break;
-                } catch (xhrError) {
-                    log('XMLHttpRequest 错误: ' + xhrError.message);
-                }
-            }
-            
-            // 如果还有尝试次数，等待2秒后重试
-            if (downloadAttempts < maxAttempts) {
-                log('等待2秒后重试...');
-                await new Promise(resolve => setTimeout(resolve, 2000));
-            }
-        }
-        
-        // 如果所有下载方式都失败，提示用户手动下载
-        if (!blob) {
-            log('所有自动下载方式都失败了');
-            log('建议：请手动下载APK文件，然后使用「自选APK」功能安装');
-            
-            // 显示手动下载提示
-            const manualDownload = confirm(
-                '自动下载失败，可能原因：\n' +
-                '1. 浏览器的CORS安全限制\n' +
-                '2. 网络连接问题\n' +
-                '3. 链接暂时不可用\n\n' +
-                '是否打开下载链接手动下载？\n' +
-                '下载完成后请使用「自选APK」功能安装。'
+            const userChoice = confirm(
+                '车机下载失败，可能原因：\n' +
+                '1. 车机网络连接问题\n' +
+                '2. 下载链接暂时不可用\n' +
+                '3. 下载超时（30秒）\n\n' +
+                '点击「确定」打开下载链接手动下载，\n' +
+                '点击「取消」使用「自选APK」功能安装。'
             );
             
-            if (manualDownload) {
-                // 打开下载链接
+            if (userChoice) {
+                // 打开下载链接让用户手动下载
                 window.open(downloadUrl, '_blank');
-                log('已打开下载链接，请手动下载APK文件');
+                log('已打开下载链接: ' + downloadUrl);
                 
-                // 提示用户使用自选APK功能
                 setTimeout(() => {
-                    alert('下载完成后，请点击「自选APK」按钮选择下载的文件进行安装。');
+                    const useLocalFile = confirm('下载完成后，是否立即使用「自选APK」功能安装？');
+                    if (useLocalFile) {
+                        document.getElementById('apkFile').click();
+                    }
                 }, 500);
+            } else {
+                // 直接使用自选APK
+                document.getElementById('apkFile').click();
             }
-            
-            throw new Error('自动下载失败，请手动下载后使用「自选APK」功能安装');
-        }
-        
-        if (!blob) {
-            throw new Error('所有下载尝试都失败了。\n可能的原因：\n1. 网络连接问题\n2. 跨域限制\n3. 链接失效\n4. 浏览器安全限制\n\n请检查网络连接，或尝试使用Chrome浏览器。');
-        }
-        
-        // 获取文件数据
-        const fileSize = (blob.size / 1024 / 1024).toFixed(2);
-        log('下载完成，文件大小: ' + fileSize + ' MB');
-        
-        // 推送到车机
-        updateBlockingModal('正在推送 ' + appName + ' 到车机...', 'install');
-        log('正在推送 ' + appName + ' 到车机...\n');
-        
-        // 使用 ADB push 将文件推送到车机
-        const arrayBuffer = await blob.arrayBuffer();
-        const uint8Array = new Uint8Array(arrayBuffer);
-        
-        // 创建临时目录并推送
-        await exec_shell('mkdir -p /data/local/tmp');
-        
-        // 使用 sync 服务推送文件
-        const sync = await window.adbClient.sync();
-        await sync.push(savePath, uint8Array);
-        await sync.quit();
-        
-        log('推送完成，正在安装...\n');
-        
-        // 安装应用
-        await exec_shell("setprop persist.sv.enable_adb_install 1");
-        let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
-        
-        // 安装完成后禁用 ADB 安装属性
-        await exec_shell("setprop persist.sv.enable_adb_install 0");
-        
-        if (installOutput.includes('Success')) {
-            log('安装成功！');
-            alert(appName + " 安装成功！");
-            await exec_shell('rm -f ' + savePath);
-            log('已删除安装文件: ' + savePath);
-            removeBlockingModal();
-            
-            // 如果指定了包名，启动应用
-            if (packageName) {
-                setTimeout(async () => {
-                    log('正在启动 ' + appName + '...');
-                    await exec_shell('monkey -p ' + packageName + ' -c android.intent.category.LAUNCHER 1');
-                    
-                    // 启用无线 ADB 连接（设置为 5555 端口）
-                    log('正在启用无线 ADB 连接...');
-                    await exec_shell('setprop service.adb.tcp.port 5555');
-                    await exec_shell('stop adbd');
-                    await exec_shell('start adbd');
-                    log('无线 ADB 已启用，端口：5555');
-                }, 1000);
-            }
-        } else {
-            log('安装失败: ' + installOutput);
-            alert(appName + ' 安装失败！');
-            removeBlockingModal();
         }
     } catch (error) {
-        log('下载失败: ' + error.message);
-        if (error.message.includes('404') || error.message.includes('Not Found')) {
-            log('错误: 文件不存在或链接无法抵达');
-        } else if (error.message.includes('Connection') || error.message.includes('Network')) {
-            log('错误: 网络连接失败，请检查网络');
-        } else {
-            log('错误: 下载过程中发生未知错误');
-        }
-        
-        // 提示用户使用本地文件选择功能
-        const useLocalFile = confirm('下载失败: ' + error.message + '\n\n是否改用「本地文件选择」方式安装？\n\n点击「确定」将打开文件选择器，您可以从手机中选择已下载的APK文件进行安装。');
-        if (useLocalFile) {
-            removeBlockingModal();
-            // 触发文件选择
-            document.getElementById('apkFile').click();
-        } else {
-            alert('下载失败: ' + error.message);
-            removeBlockingModal();
-        }
+        log('安装过程出错: ' + error.message);
+        alert('安装失败: ' + error.message);
+        removeBlockingModal();
     }
     
     showProgress(false);
@@ -846,116 +645,45 @@ let listDeviceApkFiles = async (directory, onSelect) => {
             };
         });
         
-        showProgress(false);
-        
         if (files.length === 0) {
-            alert('未找到APK文件！\n\n请确认：\n1. APK文件是否已传到车机存储\n2. 尝试切换到其他目录（下载/存储）\n3. 或使用车机浏览器下载APK后再安装');
+            log('未找到APK文件');
+            alert('未在 ' + directory + ' 目录下找到APK文件。\n\n请先将APK文件传到车机的「下载」目录。');
+            showProgress(false);
             return;
         }
         
-        showApkFilePicker(files, directory, onSelect);
+        log('找到 ' + files.length + ' 个APK文件:\n');
+        files.forEach((file, index) => {
+            const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+            log((index + 1) + '. ' + file.name + ' (' + sizeMB + ' MB)');
+        });
         
+        // 创建选择对话框
+        const fileList = files.map((file, index) => {
+            const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+            return `${index + 1}. ${file.name} (${sizeMB} MB)`;
+        }).join('\n');
+        
+        const selectedIndex = prompt(
+            '找到以下APK文件，请输入编号选择要安装的文件:\n\n' + fileList + '\n\n输入编号 (1-' + files.length + '):'
+        );
+        
+        if (selectedIndex !== null) {
+            const index = parseInt(selectedIndex) - 1;
+            if (index >= 0 && index < files.length) {
+                const selectedFile = files[index];
+                log('\n选择了: ' + selectedFile.name);
+                if (onSelect) {
+                    await onSelect(selectedFile);
+                }
+            } else {
+                alert('无效的编号');
+            }
+        }
     } catch (error) {
-        showProgress(false);
-        alert('扫描失败: ' + error.message);
+        log('扫描失败: ' + error.message);
+        alert('扫描目录失败: ' + error.message);
     }
+    
+    showProgress(false);
 };
-
-// 显示APK文件选择弹窗
-let showApkFilePicker = (files, currentDir, onSelect) => {
-    // 创建弹窗
-    const modal = document.createElement('div');
-    modal.id = 'apk-picker-modal';
-    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;display:flex;justify-content:center;align-items:center;';
-    
-    const content = document.createElement('div');
-    content.style.cssText = 'background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:16px;padding:24px;max-width:600px;width:90%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);';
-    
-    let html = '<div style="background:white;border-radius:12px;padding:20px;">';
-    html += '<h3 style="margin-top:0;color:#333;font-size:20px;display:flex;align-items:center;gap:10px;">📦 选择APK文件</h3>';
-    html += '<p style="color:#666;background:#f5f5f5;padding:10px;border-radius:8px;font-size:13px;">📂 当前目录: <code style="background:#e8f4fd;padding:2px 6px;border-radius:4px;">' + currentDir + '</code></p>';
-    html += '<div style="display:flex;gap:8px;margin-bottom:15px;flex-wrap:wrap;">';
-    html += '<button onclick="listDeviceApkFiles(\'/storage/emulated/0/Download\', window.currentApkSelectCallback)" style="padding:8px 14px;cursor:pointer;background:#4CAF50;color:white;border:none;border-radius:6px;font-weight:bold;">📥 Download文件夹</button>';
-    html += '<button onclick="listDeviceApkFiles(\'/storage/emulated/0\', window.currentApkSelectCallback)" style="padding:8px 14px;cursor:pointer;background:#2196F3;color:white;border:none;border-radius:6px;font-weight:bold;">💾 车机内部存储</button>';
-    html += '</div>';
-    html += '<div style="margin-bottom:15px;display:flex;gap:8px;">';
-    html += '<input type="text" id="custom-apk-path" placeholder="输入其他目录路径" style="flex:1;padding:10px;border:2px solid #ddd;border-radius:8px;font-size:14px;">';
-    html += '<button onclick="var path=document.getElementById(\'custom-apk-path\').value;if(path)listDeviceApkFiles(path, window.currentApkSelectCallback)" style="padding:10px 16px;cursor:pointer;background:#FF9800;color:white;border:none;border-radius:8px;font-weight:bold;">🔍 跳转</button>';
-    html += '</div>';
-    html += '<div style="background:#f8f9fa;border-radius:8px;padding:10px;margin-bottom:15px;font-size:12px;color:#666;">';
-    html += '💡 提示: 点击文件选中后点击确定按钮安装';
-    html += '</div>';
-    html += '<div id="selected-file-info" style="display:none;background:#e3f2fd;border-radius:8px;padding:10px;margin-bottom:15px;font-size:13px;color:#1565c0;">';
-    html += '</div>';
-    html += '<div id="apk-file-list" style="max-height:350px;overflow-y:auto;border:1px solid #e0e0e0;border-radius:8px;background:white;">';
-    
-    files.forEach((file, index) => {
-        const sizeMB = (file.size / 1024 / 1024).toFixed(2);
-        const displayName = file.name.replace(/\.apk$/i, '');
-        html += '<div onclick="window.selectApkFile(' + index + ')" style="padding:12px;cursor:pointer;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:12px;transition:all 0.2s;" onmouseover="this.style.background=\'#f8f9fa\'" onmouseout="this.style.background=\'#fff\'">';
-        html += '<div style="width:40px;height:40px;background:linear-gradient(135deg,#4CAF50,#2E7D32);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;">📦</div>';
-        html += '<div style="flex:1;overflow:hidden;"><div style="font-weight:600;color:#333;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + displayName + '</div></div>';
-        html += '<div style="background:#e8f5e9;color:#2e7d32;padding:4px 8px;border-radius:12px;font-size:12px;font-weight:bold;">' + sizeMB + ' MB</div>';
-        html += '</div>';
-    });
-    
-    html += '</div>';
-    html += '<div style="margin-top:20px;text-align:right;display:flex;gap:10px;justify-content:flex-end;">';
-    html += '<button onclick="document.getElementById(\'apk-picker-modal\').remove()" style="padding:10px 20px;cursor:pointer;background:#9e9e9e;color:white;border:none;border-radius:8px;font-size:14px;">取消</button>';
-    html += '<button id="confirm-apk-btn" onclick="window.confirmApkSelect()" disabled style="padding:10px 24px;cursor:pointer;background:#9e9e9e;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:bold;">确定安装</button>';
-    html += '</div>';
-    html += '</div>';
-    
-    content.innerHTML = html;
-    modal.appendChild(content);
-    document.body.appendChild(modal);
-    
-    // 存储文件和回调
-    window.apkFileList = files;
-    window.currentApkSelectCallback = onSelect;
-    
-    // 全局选择函数
-    window.selectApkFile = (index) => {
-        document.querySelectorAll('#apk-file-list > div').forEach(d => d.style.background = '#fff');
-        document.querySelectorAll('#apk-file-list > div')[index].style.background = '#e3f2fd';
-        window.selectedApkIndex = index;
-        const btn = document.getElementById('confirm-apk-btn');
-        btn.disabled = false;
-        btn.style.background = '#28a745';
-        btn.style.cursor = 'pointer';
-        
-        // 显示选中文件的路径
-        const file = files[index];
-        const selectedInfo = document.getElementById('selected-file-info');
-        if (selectedInfo) {
-            selectedInfo.style.display = 'block';
-            selectedInfo.innerHTML = '✅ 已选择: ' + file.name.replace(/\.apk$/i, '');
-        }
-    };
-    
-    window.confirmApkSelect = () => {
-        if (window.selectedApkIndex !== undefined && window.currentApkSelectCallback) {
-            const file = window.apkFileList[window.selectedApkIndex];
-            modal.remove();
-            window.currentApkSelectCallback(file);
-        }
-    };
-};
-
-// 导出函数
-try {
-    if (typeof module !== 'undefined' && module.exports) {
-        module.exports = {
-            sfgj,
-            yygj,
-            qzm,
-            cdb,
-            startGuanJia,
-            loadPackageList,
-            loadApkFile,
-            installApkFile
-        };
-    }
-} catch (e) {
-    // 浏览器环境，不需要导出
-}

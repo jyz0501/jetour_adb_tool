@@ -33,6 +33,12 @@ let getBrowserInfo = () => {
     return { browserName, version, userAgent: ua };
 };
 
+// 检测是否是移动端设备
+let isMobileDevice = () => {
+    const userAgent = navigator.userAgent;
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+};
+
 // 设备日志记录
 function logDevice(message) {
     console.log(message);
@@ -713,6 +719,10 @@ let checkBrowserSupportAndConnect = async () => {
         return;
     }
     
+    // 检测设备类型
+    const isMobile = isMobileDevice();
+    logDevice(`当前设备类型: ${isMobile ? '移动端' : 'PC'}`);
+    
     try {
         // 检查浏览器是否支持 WebUSB
         const isSupported = checkWebUSBSupport();
@@ -1134,7 +1144,16 @@ let initDeviceDetection = async () => {
             navigator.usb.addEventListener('connect', async (event) => {
                 logDevice('===== USB 设备已连接 =====');
                 logDevice(`设备: ${event.device.productName || 'USB设备'} (VID: ${event.device.vendorId}, PID: ${event.device.productId})`);
-                logDevice('检测到新设备，请手动点击"开始连接"按钮进行连接');
+                
+                // 检测设备类型
+                const isMobile = isMobileDevice();
+                logDevice(`检测到${isMobile ? '移动端' : 'PC'}设备连接`);
+                
+                if (isMobile) {
+                    logDevice('移动端设备，不自动连接，请手动点击"开始连接"按钮');
+                } else {
+                    logDevice('PC设备，不自动连接，请手动点击"开始连接"按钮');
+                }
             });
             
             // 监听设备断开事件

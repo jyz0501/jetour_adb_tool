@@ -123,35 +123,28 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             
             log(`尝试下载 (${attempt}/2)...`);
             
-            // 使用curl下载，30秒超时
-            // 使用 execShellAndGetOutput 而不是 exec_shell，避免显示重复的 alert
-            const downloadPromise = execShellAndGetOutput('curl -sL --max-time 30 -o ' + savePath + ' "' + currentUrl + '"');
-            
-            // 显示下载进度
-            const progressInterval = setInterval(async () => {
-                try {
-                    const sizeResult = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['ls', '-l', savePath]);
-                    const sizeMatch = sizeResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
-                    if (sizeMatch) {
-                        const sizeMB = (parseInt(sizeMatch[1]) / 1024 / 1024).toFixed(2);
-                        log('下载中... 已下载 ' + sizeMB + ' MB\r');
-                    }
-                } catch (e) {}
-            }, 1000);
+            // 使用curl下载，10秒超时，添加快速失败参数
+            // --connect-timeout 5: 连接超时5秒
+            // --max-time 10: 总超时10秒
+            // --retry 0: 不重试，快速失败
+            const downloadPromise = execShellAndGetOutput('curl -sL --connect-timeout 5 --max-time 10 --retry 0 -o ' + savePath + ' "' + currentUrl + '"');
             
             try {
                 await downloadPromise;
-                // 检查文件是否存在且大小正常
+                // 检查文件是否存在且大小正常（大于1MB）
                 const checkResult = await execShellAndGetOutput('ls -l ' + savePath);
                 if (checkResult.includes('.apk') && !checkResult.includes('No such file')) {
-                    downloadSuccess = true;
-                    clearInterval(progressInterval);
-                    break;
+                    // 检查文件大小是否大于1MB（1048576字节）
+                    const sizeMatch = checkResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
+                    if (sizeMatch && parseInt(sizeMatch[1]) > 1048576) {
+                        downloadSuccess = true;
+                        break;
+                    } else {
+                        log('文件太小，可能下载不完整');
+                    }
                 }
             } catch (e) {
                 log('下载失败: ' + e.message);
-            } finally {
-                clearInterval(progressInterval);
             }
         }
         

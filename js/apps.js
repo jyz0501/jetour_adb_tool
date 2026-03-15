@@ -105,10 +105,10 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
     
     try {
         // 启用ADB安装
-        await exec_shell("setprop persist.sv.enable_adb_install 1");
+        await execShellAndGetOutput("setprop persist.sv.enable_adb_install 1");
         
         // 创建临时目录
-        await exec_shell('mkdir -p /data/local/tmp');
+        await execShellAndGetOutput('mkdir -p /data/local/tmp');
         
         let downloadSuccess = false;
         let currentUrl = downloadUrl;
@@ -125,7 +125,8 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             log(`尝试下载 (${attempt}/2)...`);
             
             // 使用curl下载，30秒超时
-            const downloadPromise = exec_shell('curl -sL --max-time 30 -o ' + savePath + ' "' + currentUrl + '"');
+            // 使用 execShellAndGetOutput 而不是 exec_shell，避免显示重复的 alert
+            const downloadPromise = execShellAndGetOutput('curl -sL --max-time 30 -o ' + savePath + ' "' + currentUrl + '"');
             
             // 显示下载进度
             const progressInterval = setInterval(async () => {
@@ -162,12 +163,12 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
             
             // 安装完成后禁用ADB安装属性
-            await exec_shell("setprop persist.sv.enable_adb_install 0");
+            await execShellAndGetOutput("setprop persist.sv.enable_adb_install 0");
             
             if (installOutput.includes('Success')) {
                 log('安装成功！');
                 alert(appName + " 安装成功！");
-                await exec_shell('rm -f ' + savePath);
+                await execShellAndGetOutput('rm -f ' + savePath);
                 log('已删除安装文件: ' + savePath);
                 removeBlockingModal();
                 
@@ -175,13 +176,13 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
                 if (packageName) {
                     setTimeout(async () => {
                         log('正在启动 ' + appName + '...');
-                        await exec_shell('monkey -p ' + packageName + ' -c android.intent.category.LAUNCHER 1');
+                        await execShellAndGetOutput('monkey -p ' + packageName + ' -c android.intent.category.LAUNCHER 1');
                         
                         // 启用无线ADB连接
                         log('正在启用无线ADB连接...');
-                        await exec_shell('setprop service.adb.tcp.port 5555');
-                        await exec_shell('stop adbd');
-                        await exec_shell('start adbd');
+                        await execShellAndGetOutput('setprop service.adb.tcp.port 5555');
+                        await execShellAndGetOutput('stop adbd');
+                        await execShellAndGetOutput('start adbd');
                         log('无线ADB已启用，端口：5555');
                     }, 1000);
                 }

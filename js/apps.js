@@ -202,7 +202,7 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
         log('浏览器类型: ' + navigator.userAgent);
         log('网络状态: ' + navigator.onLine);
         
-        let response;
+        let blob;
         let downloadAttempts = 0;
         const maxAttempts = 3;
         
@@ -211,8 +211,10 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             downloadAttempts++;
             log(`尝试下载 (${downloadAttempts}/${maxAttempts})...`);
             
+            // 尝试使用 fetch
             try {
-                response = await fetch(downloadUrl, {
+                log('使用 fetch 尝试下载...');
+                const response = await fetch(downloadUrl, {
                     timeout: 60000, // 60秒超时
                     headers: {
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -227,7 +229,9 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
                 log('主链接响应状态文本: ' + response.statusText);
                 
                 if (response.ok) {
-                    break; // 下载成功，退出循环
+                    blob = await response.blob();
+                    log('fetch 下载成功');
+                    break;
                 } else {
                     log('主链接下载失败，状态码: ' + response.status);
                 }
@@ -237,11 +241,11 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             }
             
             // 如果失败且有备用链接，尝试备用链接
-            if (!response || !response.ok) {
+            if (!blob) {
                 if (backupUrl) {
                     log('尝试备用链接...');
                     try {
-                        response = await fetch(backupUrl, {
+                        const response = await fetch(backupUrl, {
                             timeout: 60000,
                             headers: {
                                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -256,13 +260,53 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
                         log('备用链接响应状态文本: ' + response.statusText);
                         
                         if (response.ok) {
-                            break; // 备用链接成功，退出循环
+                            blob = await response.blob();
+                            log('备用链接下载成功');
+                            break;
                         } else {
                             log('备用链接下载失败，状态码: ' + response.status);
                         }
                     } catch (backupError) {
                         log('备用链接fetch错误: ' + backupError.message);
                     }
+                }
+            }
+            
+            // 如果 fetch 失败，尝试使用 XMLHttpRequest
+            if (!blob) {
+                log('尝试使用 XMLHttpRequest 下载...');
+                try {
+                    blob = await new Promise((resolve, reject) => {
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('GET', downloadUrl, true);
+                        xhr.responseType = 'blob';
+                        xhr.setRequestHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+                        xhr.setRequestHeader('Accept', '*/*');
+                        xhr.setRequestHeader('Cache-Control', 'no-cache');
+                        
+                        xhr.onload = function() {
+                            if (xhr.status === 200) {
+                                resolve(xhr.response);
+                            } else {
+                                reject(new Error('XMLHttpRequest 失败: ' + xhr.status));
+                            }
+                        };
+                        
+                        xhr.onerror = function() {
+                            reject(new Error('XMLHttpRequest 网络错误'));
+                        };
+                        
+                        xhr.timeout = 60000;
+                        xhr.ontimeout = function() {
+                            reject(new Error('XMLHttpRequest 超时'));
+                        };
+                        
+                        xhr.send();
+                    });
+                    log('XMLHttpRequest 下载成功');
+                    break;
+                } catch (xhrError) {
+                    log('XMLHttpRequest 错误: ' + xhrError.message);
                 }
             }
             
@@ -273,16 +317,11 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             }
         }
         
-        if (!response) {
-            throw new Error('所有下载尝试都失败了，可能是网络连接问题或跨域限制');
-        }
-        
-        if (!response.ok) {
-            throw new Error('下载失败: ' + response.status + ' ' + response.statusText);
+        if (!blob) {
+            throw new Error('所有下载尝试都失败了。\n可能的原因：\n1. 网络连接问题\n2. 跨域限制\n3. 链接失效\n4. 浏览器安全限制\n\n请检查网络连接，或尝试使用Chrome浏览器。');
         }
         
         // 获取文件数据
-        const blob = await response.blob();
         const fileSize = (blob.size / 1024 / 1024).toFixed(2);
         log('下载完成，文件大小: ' + fileSize + ' MB');
         

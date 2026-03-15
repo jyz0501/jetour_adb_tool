@@ -4,6 +4,7 @@
 // 全局变量
 window.adbDevice = null;
 window.adbTransport = null;
+window.isConnecting = false;
 
 // 获取浏览器名称和版本
 let getBrowserInfo = () => {
@@ -719,6 +720,14 @@ let checkBrowserSupportAndConnect = async () => {
         return;
     }
     
+    // 防止重复连接请求
+    if (window.isConnecting) {
+        logDevice('正在连接中，请勿重复操作');
+        return;
+    }
+    
+    window.isConnecting = true;
+    
     // 检测设备类型
     const isMobile = isMobileDevice();
     logDevice(`当前设备类型: ${isMobile ? '移动端' : 'PC'}`);
@@ -974,6 +983,9 @@ let checkBrowserSupportAndConnect = async () => {
             // 开始监控
             startDeviceMonitoring();
             
+            // 连接成功，重置连接状态
+            window.isConnecting = false;
+            
         } catch (e) {
             logDevice('连接失败: ' + e.message);
             console.error('ADB connection error:', e);
@@ -986,11 +998,17 @@ let checkBrowserSupportAndConnect = async () => {
                 logDevice('错误原因：USB 传输错误，可能是连接不稳定');
                 logDevice('建议：检查 USB 线是否牢固，尝试更换 USB 端口');
             }
+            
+            // 连接失败，重置连接状态
+            window.isConnecting = false;
         }
     } catch (error) {
         log('检查浏览器支持失败:', error);
         logDevice('连接失败: ' + (error.message || error.toString()));
         console.error('Connection error:', error);
+        
+        // 连接失败，重置连接状态
+        window.isConnecting = false;
     }
 };
 
@@ -1179,7 +1197,12 @@ let initDeviceDetection = async () => {
                     logDevice('请在车机上点击"允许USB调试"');
                     // 延迟一下让设备完全就绪，然后自动连接
                     setTimeout(async () => {
-                        await checkBrowserSupportAndConnect();
+                        // 检查是否已经在连接中
+                        if (!window.isConnecting) {
+                            await checkBrowserSupportAndConnect();
+                        } else {
+                            logDevice('正在连接中，跳过自动连接');
+                        }
                     }, 2000);
                 }
             });
@@ -1262,7 +1285,12 @@ if (typeof window !== 'undefined') {
                     const existingDevices = await manager.getDevices();
                     if (existingDevices.length > 0) {
                         logDevice(`发现 ${existingDevices.length} 个已授权设备，尝试自动连接...`);
-                        await checkBrowserSupportAndConnect();
+                        // 检查是否已经在连接中
+                        if (!window.isConnecting) {
+                            await checkBrowserSupportAndConnect();
+                        } else {
+                            logDevice('正在连接中，跳过自动连接');
+                        }
                     } else {
                         logDevice('没有已授权设备');
                     }

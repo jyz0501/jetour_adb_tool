@@ -456,6 +456,13 @@ let loadPackageList = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
+    
+    // 检查是否有 Tango ADB 客户端
+    if (!window.adbClient) {
+        alert('未连接到设备，请先点击"开始连接"按钮连接设备');
+        return;
+    }
+    
     clear();
     showProgress(true);
     var packageContent = "";

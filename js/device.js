@@ -824,14 +824,37 @@ let checkBrowserSupportAndConnect = async () => {
                     }
                     alert('请在车机上点击"允许USB调试"');
                     
-                    // 只请求一次授权
-                    logDevice('正在请求授权...');
-                    setTimeout(async () => {
-                        try {
-                            await manager.requestDevice();
-                        } catch(e) {}
-                        await checkBrowserSupportAndConnect();
-                    }, 2000); // 增加初始延迟
+                    // PC连接时，自动检测授权状态
+                    if (!isMobile) {
+                        logDevice('正在等待车机授权...');
+                        let checkCount = 0;
+                        const maxChecks = 30; // 最多检查30次（30秒）
+                        
+                        const checkInterval = setInterval(async () => {
+                            checkCount++;
+                            try {
+                                const devices = await manager.getDevices();
+                                if (devices.length > 0) {
+                                    clearInterval(checkInterval);
+                                    logDevice('检测到车机已授权，开始连接...');
+                                    await checkBrowserSupportAndConnect();
+                                } else if (checkCount >= maxChecks) {
+                                    clearInterval(checkInterval);
+                                    logDevice('等待授权超时，请手动点击"开始连接"按钮');
+                                }
+                            } catch (e) {
+                                console.log('检查授权状态失败:', e);
+                            }
+                        }, 1000); // 每秒检查一次
+                    } else {
+                        // 移动端，使用原来的延迟方式
+                        setTimeout(async () => {
+                            try {
+                                await manager.requestDevice();
+                            } catch(e) {}
+                            await checkBrowserSupportAndConnect();
+                        }, 2000);
+                    }
                     return;
                 } else {
                     logDevice('用户取消了设备选择');
@@ -1152,7 +1175,12 @@ let initDeviceDetection = async () => {
                 if (isMobile) {
                     logDevice('移动端设备，不自动连接，请手动点击"开始连接"按钮');
                 } else {
-                    logDevice('PC设备，不自动连接，请手动点击"开始连接"按钮');
+                    logDevice('PC设备，车机允许USB调试后将自动连接');
+                    logDevice('请在车机上点击"允许USB调试"');
+                    // 延迟一下让设备完全就绪，然后自动连接
+                    setTimeout(async () => {
+                        await checkBrowserSupportAndConnect();
+                    }, 2000);
                 }
             });
             

@@ -312,7 +312,8 @@ try {
             updateDownloadProgressText,
             fetchWithProgress,
             hardReload,
-            checkWebUSBSupport
+            checkWebUSBSupport,
+            isMobileDevice
         };
     }
 } catch (e) {

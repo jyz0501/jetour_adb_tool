@@ -215,7 +215,7 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             try {
                 log('使用 fetch 尝试下载...');
                 const response = await fetch(downloadUrl, {
-                    timeout: 15000, 
+                    timeout: 8000, // 8秒超时
                     headers: {
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
                         'Accept': '*/*',
@@ -246,7 +246,7 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
                     log('尝试备用链接...');
                     try {
                         const response = await fetch(backupUrl, {
-                            timeout: 30000, // 30秒超时
+                            timeout: 8000, // 8秒超时 
                             headers: {
                                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
                                 'Accept': '*/*',

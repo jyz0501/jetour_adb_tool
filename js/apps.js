@@ -107,12 +107,6 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
         return;
     }
     
-    // 检查ADB连接状态
-    if (!window.adbClient) {
-        alert('请先建立ADB连接，然后再安装应用');
-        return;
-    }
-    
     clear();
     showProgress(true);
     log('正在从车机下载 ' + appName + '...\n');
@@ -140,7 +134,8 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             // --connect-timeout 5: 连接超时5秒
             // --max-time 10: 总超时10秒
             // --retry 0: 不重试，快速失败
-            const downloadPromise = execShellAndGetOutput('curl -sL --connect-timeout 5 --max-time 10 --retry 0 -o ' + savePath + ' "' + currentUrl + '"');
+            // 使用非静默模式显示下载进度
+            const downloadPromise = execShellAndGetOutput('curl -L --connect-timeout 5 --max-time 10 --retry 0 -o ' + savePath + ' "' + currentUrl + '"');
             
             try {
                 await downloadPromise;

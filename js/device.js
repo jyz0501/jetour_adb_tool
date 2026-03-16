@@ -716,7 +716,7 @@ let showWirelessDeviceSelection = (devices) => {
 // 检查浏览器支持并连接
 let checkBrowserSupportAndConnect = async () => {
     // 防止重复连接
-    if (window.adbClient && window.adbClient.connected) {
+    if (window.adbClient) {
         logDevice('设备已连接，请勿重复点击');
         return;
     }

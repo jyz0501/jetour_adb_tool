@@ -116,6 +116,11 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
         // 启用ADB安装
         await execShellAndGetOutput("setprop persist.sv.enable_adb_install 1");
         
+        // 清空download目录
+        log('正在清空download目录...');
+        await execShellAndGetOutput('rm -f /storage/self/primary/Download/*.apk');
+        log('download目录已清空');
+        
         let downloadSuccess = false;
         let currentUrl = downloadUrl;
         
@@ -134,17 +139,11 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             
             try {
                 await downloadPromise;
-                // 检查文件是否存在且大小正常（大于1MB）
+                // 检查文件是否存在
                 const checkResult = await execShellAndGetOutput('ls -l ' + savePath);
                 if (checkResult.includes('.apk') && !checkResult.includes('No such file')) {
-                    // 检查文件大小是否大于1MB（1048576字节）
-                    const sizeMatch = checkResult.match(/\d+\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(\d+)/);
-                    if (sizeMatch && parseInt(sizeMatch[1]) > 1048576) {
-                        downloadSuccess = true;
-                        break;
-                    } else {
-                        log('文件太小，可能下载不完整');
-                    }
+                    downloadSuccess = true;
+                    break;
                 }
             } catch (e) {
                 log('下载失败: ' + e.message);

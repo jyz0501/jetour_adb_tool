@@ -40,12 +40,22 @@ let isMobileDevice = () => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
 };
 
-// 设备日志记录（仅输出到控制台）
+// 设备日志记录
 function logDevice(message) {
     console.log(message);
+    const deviceLogElement = document.getElementById('device-log');
+    if (deviceLogElement) {
+        deviceLogElement.textContent = deviceLogElement.textContent + message + '\n';
+    }
 }
 
-
+// 清除设备日志
+function clearDeviceLog() {
+    const deviceLogElement = document.getElementById('device-log');
+    if (deviceLogElement) {
+        deviceLogElement.textContent = '';
+    }
+}
 
 // 点击检测提示
 let initWebUSB = async (device) => {
@@ -1220,7 +1230,11 @@ if (typeof window !== 'undefined') {
         logDevice('浏览器 UA: ' + ua);
         logDevice('=====================');
         
-
+        // 初始化设备日志
+        const deviceLogElement = document.getElementById('device-log');
+        if (deviceLogElement) {
+            deviceLogElement.textContent = '[初始化] 设备情况日志已就绪\n';
+        }
         
         // 初始化设备检测
         initDeviceDetection();

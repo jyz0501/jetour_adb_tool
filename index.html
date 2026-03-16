@@ -117,7 +117,7 @@
         
             <!-- 有线连接 -->
             <div style="margin: 10px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.273.0</span></h3>
+                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.274.0</span></h3>
                 <div class="warning" id="usb-warning">
                     注意！您的浏览器不支持WebUSB。请在Chrome或Edge浏览器中打开。
                 </div>
@@ -361,6 +361,24 @@
     <script>
         // ==================== 测试功能（独立代码，测试完成后可删除） ====================
         
+        // 执行测试命令（复用主程序的ADB连接）
+        async function execTestCommand(command) {
+            // 检查是否有 ADB 连接
+            if (!window.adbClient) {
+                testLog('错误：未连接到ADB设备，请先点击"开始连接"按钮');
+                return null;
+            }
+            
+            try {
+                testLog(`执行: ${command}`);
+                const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText(command.split(' '));
+                return result;
+            } catch (error) {
+                testLog('执行失败: ' + (error.message || error.toString()));
+                return null;
+            }
+        }
+        
         function clearTestLog() {
             document.getElementById('test-log').textContent = '测试日志已清空...';
         }
@@ -374,6 +392,12 @@
 
         // 测试下载
         async function testDownload(type) {
+            // 检查ADB连接状态
+            if (!window.adbClient) {
+                testLog('错误：未连接到ADB设备，请先点击"开始连接"按钮');
+                return;
+            }
+            
             const url = document.getElementById('testDownloadUrl').value;
             const path = document.getElementById('testSavePath').value || '/data/local/tmp/test.apk';
             
@@ -397,50 +421,87 @@
                     testLog('使用优化参数');
                     break;
                 case 'verbose':
-                    curlCmd = `curl -v -L --connect-timeout 15 --max-time 30 -o ${path} "${url}" 2>&1`;
+                    curlCmd = `curl -v -L --connect-timeout 15 --max-time 30 -o ${path} "${url}"`;
                     testLog('使用详细模式');
                     break;
             }
             
             testLog(`命令: ${curlCmd}`);
-            testLog('提示：此测试区域仅显示命令，实际执行需要连接ADB设备');
+            testLog('正在执行...');
+            
+            const result = await execTestCommand(curlCmd);
+            if (result !== null) {
+                testLog('执行结果:');
+                testLog(result || '(无输出)');
+            }
         }
 
         // 网络测试
-        function testNetwork(type) {
+        async function testNetwork(type) {
+            // 检查ADB连接状态
+            if (!window.adbClient) {
+                testLog('错误：未连接到ADB设备，请先点击"开始连接"按钮');
+                return;
+            }
+            
             const host = document.getElementById('testDownloadUrl').value || 'file.vju.cc';
+            let command = '';
             
             switch(type) {
                 case 'ping':
                     testLog(`=== Ping测试: ${host} ===`);
-                    testLog(`命令: ping -c 3 ${host}`);
+                    command = `ping -c 3 ${host}`;
                     break;
                 case 'dns':
                     testLog(`=== DNS解析: ${host} ===`);
-                    testLog(`命令: nslookup ${host}`);
+                    command = `nslookup ${host}`;
                     break;
                 case 'curl':
                     testLog('=== curl版本 ===');
-                    testLog('命令: curl --version');
+                    command = 'curl --version';
                     break;
             }
-            testLog('提示：此测试区域仅显示命令，实际执行需要连接ADB设备');
+            
+            const result = await execTestCommand(command);
+            if (result !== null) {
+                testLog('执行结果:');
+                testLog(result || '(无输出)');
+            }
         }
 
         // 文件检查
-        function checkTestFile() {
+        async function checkTestFile() {
+            // 检查ADB连接状态
+            if (!window.adbClient) {
+                testLog('错误：未连接到ADB设备，请先点击"开始连接"按钮');
+                return;
+            }
+            
             const path = document.getElementById('testSavePath').value || '/data/local/tmp/test.apk';
             testLog(`=== 检查文件: ${path} ===`);
-            testLog(`命令: ls -lh ${path}`);
-            testLog('提示：此测试区域仅显示命令，实际执行需要连接ADB设备');
+            
+            const result = await execTestCommand(`ls -lh ${path}`);
+            if (result !== null) {
+                testLog('执行结果:');
+                testLog(result || '(文件不存在)');
+            }
         }
 
-        function deleteTestFile() {
+        async function deleteTestFile() {
+            // 检查ADB连接状态
+            if (!window.adbClient) {
+                testLog('错误：未连接到ADB设备，请先点击"开始连接"按钮');
+                return;
+            }
+            
             const path = document.getElementById('testSavePath').value || '/data/local/tmp/test.apk';
             if (confirm(`确定要删除 ${path} 吗？`)) {
                 testLog(`=== 删除文件: ${path} ===`);
-                testLog(`命令: rm -f ${path}`);
-                testLog('提示：此测试区域仅显示命令，实际执行需要连接ADB设备');
+                
+                const result = await execTestCommand(`rm -f ${path}`);
+                if (result !== null) {
+                    testLog('文件已删除');
+                }
             }
         }
     </script>

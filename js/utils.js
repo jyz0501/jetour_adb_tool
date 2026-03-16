@@ -148,7 +148,7 @@ function checkWebUSBSupport() {
     const isSupportedBrowser = isEdge || isChrome || isOpera;
 
     if (!isSupportedBrowser) {
-        usbWarning.innerHTML = '⚠️ 您的浏览器类型不支持 WebUSB<br>请使用 Chrome 或 Edge 浏览器<br><br>当前UA: ' + userAgent;
+        usbWarning.innerHTML = '⚠️ 您的浏览器类型不支持 WebUSB<br>请使用 Chrome 或 Edge 浏览器';
         usbWarning.style.display = 'block';
         showChromeDownloadPopup();
         return false;

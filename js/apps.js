@@ -462,12 +462,6 @@ let installApkFile = async () => {
         return;
     }
     
-    // 检查ADB连接状态
-    if (!window.adbClient) {
-        alert('请先建立ADB连接，然后再安装APK文件');
-        return;
-    }
-    
     const input = document.getElementById('apkFile');
     const validFiles = Array.from(input.files).filter(file =>
         file.name.toLowerCase().endsWith('.apk')

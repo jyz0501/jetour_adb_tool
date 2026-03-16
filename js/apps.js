@@ -106,6 +106,13 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
     if (!checkBrowserSupport()) {
         return;
     }
+    
+    // 检查ADB连接状态
+    if (!window.adbClient || !window.adbClient.connected) {
+        alert('请先建立ADB连接，然后再安装应用');
+        return;
+    }
+    
     clear();
     showProgress(true);
     log('正在从车机下载 ' + appName + '...\n');
@@ -493,6 +500,13 @@ let installApkFile = async () => {
     if (!checkBrowserSupport()) {
         return;
     }
+    
+    // 检查ADB连接状态
+    if (!window.adbClient || !window.adbClient.connected) {
+        alert('请先建立ADB连接，然后再安装APK文件');
+        return;
+    }
+    
     const input = document.getElementById('apkFile');
     const validFiles = Array.from(input.files).filter(file =>
         file.name.toLowerCase().endsWith('.apk')

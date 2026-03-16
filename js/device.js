@@ -742,6 +742,7 @@ let checkBrowserSupportAndConnect = async () => {
         if (!window.browserSupport || !navigator.usb) {
             // 不支持，显示 Chrome 下载弹窗
             showChromeDownloadPopup();
+            window.isConnecting = false;
             return;
         }
         
@@ -792,6 +793,7 @@ let checkBrowserSupportAndConnect = async () => {
         if (!adbApi || !adbDaemonWebUsb) {
             logDevice('错误: Tango ADB 库未加载');
             alert('Tango ADB 库未加载，请刷新页面');
+            window.isConnecting = false;
             return;
         }
         
@@ -801,6 +803,7 @@ let checkBrowserSupportAndConnect = async () => {
         if (!manager) {
             logDevice('错误: 浏览器不支持 WebUSB');
             alert('您的浏览器不支持 WebUSB，请使用 Chrome 浏览器');
+            window.isConnecting = false;
             return;
         }
         
@@ -870,11 +873,13 @@ let checkBrowserSupportAndConnect = async () => {
                     return;
                 } else {
                     logDevice('用户取消了设备选择');
+                    window.isConnecting = false;
                     return;
                 }
             } catch (e) {
                 if (e.name === 'NotFoundError') {
                     logDevice('用户取消了设备选择');
+                    window.isConnecting = false;
                     return;
                 }
                 logDevice('请求设备失败: ' + e.message);
@@ -882,6 +887,7 @@ let checkBrowserSupportAndConnect = async () => {
             }
             
             logDevice('请先连接 USB 设备并授权后再试');
+            window.isConnecting = false;
             return;
         }
         

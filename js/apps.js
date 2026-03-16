@@ -245,41 +245,7 @@ let yygj = async () => {
     await downloadToPhoneAndPush('应用管家', downloadUrl, savePath, backupUrl, 'com.vjoycar.gj');
 };
 
-// 从设备安装APK
-let installFromDevice = async (devicePath) => {
-    if (!window.adbClient) {
-        alert('请先连接设备');
-        return;
-    }
-    
-    clear();
-    showProgress(true);
-    showBlockingModal('正在安装 ' + devicePath);
-    log('正在安装 ' + devicePath + ' ...\n');
-    
-    try {
-        await exec_shell("setprop persist.sv.enable_adb_install 1");
-        let installOutput = await execShellAndGetOutput("pm install -g -r " + devicePath);
-        
-        if (installOutput.includes('Success')) {
-            log('安装成功！');
-            alert("安装成功！");
-            await exec_shell('rm -f ' + devicePath);
-            log('已删除安装文件: ' + devicePath);
-            removeBlockingModal();
-        } else {
-            log('安装失败: ' + installOutput);
-            alert("安装失败！");
-            removeBlockingModal();
-        }
-    } catch (error) {
-        log('安装失败: ' + error.message);
-        alert("安装失败: " + error.message);
-        removeBlockingModal();
-    }
-    
-    showProgress(false);
-};
+
 
 // 哨兵监控
 let sentry = async () => {

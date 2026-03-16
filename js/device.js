@@ -1152,9 +1152,14 @@ try {
             execShellAndGetOutput,
             exec_command,
             adbDevice,
-            adbTransport
+            adbTransport,
+            connectDevice
         };
     }
+    // 浏览器环境，暴露到全局作用域
+    if (typeof window !== 'undefined') {
+        window.connectDevice = connectDevice;
+    }
 } catch (e) {
-    // 浏览器环境，不需要导出
+    // 忽略错误
 }

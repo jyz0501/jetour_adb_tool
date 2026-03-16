@@ -474,7 +474,7 @@ let disconnect = async () => {
 };
 
 // 使用指定设备建立ADB连接
-let connectWithDevice = async (webusbDevice) => {
+let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
     try {
         logDevice('设备: ' + webusbDevice.name + ' (Serial: ' + webusbDevice.serial + ')');
         
@@ -717,7 +717,7 @@ let connectDevice = async () => {
                                     clearInterval(checkInterval);
                                     logDevice('检测到车机已授权，开始连接...');
                                     // 直接使用设备建立连接
-                                    await connectWithDevice(devices[0]);
+                                    await connectWithDevice(devices[0], adbApi, adbCredentialWeb);
                                 } else if (checkCount >= maxChecks) {
                                     clearInterval(checkInterval);
                                     logDevice('等待授权超时，请手动点击"开始连接"按钮');
@@ -735,7 +735,7 @@ let connectDevice = async () => {
                                 const devices = await manager.getDevices();
                                 if (devices.length > 0) {
                                     logDevice('检测到已授权设备，开始连接...');
-                                    await connectWithDevice(devices[0]);
+                                    await connectWithDevice(devices[0], adbApi, adbCredentialWeb);
                                 } else {
                                     logDevice('未检测到已授权设备，请重新连接');
                                     window.isConnecting = false;
@@ -769,7 +769,7 @@ let connectDevice = async () => {
         
         // 使用已授权设备连接
         logDevice('使用已授权设备连接...');
-        await connectWithDevice(existingDevices[0]);
+        await connectWithDevice(existingDevices[0], adbApi, adbCredentialWeb);
     } catch (error) {
         log('检查浏览器支持失败:', error);
         logDevice('连接失败: ' + (error.message || error.toString()));

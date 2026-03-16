@@ -741,9 +741,8 @@ let checkBrowserSupportAndConnect = async () => {
             return;
         }
         
-        // 调用重新编写的连接函数
-        const browserInfo = getBrowserInfo();
-        logDevice(`您使用的 ${browserInfo.browserName} ${browserInfo.version} 浏览器支持 WebUSB，开始连接设备...`);
+        // 开始连接设备
+        logDevice('开始连接设备...');
         
         // 详细调试
         console.log('点击时检查:');

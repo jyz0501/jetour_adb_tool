@@ -1230,12 +1230,6 @@ if (typeof window !== 'undefined') {
         logDevice('浏览器 UA: ' + ua);
         logDevice('=====================');
         
-        // 初始化设备日志
-        const deviceLogElement = document.getElementById('device-log');
-        if (deviceLogElement) {
-            deviceLogElement.textContent = '[初始化] 设备情况日志已就绪\n';
-        }
-        
         // 初始化设备检测
         initDeviceDetection();
         
@@ -1248,6 +1242,12 @@ if (typeof window !== 'undefined') {
                     const isSupported = checkWebUSBSupport();
                     if (!isSupported || !navigator.usb) {
                         return;
+                    }
+                    
+                    // 初始化设备日志
+                    const deviceLogElement = document.getElementById('device-log');
+                    if (deviceLogElement) {
+                        deviceLogElement.textContent = '正在等待设备连接...';
                     }
                     
                     // 等待库加载

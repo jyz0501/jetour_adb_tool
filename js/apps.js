@@ -145,11 +145,17 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             
             try {
                 await downloadPromise;
-                // 检查文件是否存在
+                // 检查文件是否存在且大小正常（大于50KB）
                 const checkResult = await execShellAndGetOutput('ls -l ' + savePath);
                 if (checkResult.includes('.apk') && !checkResult.includes('No such file')) {
-                    downloadSuccess = true;
-                    break;
+                    // 检查文件大小是否大于50KB（51200字节）
+                    const sizeMatch = checkResult.match(/\s+(\d+)\s+\d{4}-\d{2}-\d{2}/);
+                    if (sizeMatch && parseInt(sizeMatch[1]) > 51200) {
+                        downloadSuccess = true;
+                        break;
+                    } else {
+                        log('文件太小，可能下载不完整');
+                    }
                 }
             } catch (e) {
                 log('下载失败: ' + e.message);

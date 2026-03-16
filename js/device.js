@@ -6,6 +6,7 @@ window.adbDevice = null;
 window.adbTransport = null;
 window.isConnecting = false;
 window.browserSupport = null; // 全局浏览器支持状态
+window.isMobile = null; // 全局设备类型状态
 
 // 获取浏览器名称和版本
 let getBrowserInfo = () => {
@@ -94,52 +95,6 @@ let initWebUSB = async (device) => {
         }
         return false;
     }
-};
-
-// 扫描网络 ADB 设备
-let scanNetworkAdbDevices = async () => {
-    log('开始扫描网络 ADB 设备...');
-    logDevice('开始扫描网络 ADB 设备...');
-    
-    const networkDevices = [];
-    const defaultPort = 5555;
-    
-    try {
-        // 1. 尝试连接本地 5555 端口
-        logDevice('正在检查本地 5555 端口...');
-        networkDevices.push({
-            type: 'Network',
-            name: '本地 ADB 无线调试',
-            host: '127.0.0.1',
-            port: defaultPort,
-            description: '本地无线调试设备'
-        });
-        
-        // 2. 尝试连接常用的 ADB 无线调试地址
-        const commonAddresses = [
-            '192.168.1.1',
-            '192.168.0.1',
-            '192.168.1.100',
-            '192.168.0.100'
-        ];
-        
-        for (const address of commonAddresses) {
-            networkDevices.push({
-                type: 'Network',
-                name: `ADB 无线调试 (${address})`,
-                host: address,
-                port: defaultPort,
-                description: `可能的无线调试设备 at ${address}:${defaultPort}`
-            });
-        }
-        
-        logDevice(`发现 ${networkDevices.length} 个可能的网络 ADB 设备`);
-    } catch (error) {
-        log('网络 ADB 设备扫描失败:', error);
-        logDevice('网络 ADB 设备扫描失败: ' + (error.message || error.toString()));
-    }
-    
-    return networkDevices;
 };
 
 // 扫描 USB 端口设备
@@ -518,203 +473,124 @@ let disconnect = async () => {
     }
 };
 
-// 显示无线设备选择弹窗
-let showWirelessDeviceSelection = (devices) => {
-    return new Promise((resolve, reject) => {
-        // 创建设备选择内容
-        let content = `
-            <div style="max-height: 200px; overflow-y: auto; margin-bottom: 12px;">
-                <h5 style="margin-top: 0; margin-bottom: 8px; font-size: 13px;">发现的无线设备：</h5>
-        `;
-
-        if (devices.length === 0) {
-            content += '<div style="padding: 20px; text-align: center; color: #666; font-size: 12px;">未在列表中发现设备<br>请在下方输入设备IP地址或点击"扫描网络"</div>';
-        } else {
-            devices.forEach((device, index) => {
-                content += `
-                    <div style="padding: 8px; margin: 4px 0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" onclick="selectWirelessDevice(${index})" id="wireless-device-${index}">
-                        <div style="font-weight: bold; font-size: 13px;">${device.name}</div>
-                        <div style="font-size: 11px; color: #666;">${device.host}:${device.port}</div>
-                        <div style="font-size: 11px; color: #999;">${device.description}</div>
-                    </div>
-                `;
-            });
-        }
-
-        content += `
-            </div>
-
-            <div style="margin-bottom: 12px;">
-                <h5 style="margin-top: 0; margin-bottom: 8px; font-size: 13px;">自定义 IP 和端口：</h5>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <input type="text" id="customIp" placeholder="IP 地址" style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" value="192.168.1.100">
-                    <input type="number" id="customPort" placeholder="端口" style="width: 80px; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" value="5555" min="1" max="65535">
-                </div>
-            </div>
-        `;
+// 使用指定设备建立ADB连接
+let connectWithDevice = async (webusbDevice) => {
+    try {
+        logDevice('设备: ' + webusbDevice.name + ' (Serial: ' + webusbDevice.serial + ')');
         
-        // 添加设备选择函数到全局
-        let selectedDeviceIndex = -1;
+        // 使用 Tango ADB 的 API 创建连接
+        logDevice('正在创建 ADB 连接...');
         
-        window.selectWirelessDevice = (index) => {
-            // 清除之前的选择
-            const deviceElements = document.querySelectorAll('[id^="wireless-device-"]');
-            deviceElements.forEach(element => {
-                element.style.border = '1px solid #ddd';
-                element.style.backgroundColor = '';
-            });
-            
-            // 选中当前设备
-            selectedDeviceIndex = index;
-            const selectedElement = document.getElementById(`wireless-device-${index}`);
-            if (selectedElement) {
-                selectedElement.style.border = '2px solid #007bff';
-                selectedElement.style.backgroundColor = '#e3f2fd';
-            }
-        };
+        // 获取所需的类
+        const AdbCredentialStore = adbCredentialWeb.default;
+        const AdbNamespace = adbApi;
+        const Adb = AdbNamespace.Adb;
+        const AdbDaemonTransport = AdbNamespace.AdbDaemonTransport;
         
-        // 添加刷新设备函数到全局
-        window.refreshWirelessDevices = async () => {
+        // 直接使用设备的 connect 方法
+        const connection = await webusbDevice.connect();
+        logDevice('WebUSB 连接已建立');
+        
+        // 创建凭据管理器
+        const credentialStore = new AdbCredentialStore('Jetour ADB Tool');
+        
+        // 使用 AdbDaemonTransport.authenticate 创建 transport
+        logDevice('正在创建 ADB 传输层...');
+        const ADB_DEFAULT_AUTHENTICATORS = adbApi.ADB_DEFAULT_AUTHENTICATORS;
+        
+        // 添加重试机制
+        let transport;
+        let maxRetries = 3;
+        let retryCount = 0;
+        
+        while (retryCount < maxRetries) {
             try {
-                // 显示扫描进度
-                const modalBody = document.querySelector('.custom-modal-body');
-                if (modalBody) {
-                    modalBody.innerHTML = `
-                        <div style="padding: 20px;">
-                            <div style="text-align: center; margin-bottom: 15px;">正在扫描局域网ADB设备...</div>
-                            <div style="width: 100%; background-color: #e9ecef; border-radius: 4px; overflow: hidden;">
-                                <div id="scan-progress-bar" style="width: 0%; height: 20px; background-color: #007bff; transition: width 0.3s;"></div>
-                            </div>
-                            <div id="scan-status" style="text-align: center; margin-top: 10px; font-size: 12px; color: #666;">正在获取本机IP...</div>
-                        </div>
-                    `;
-                }
-
-                logDevice('开始扫描局域网ADB设备...');
-
-                // 通过 WebRTC 获取本机局域网IP
-                const localIP = await getLocalIP();
-                logDevice(`检测到本机IP: ${localIP}`);
-
-                // 解析本机IP的网段
-                let subnet = '192.168.1';
-                if (localIP) {
-                    const parts = localIP.split('.');
-                    if (parts.length === 4) {
-                        subnet = `${parts[0]}.${parts[1]}.${parts[2]}`;
-                    }
-                }
-
-                logDevice(`扫描网段: ${subnet}.x`);
-
-                // 扫描该网段的常用IP
-                const scanTargets = [];
-                // 添加网关
-                scanTargets.push(`${subnet}.1`);
-                // 添加常用设备IP范围
-                for (let i = 2; i <= 20; i++) {
-                    scanTargets.push(`${subnet}.${i}`);
-                }
-                for (let i = 100; i <= 120; i++) {
-                    scanTargets.push(`${subnet}.${i}`);
-                }
-
-                const statusText = document.getElementById('scan-status');
-
-                // 快速扫描：每个地址200ms延迟
-                const scannedDevices = [];
-
-                for (let i = 0; i < scanTargets.length; i++) {
-                    const target = scanTargets[i];
-                    const progress = Math.round(((i + 1) / scanTargets.length) * 100);
-
-                    // 更新进度条
-                    const progressBar = document.getElementById('scan-progress-bar');
-                    const statusText = document.getElementById('scan-status');
-                    if (progressBar) progressBar.style.width = progress + '%';
-                    if (statusText) statusText.textContent = `正在扫描 ${target}:5555... (${progress}%)`;
-
-                    // 模拟延迟（扫描每个地址）
-                    await new Promise(resolve => setTimeout(resolve, 200));
-
-                    // 注意：由于浏览器安全限制，无法真正检测TCP端口
-                    // 这里只扫描局域网范围内的地址，提供常用IP给用户选择
-                }
-
-                // 显示扫描结果提示
-                if (statusText) {
-                    statusText.innerHTML = `扫描完成<br><span style="color: #999;">（网段: ${subnet}.x，浏览器限制无法检测端口，请手动连接）</span>`;
-                }
-
-                await new Promise(resolve => setTimeout(resolve, 500));
-
-                // 清空设备列表，让用户手动输入
-                showWirelessDeviceSelection([]).then(resolve).catch(reject);
+                transport = await AdbDaemonTransport.authenticate({
+                    serial: webusbDevice.serial,
+                    connection: connection,
+                    credentialStore: credentialStore,
+                    authenticators: ADB_DEFAULT_AUTHENTICATORS
+                });
+                logDevice('ADB 传输层已创建');
+                break;
             } catch (error) {
-                logDevice('扫描网络设备失败: ' + (error.message || error.toString()));
-                alert('扫描网络设备失败，请重试');
-            }
-        };
-        
-        // 清理函数
-        function cleanup() {
-            delete window.selectWirelessDevice;
-            delete window.refreshWirelessDevices;
-        }
-        
-        // 使用 showModal 函数显示弹窗
-        showModal('无线设备连接', content, {
-            showCancel: true,
-            cancelText: '取消',
-            confirmText: '连接',
-            callback: function(confirmed) {
-                if (confirmed) {
-                    if (selectedDeviceIndex !== -1) {
-                        // 使用选中的设备
-                        resolve(devices[selectedDeviceIndex]);
-                        cleanup();
-                    } else {
-                        // 使用自定义 IP 和端口
-                        const customIp = document.getElementById('customIp').value;
-                        const customPort = parseInt(document.getElementById('customPort').value);
-                        
-                        if (!customIp || isNaN(customPort)) {
-                            alert('请输入有效的 IP 地址和端口');
-                            // 重新显示弹窗
-                            showWirelessDeviceSelection(devices).then(resolve).catch(reject);
-                        } else {
-                            resolve({
-                                type: 'Network',
-                                name: '自定义 IP 连接',
-                                host: customIp,
-                                port: customPort,
-                                description: '自定义 IP 和端口连接'
-                            });
-                            cleanup();
-                        }
-                    }
+                retryCount++;
+                if (retryCount < maxRetries) {
+                    logDevice(`创建传输层失败，${retryCount}秒后重试...`);
+                    await new Promise(resolve => setTimeout(resolve, 3000));
                 } else {
-                    reject(new Error('User canceled'));
-                    cleanup();
+                    logDevice('创建传输层失败，达到最大重试次数');
+                    throw error;
                 }
             }
-        });
-        
-        // 添加扫描网络按钮到弹窗底部
-        const modalFooter = document.getElementById('modalFooter');
-        if (modalFooter) {
-            // 在取消按钮前添加扫描网络按钮
-            const scanBtn = document.createElement('button');
-            scanBtn.className = 'custom-modal-btn custom-modal-btn-secondary';
-            scanBtn.textContent = '扫描网络';
-            scanBtn.onclick = refreshWirelessDevices;
-            modalFooter.insertBefore(scanBtn, modalFooter.firstChild);
         }
-    });
+        
+        // 使用 new Adb(transport) 创建 ADB 客户端
+        logDevice('正在创建 ADB 客户端...');
+        const adb = new Adb(transport);
+        logDevice('ADB 客户端已创建');
+        
+        // 保存连接对象到全局变量
+        window.adbClient = adb;
+        window.adbDevice = webusbDevice;
+        window.adbTransport = connection;
+        
+        // 获取设备信息
+        logDevice('获取设备信息...');
+        const model = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.model"]);
+        const manufacturer = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.manufacturer"]);
+        const brand = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.brand"]);
+        const device = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.device"]);
+        const productName = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.name"]);
+        const board = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.board"]);
+        const hardware = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.hardware"]);
+        
+        // ADB 连接成功，显示弹窗提示
+        logDevice('===== ADB 连接成功 =====');
+        alert('ADB 连接成功！设备信息：\n品牌: ' + brand.trim() + '\n型号: ' + model.trim() + '\n设备: ' + device.trim());
+        const version = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.version.release"]);
+        const sdk = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.version.sdk"]);
+        const securityPatch = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.version.security_patch"]);
+        const serialno = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.serialno"]);
+        const id = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.id"]);
+        const displayId = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.display.id"]);
+        const diagSn = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "persist.vendor.bosch.cfg.diag.sn"]);
+        const modelName = model.trim();
+        const serialNumber = serialno.trim();
+        const deviceName = device.trim();
+        
+        logDevice('系统版本: ' + version.trim());
+        logDevice('系统版本号: ' + displayId.trim());
+        logDevice('设备序列号: ' + diagSn.trim());
+        
+        setDeviceName('🚗 ' + deviceName + ' | ' + serialNumber);
+        
+        // 开始监控
+        startDeviceMonitoring();
+        
+        // 连接成功，重置连接状态
+        window.isConnecting = false;
+        
+    } catch (e) {
+        logDevice('连接失败: ' + e.message);
+        console.error('ADB connection error:', e);
+        
+        // 针对常见错误提供解决方案
+        if (e.message && (e.message.includes('Unable to claim interface') || e.message.includes('Busy') || e.message.includes('already in used'))) {
+            logDevice('错误原因：USB 接口被其他程序占用');
+            logDevice('解决方案：请刷新页面并重新连接');
+        } else if (e.message && e.message.includes('transferOut')) {
+            logDevice('错误原因：USB 传输错误，可能是连接不稳定');
+            logDevice('建议：检查 USB 线是否牢固，尝试更换 USB 端口');
+        }
+        
+        // 连接失败，重置连接状态
+        window.isConnecting = false;
+    }
 };
 
-// 检查浏览器支持并连接
-let checkBrowserSupportAndConnect = async () => {
+// 连接设备
+let connectDevice = async () => {
     // 防止重复连接
     if (window.adbClient) {
         logDevice('设备已连接，请勿重复点击');
@@ -729,23 +605,11 @@ let checkBrowserSupportAndConnect = async () => {
     
     window.isConnecting = true;
     
-    // 检测设备类型
-    const isMobile = isMobileDevice();
+    // 使用全局设备类型变量
+    const isMobile = window.isMobile;
     logDevice(`当前设备类型: ${isMobile ? '移动端' : 'PC'}`);
     
     try {
-        // 检查浏览器是否支持 WebUSB
-        if (window.browserSupport === null) {
-            window.browserSupport = checkWebUSBSupport();
-        }
-        
-        if (!window.browserSupport || !navigator.usb) {
-            // 不支持，显示 Chrome 下载弹窗
-            showChromeDownloadPopup();
-            window.isConnecting = false;
-            return;
-        }
-        
         // 开始连接设备
         logDevice('开始连接设备...');
         
@@ -852,22 +716,34 @@ let checkBrowserSupportAndConnect = async () => {
                                 if (devices.length > 0) {
                                     clearInterval(checkInterval);
                                     logDevice('检测到车机已授权，开始连接...');
-                                    await checkBrowserSupportAndConnect();
+                                    // 直接使用设备建立连接
+                                    await connectWithDevice(devices[0]);
                                 } else if (checkCount >= maxChecks) {
                                     clearInterval(checkInterval);
                                     logDevice('等待授权超时，请手动点击"开始连接"按钮');
+                                    window.isConnecting = false;
                                 }
                             } catch (e) {
                                 console.log('检查授权状态失败:', e);
                             }
                         }, 1000); // 每秒检查一次
                     } else {
-                        // 移动端，使用原来的延迟方式
+                        // 移动端，延迟后直接使用选择的设备建立连接
                         setTimeout(async () => {
                             try {
-                                await manager.requestDevice();
-                            } catch(e) {}
-                            await checkBrowserSupportAndConnect();
+                                // 获取已授权设备
+                                const devices = await manager.getDevices();
+                                if (devices.length > 0) {
+                                    logDevice('检测到已授权设备，开始连接...');
+                                    await connectWithDevice(devices[0]);
+                                } else {
+                                    logDevice('未检测到已授权设备，请重新连接');
+                                    window.isConnecting = false;
+                                }
+                            } catch(e) {
+                                logDevice('获取设备失败: ' + e.message);
+                                window.isConnecting = false;
+                            }
                         }, 2000);
                     }
                     return;
@@ -892,125 +768,8 @@ let checkBrowserSupportAndConnect = async () => {
         }
         
         // 使用已授权设备连接
-        try {
-            logDevice('使用已授权设备连接...');
-            const webusbDevice = existingDevices[0];
-            logDevice('设备: ' + webusbDevice.name + ' (Serial: ' + webusbDevice.serial + ')');
-            
-            // 使用 Tango ADB 的 API 创建连接
-            logDevice('正在创建 ADB 连接...');
-            
-            // 获取所需的类
-            const AdbCredentialStore = adbCredentialWeb.default;
-            // Adb 是一个命名空间
-            const AdbNamespace = adbApi;
-            const Adb = AdbNamespace.Adb;
-            const AdbDaemonTransport = AdbNamespace.AdbDaemonTransport;
-            console.log('AdbDaemonTransport:', AdbDaemonTransport);
-            console.log('AdbDaemonTransport.authenticate:', AdbDaemonTransport?.authenticate);
-            
-            // 直接使用设备的 connect 方法
-            const connection = await webusbDevice.connect();
-            logDevice('WebUSB 连接已建立');
-            
-            // 创建凭据管理器
-            const credentialStore = new AdbCredentialStore('Jetour ADB Tool');
-            
-            // 使用 AdbDaemonTransport.authenticate 创建 transport
-            logDevice('正在创建 ADB 传输层...');
-            // 使用 ADB_DEFAULT_AUTHENTICATORS
-            const ADB_DEFAULT_AUTHENTICATORS = adbApi.ADB_DEFAULT_AUTHENTICATORS;
-            
-            // 添加重试机制
-            let transport;
-            let maxRetries = 3;
-            let retryCount = 0;
-            
-            while (retryCount < maxRetries) {
-                try {
-                    transport = await AdbDaemonTransport.authenticate({
-                        serial: webusbDevice.serial,
-                        connection: connection,
-                        credentialStore: credentialStore,
-                        authenticators: ADB_DEFAULT_AUTHENTICATORS
-                    });
-                    logDevice('ADB 传输层已创建');
-                    break;
-                } catch (error) {
-                    retryCount++;
-                    if (retryCount < maxRetries) {
-                        logDevice(`创建传输层失败，${retryCount}秒后重试...`);
-                        await new Promise(resolve => setTimeout(resolve, 3000));
-                    } else {
-                        logDevice('创建传输层失败，达到最大重试次数');
-                        throw error;
-                    }
-                }
-            }
-            
-            // 使用 new Adb(transport) 创建 ADB 客户端
-            logDevice('正在创建 ADB 客户端...');
-            const adb = new Adb(transport);
-            logDevice('ADB 客户端已创建');
-            
-            // 保存连接对象到全局变量
-            window.adbClient = adb;
-            window.adbDevice = webusbDevice;
-            window.adbTransport = connection;
-            
-            // 获取设备信息
-            logDevice('获取设备信息...');
-            // 使用 noneProtocol.spawnWaitText
-            const model = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.model"]);
-            const manufacturer = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.manufacturer"]);
-            const brand = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.brand"]);
-            const device = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.device"]);
-            const productName = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.name"]);
-            const board = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.board"]);
-            const hardware = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.hardware"]);
-            
-            // ADB 连接成功，显示弹窗提示
-            logDevice('===== ADB 连接成功 =====');
-            alert('ADB 连接成功！设备信息：\n品牌: ' + brand.trim() + '\n型号: ' + model.trim() + '\n设备: ' + device.trim());
-            const version = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.version.release"]);
-            const sdk = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.version.sdk"]);
-            const securityPatch = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.version.security_patch"]);
-            const serialno = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.serialno"]);
-            const id = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.id"]);
-            const displayId = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.display.id"]);
-            const diagSn = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "persist.vendor.bosch.cfg.diag.sn"]);
-            const modelName = model.trim();
-            const serialNumber = serialno.trim();
-            const deviceName = device.trim();
-            
-            logDevice('系统版本: ' + version.trim());
-            logDevice('系统版本号: ' + displayId.trim());
-            logDevice('设备序列号: ' + diagSn.trim());
-            
-            setDeviceName('🚗 ' + deviceName + ' | ' + serialNumber);
-
-            // 开始监控
-            startDeviceMonitoring();
-            
-            // 连接成功，重置连接状态
-            window.isConnecting = false;
-            
-        } catch (e) {
-            logDevice('连接失败: ' + e.message);
-            console.error('ADB connection error:', e);
-            
-            // 针对常见错误提供解决方案
-            if (e.message && (e.message.includes('Unable to claim interface') || e.message.includes('Busy') || e.message.includes('already in used'))) {
-                logDevice('错误原因：USB 接口被其他程序占用');
-                logDevice('解决方案：请刷新页面并重新连接');
-            } else if (e.message && e.message.includes('transferOut')) {
-                logDevice('错误原因：USB 传输错误，可能是连接不稳定');
-                logDevice('建议：检查 USB 线是否牢固，尝试更换 USB 端口');
-            }
-            
-            // 连接失败，重置连接状态
-            window.isConnecting = false;
-        }
+        logDevice('使用已授权设备连接...');
+        await connectWithDevice(existingDevices[0]);
     } catch (error) {
         log('检查浏览器支持失败:', error);
         logDevice('连接失败: ' + (error.message || error.toString()));
@@ -1018,119 +777,6 @@ let checkBrowserSupportAndConnect = async () => {
         
         // 连接失败，重置连接状态
         window.isConnecting = false;
-    }
-};
-
-// 无线连接
-let wirelessConnect = async () => {
-    try {
-        // 检查浏览器是否支持 WebUSB
-        const isSupported = checkWebUSBSupport();
-        if (!isSupported || !navigator.usb) {
-            // 不支持，显示 Chrome 下载弹窗
-            showChromeDownloadPopup();
-            // 直接返回，不继续执行后续连接逻辑
-            return;
-        }
-        // 支持，直接连接
-        await performWirelessConnect();
-    } catch (error) {
-        log('无线连接失败:', error);
-        logDevice('无线连接失败: ' + (error.message || error.toString()));
-        window.adbDevice = null;
-        window.adbTransport = null;
-
-        if (error.message && error.message.indexOf('User canceled') != -1) {
-            // 用户取消连接，不显示错误
-            logDevice('用户取消连接');
-        } else {
-            alert('无线连接失败，请检查设备状态和网络连接。');
-        }
-    }
-};
-
-// 执行无线连接操作
-let performWirelessConnect = async () => {
-    try {
-        clearDeviceLog();
-        logDevice('开始无线 ADB 连接...');
-
-        // 说明：浏览器无法直接建立TCP连接
-        // 此功能仅用于通过USB连接设备后开启无线调试端口
-        // 开启后的端口可供命令行adb等工具使用
-
-        logDevice('注意：');
-        logDevice('1. 浏览器无法直接连接TCP端口');
-        logDevice('2. 无线ADB使用方式：');
-        logDevice('   - 先使用USB连接设备');
-        logDevice('   - 点击"开始连接"连接设备');
-        logDevice('   - 使用系统工具中的"无线ADB"功能开启端口');
-        logDevice('   - 之后可使用命令行 adb connect <IP>:5555 连接');
-
-        const networkDevices = await scanNetworkAdbDevices();
-
-        // 显示无线设备选择弹窗
-        logDevice('显示无线设备选择弹窗...');
-        const selectedDevice = await showWirelessDeviceSelection(networkDevices);
-
-        if (!selectedDevice) {
-            throw new Error('未选择设备');
-        }
-
-        const host = selectedDevice.host;
-        const port = selectedDevice.port;
-
-        logDevice(`尝试连接到 ${host}:${port}...`);
-
-        try {
-            // 创建 TCP 传输（会抛出浏览器不支持TCP的错误）
-            window.adbTransport = new TcpTransport(host, port);
-
-            // 打开传输连接
-            await window.adbTransport.open();
-
-            window.adbDevice = null;
-
-            // 创建 ADB 设备并连接
-            logDevice('正在创建 ADB 设备...');
-            window.adbDevice = new AdbDevice(window.adbTransport);
-            await window.adbDevice.connect("host::web", () => {
-                alert('请在您的设备上允许 ADB 调试');
-                logDevice('请在您的设备上允许 ADB 调试');
-            });
-
-            if (window.adbDevice && window.adbDevice.connected) {
-                let deviceName = window.adbDevice.banner || '网络设备';
-                let serialNumber = window.adbDevice.serial || '未知';
-                setDeviceName('🚗 ' + deviceName + ' | ' + serialNumber);
-                console.log('网络设备连接成功:', window.adbDevice);
-                logDevice('网络设备连接成功: ' + deviceName);
-
-                let toast = document.getElementById('success-toast');
-                toast.style.visibility = 'visible';
-                setTimeout(function() {
-                    toast.style.visibility = 'hidden';
-                }, 3000);
-
-                // 开始持续检测设备状态
-                startDeviceMonitoring();
-            }
-        } catch (error) {
-            log('网络 ADB 设备连接失败:', error);
-            logDevice('网络 ADB 设备连接失败: ' + (error.message || error.toString()));
-
-            // 提供更友好的错误提示
-            alert('无法直接连接到网络ADB设备。\n\n原因：浏览器不支持TCP连接。\n\n解决方案：\n1. 使用USB开始连接\n2. 通过USB连接后使用"无线ADB"功能开启端口（供其他工具使用）');
-
-            window.adbDevice = null;
-            window.adbTransport = null;
-        }
-    } catch (error) {
-        log('执行无线连接失败:', error);
-        if (error.message !== 'User canceled') {
-            logDevice('执行无线连接失败: ' + (error.message || error.toString()));
-        }
-        throw error;
     }
 };
 
@@ -1175,50 +821,46 @@ let setDeviceName = async (name) => {
 // 初始化设备检测
 let initDeviceDetection = async () => {
     try {
-        // 检测浏览器支持
-        if (window.browserSupport === null) {
-            window.browserSupport = checkWebUSBSupport();
+        if (!navigator.usb) {
+            logDevice('浏览器不支持 WebUSB');
+            return;
         }
         
-        if (window.browserSupport && navigator.usb) {
-            const browserInfo = getBrowserInfo();
-            logDevice(`您使用的 ${browserInfo.browserName} 浏览器支持 WebUSB`);
-            const webusbDevices = await navigator.usb.getDevices();
-            if (webusbDevices.length > 0) {
-                logDevice(`发现 ${webusbDevices.length} 个已连接的 WebUSB 设备`);
-                webusbDevices.forEach((device, index) => {
-                    logDevice(`设备 ${index + 1}: ${device.productName || 'USB设备'} (VID: ${device.vendorId}, PID: ${device.productId})`);
-                });
-            } else {
-                logDevice('未发现已连接的 WebUSB 设备');
-            }
-            
-            // 监听设备连接事件
-            navigator.usb.addEventListener('connect', async (event) => {
-                logDevice('===== USB 设备已连接 =====');
-                logDevice(`设备: ${event.device.productName || 'USB设备'} (VID: ${event.device.vendorId}, PID: ${event.device.productId})`);
-                
-                // 自动连接设备
-                logDevice('设备已连接，自动连接中...');
-                setTimeout(async () => {
-                    // 检查是否已经在连接中
-                    if (!window.isConnecting) {
-                        await checkBrowserSupportAndConnect();
-                    } else {
-                        logDevice('正在连接中，跳过自动连接');
-                    }
-                }, 3000);
+        const browserInfo = getBrowserInfo();
+        logDevice(`您使用的 ${browserInfo.browserName} 浏览器支持 WebUSB`);
+        const webusbDevices = await navigator.usb.getDevices();
+        if (webusbDevices.length > 0) {
+            logDevice(`发现 ${webusbDevices.length} 个已连接的 WebUSB 设备`);
+            webusbDevices.forEach((device, index) => {
+                logDevice(`设备 ${index + 1}: ${device.productName || 'USB设备'} (VID: ${device.vendorId}, PID: ${device.productId})`);
             });
-            
-            // 监听设备断开事件
-            navigator.usb.addEventListener('disconnect', (event) => {
-                logDevice('===== USB 设备已断开 =====');
-                logDevice(`设备: ${event.device.productName || 'USB设备'} (VID: ${event.device.vendorId}, PID: ${event.device.productId})`);
-            });
-            
         } else {
-            logDevice('浏览器不支持 WebUSB');
+            logDevice('未发现已连接的 WebUSB 设备');
         }
+        
+        // 监听设备连接事件
+        navigator.usb.addEventListener('connect', async (event) => {
+            logDevice('===== USB 设备已连接 =====');
+            logDevice(`设备: ${event.device.productName || 'USB设备'} (VID: ${event.device.vendorId}, PID: ${event.device.productId})`);
+            
+            // 自动连接设备
+            logDevice('设备已连接，自动连接中...');
+            setTimeout(async () => {
+                // 检查是否已经在连接中
+                if (!window.isConnecting) {
+                    await connectDevice();
+                } else {
+                    logDevice('正在连接中，跳过自动连接');
+                }
+            }, 3000);
+        });
+        
+        // 监听设备断开事件
+        navigator.usb.addEventListener('disconnect', (event) => {
+            logDevice('===== USB 设备已断开 =====');
+            logDevice(`设备: ${event.device.productName || 'USB设备'} (VID: ${event.device.vendorId}, PID: ${event.device.productId})`);
+        });
+        
     } catch (error) {
         logDevice('设备检测启动失败: ' + (error.message || error.toString()));
     }
@@ -1227,7 +869,18 @@ let initDeviceDetection = async () => {
 // 页面加载完成后初始化
 if (typeof window !== 'undefined') {
     window.addEventListener('DOMContentLoaded', async () => {
-        // 初始化设备检测
+        // 检测设备类型并存储到全局变量
+        window.isMobile = isMobileDevice();
+        console.log(`设备类型: ${window.isMobile ? '移动端' : 'PC'}`);
+        
+        // 检测浏览器支持并存储到全局变量
+        window.browserSupport = checkWebUSBSupport();
+        console.log(`浏览器支持 WebUSB: ${window.browserSupport}`);
+        
+        if (!window.browserSupport) {
+            logDevice('浏览器不支持 WebUSB，请使用 Chrome 或 Edge 浏览器');
+            return;
+        }
         
         // 初始化设备检测
         initDeviceDetection();
@@ -1236,15 +889,6 @@ if (typeof window !== 'undefined') {
         logDevice('检查已授权设备...');
         setTimeout(async () => {
             try {
-                // 检查浏览器支持
-                if (window.browserSupport === null) {
-                    window.browserSupport = checkWebUSBSupport();
-                }
-                
-                if (!window.browserSupport || !navigator.usb) {
-                    return;
-                }
-                
                 // 设置设备日志
                 const deviceLogElement = document.getElementById('device-log');
                 if (deviceLogElement) {
@@ -1288,7 +932,7 @@ if (typeof window !== 'undefined') {
                     logDevice(`发现 ${existingDevices.length} 个已授权设备，尝试自动连接...`);
                     // 检查是否已经在连接中
                     if (!window.isConnecting) {
-                        await checkBrowserSupportAndConnect();
+                        await connectDevice();
                     } else {
                         logDevice('正在连接中，跳过自动连接');
                     }

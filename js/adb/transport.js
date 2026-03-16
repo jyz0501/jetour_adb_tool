@@ -268,92 +268,16 @@ class WebUsbTransport extends AdbTransport {
     }
 }
 
-// TCP 传输实现（用于无线调试）
-// 注意：浏览器不支持直接TCP连接
-// 此类仅保留用于兼容性，实际使用中通过USB连接设备后，使用 AdbDevice.tcpip() 开启无线调试端口
-// 开启后的端口可供其他工具（如命令行 adb）使用，但浏览器无法直接连接
-class TcpTransport extends AdbTransport {
-    constructor(host, port) {
-        super();
-        this.host = host;
-        this.port = port;
-    }
-
-    async open() {
-        // 浏览器无法直接建立TCP连接
-        throw new Error('浏览器不支持直接TCP连接。\n\n如需使用无线ADB：\n1. 先使用USB连接设备\n2. 通过"开始连接"连接设备\n3. 使用系统工具中的"无线ADB"功能开启端口\n4. 之后可使用命令行 adb connect <IP>:5555 连接');
-    }
-
-    async close() {
-        if (this.writer) {
-            try {
-                await this.writer.close();
-            } catch (error) {
-                console.error('Error closing writer:', error);
-            }
-        }
-        if (this.reader) {
-            try {
-                await this.reader.cancel();
-            } catch (error) {
-                console.error('Error canceling reader:', error);
-            }
-        }
-        if (this.ws) {
-            this.ws.close();
-        }
-        console.log('TCP transport closed');
-    }
-
-    async send(data) {
-        if (!this.writer) {
-            throw new Error('Transport not initialized');
-        }
-
-        try {
-            await this.writer.write(data);
-        } catch (error) {
-            console.error('Error sending data:', error);
-            throw error;
-        }
-    }
-
-    async receive(length) {
-        if (!this.reader) {
-            throw new Error('Transport not initialized');
-        }
-
-        try {
-            const { value, done } = await this.reader.read();
-            if (done) {
-                throw new Error('Connection closed');
-            }
-            return value.buffer;
-        } catch (error) {
-            console.error('Error receiving data:', error);
-            throw error;
-        }
-    }
-
-    async reset() {
-        // TCP 传输重置
-        await this.close();
-        await this.open();
-    }
-}
-
 // 导出传输类
 try {
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = {
             AdbTransport,
-            WebUsbTransport,
-            TcpTransport
+            WebUsbTransport
         };
     }
 } catch (e) {
     // 浏览器环境
     window.AdbTransport = AdbTransport;
     window.WebUsbTransport = WebUsbTransport;
-    window.TcpTransport = TcpTransport;
 }

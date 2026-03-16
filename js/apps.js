@@ -130,12 +130,7 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             
             log(`尝试下载 (${attempt}/2)...`);
             
-            // 使用curl下载，10秒超时，添加快速失败参数
-            // --connect-timeout 5: 连接超时5秒
-            // --max-time 10: 总超时10秒
-            // --retry 0: 不重试，快速失败
-            // 使用非静默模式显示下载进度
-            const downloadPromise = execShellAndGetOutput('curl -L --connect-timeout 5 --max-time 10 --retry 0 -o ' + savePath + ' "' + currentUrl + '"');
+            const downloadPromise = execShellAndGetOutput('curl -L --connect-timeout 15 --max-time 30 --retry 2 --insecure --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" -o ' + savePath + ' "' + currentUrl + '"');
             
             try {
                 await downloadPromise;
@@ -197,8 +192,8 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
                 '1. 车机网络连接问题\n' +
                 '2. 下载链接暂时不可用\n' +
                 '3. 下载超时（30秒）\n\n' +
-                '点击「确定」打开下载链接手动下载，\n' +
-                '点击「取消」使用「自选APK」功能安装。'
+                '点击「确定」打开网站手动下载，\n' +
+                '点击「取消」选择手机内的安装包安装。'
             );
             
             if (userChoice) {

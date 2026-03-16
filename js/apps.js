@@ -223,7 +223,7 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
 // 沙发管家
 let sfgj = async () => {
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/沙发管家4.9.54.apk';
-    const savePath = '/storage/emulated/0/Download/sfgj.apk';
+    const savePath = '/storage/self/primary/Download/sfgj.apk';
     await downloadToPhoneAndPush('沙发管家', downloadUrl, savePath, null, 'com.shafa.markethd');
 };
 
@@ -231,7 +231,7 @@ let sfgj = async () => {
 let yygj = async () => {
     const downloadUrl = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%8E%86%E5%8F%B2%E7%89%88%E6%9C%AC/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6v1.8.3%28%E6%AD%A3%E5%BC%8F%E7%89%88%29%E5%85%AC%E7%AD%BE%E7%89%88.apk';
     const backupUrl = 'http://a14472357.328657.xyz/a14472357/应用管家1.8.3.apk';
-    const savePath = '/storage/emulated/0/Download/yygj.apk';
+    const savePath = '/storage/self/primary/Download/yygj.apk';
     await downloadToPhoneAndPush('应用管家', downloadUrl, savePath, backupUrl, 'com.vjoycar.gj');
 };
 
@@ -240,7 +240,7 @@ let yygj = async () => {
 // 哨兵监控
 let sentry = async () => {
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/哨兵监控v1.1.8.apk';
-    const savePath = '/storage/emulated/0/Download/sentry.apk';
+    const savePath = '/storage/self/primary/Download/sentry.apk';
     await downloadToPhoneAndPush('哨兵监控', downloadUrl, savePath, null);
 };
 
@@ -248,14 +248,14 @@ let sentry = async () => {
 let hstrip = async () => {
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/Gesture_1.6.4.apk';
     const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/小横条_2.0.0.apk';
-    const savePath = '/storage/emulated/0/Download/hstrip.apk';
+    const savePath = '/storage/self/primary/Download/hstrip.apk';
     await downloadToPhoneAndPush('小横条', downloadUrl, savePath, backupUrl);
 };
 
 // 易控车机PIP
 let ykpip = async () => {
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/易控车机版V1.6.10_PIP.apk';
-    const savePath = '/storage/emulated/0/Download/ykpip.apk';
+    const savePath = '/storage/self/primary/Download/ykpip.apk';
     await downloadToPhoneAndPush('易控车机PIP', downloadUrl, savePath, null);
 };
 
@@ -263,7 +263,7 @@ let ykpip = async () => {
 // 侧边栏
 let cdb = async () => {
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/侧边栏_1.0.apk';
-    const savePath = '/storage/emulated/0/Download/cdb.apk';
+    const savePath = '/storage/self/primary/Download/cdb.apk';
     await downloadToPhoneAndPush('侧边栏', downloadUrl, savePath, null, 'com.hzsoft.sidebar');
 };
 
@@ -271,7 +271,7 @@ let cdb = async () => {
 let bdui = async () => {
     const downloadUrl = 'https://file.vju.cc/%E5%B8%83%E4%B8%81UI%E6%A1%8C%E9%9D%A2/%E5%B8%83%E4%B8%81UI_2.2.3.apk';
     const backupUrl = 'http://a14472357.328657.xyz/a14472357/布丁UI_2.2.3.apk';
-    const savePath = '/storage/emulated/0/Download/bdui.apk';
+    const savePath = '/storage/self/primary/Download/bdui.apk';
     await downloadToPhoneAndPush('布丁UI', downloadUrl, savePath, backupUrl, 'com.buding.ui');
 };
 
@@ -471,7 +471,7 @@ let installApkFile = async () => {
     try {
         for (let i = 0; i < validFiles.length; i++) {
             const file = validFiles[i];
-            const remotePath = `/storage/emulated/0/Download/upload_${Date.now()}_${i}.apk`;
+            const remotePath = `/storage/self/primary/Download/upload_${Date.now()}_${i}.apk`;
             log(`[${i + 1}/${validFiles.length}] 推送: ${file.name}`);
             await push(remotePath, file);
             // 安装 APK（-r 表示覆盖安装，-g 自动授予权限）

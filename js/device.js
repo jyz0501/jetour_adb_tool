@@ -63,7 +63,7 @@ let initWebUSB = async (device) => {
     clear();
     try {
         // 使用新的 WebUSB 传输
-        console.log('正在初始化 WebUSB 设备...');
+        console.log('正在启动 WebUSB 设备...');
 
         if (device) {
             // 使用用户已选择的设备
@@ -74,10 +74,10 @@ let initWebUSB = async (device) => {
         }
 
         await window.adbTransport.open();
-        console.log('WebUSB 传输初始化成功');
+        console.log('WebUSB 传输启动成功');
         return true;
     } catch (error) {
-        console.log('WebUSB 初始化失败:', error);
+        console.log('WebUSB 启动失败:', error);
         if (error.message) {
             if (error.message.indexOf('No device') != -1 || error.name === 'NotFoundError') {
                 console.log('用户取消选择设备');
@@ -87,10 +87,10 @@ let initWebUSB = async (device) => {
             } else if (error.message.indexOf('Unable to claim interface') != -1) {
                 alert('设备接口被其他程序占用，请尝试以下步骤：\n\n1. 关闭电脑上运行的其他 ADB 工具（如 Android Studio、ADB Helper）\n2. 在终端运行 "adb kill-server" 断开所有连接\n3. 重新插拔 USB 线\n4. 刷新页面后重新连接');
             } else {
-                alert('初始化 WebUSB 失败: ' + error.message);
+                alert('启动 WebUSB 失败: ' + error.message);
             }
         } else {
-            alert('初始化 WebUSB 失败，请检查浏览器版本。');
+            alert('启动 WebUSB 失败，请检查浏览器版本。');
         }
         return false;
     }
@@ -414,7 +414,7 @@ let connect = async () => {
             
             const initialized = await initWebUSB(selectedDevice.device);
             if (!initialized || !window.adbTransport) {
-                logDevice('WebUSB 初始化失败');
+                logDevice('WebUSB 启动失败');
                 return;
             }
             
@@ -1223,7 +1223,7 @@ let initDeviceDetection = async () => {
             logDevice('浏览器不支持 WebUSB');
         }
     } catch (error) {
-        logDevice('设备检测初始化失败: ' + (error.message || error.toString()));
+        logDevice('设备检测启动失败: ' + (error.message || error.toString()));
     }
 };
 
@@ -1249,7 +1249,7 @@ if (typeof window !== 'undefined') {
                         return;
                     }
                     
-                    // 初始化设备日志
+                    // 设置设备日志
                     const deviceLogElement = document.getElementById('device-log');
                     if (deviceLogElement) {
                         deviceLogElement.textContent = '正在等待设备连接...';

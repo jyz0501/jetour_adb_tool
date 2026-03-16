@@ -117,7 +117,7 @@
         
             <!-- 有线连接 -->
             <div style="margin: 10px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.271.0</span></h3>
+                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.273.0</span></h3>
                 <div class="warning" id="usb-warning">
                     注意！您的浏览器不支持WebUSB。请在Chrome或Edge浏览器中打开。
                 </div>
@@ -326,6 +326,123 @@
         
         // 页面加载完成后更新版本号
         updateVersion();
+    </script>
+
+    <!-- 测试容器：下载功能测试（独立区域，测试完成后可删除） -->
+    <div style="border: 2px dashed #ffc107; background-color: #fffbeb; padding: 15px; margin: 20px; border-radius: 8px;">
+        <h3 style="margin-top: 0; color: #856404; font-size: 16px;">🧪 下载功能测试（测试用）</h3>
+        <div style="background-color: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 8px; border-radius: 4px; margin-bottom: 10px; font-size: 12px;">
+            <strong>注意：</strong>此区域用于测试下载功能，与主程序独立。测试完成后可删除此容器。
+        </div>
+        
+        <div style="margin-bottom: 10px;">
+            <input type="text" id="testDownloadUrl" placeholder="输入下载链接" style="width: 100%; padding: 8px; margin-bottom: 5px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+            <input type="text" id="testSavePath" placeholder="保存路径 (默认: /data/local/tmp/test.apk)" value="/data/local/tmp/test.apk" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+        </div>
+        
+        <div style="margin-bottom: 10px;">
+            <button onclick="testDownload('basic')" style="background-color: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 2px;">基础参数测试</button>
+            <button onclick="testDownload('optimized')" style="background-color: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 2px;">优化参数测试</button>
+            <button onclick="testDownload('verbose')" style="background-color: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 2px;">详细模式</button>
+            <button onclick="clearTestLog()" style="background-color: #6c757d; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 2px;">清空日志</button>
+        </div>
+        
+        <div style="margin-bottom: 10px;">
+            <button onclick="testNetwork('ping')" style="background-color: #6c757d; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; margin: 2px; font-size: 12px;">Ping测试</button>
+            <button onclick="testNetwork('dns')" style="background-color: #6c757d; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; margin: 2px; font-size: 12px;">DNS解析</button>
+            <button onclick="testNetwork('curl')" style="background-color: #6c757d; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; margin: 2px; font-size: 12px;">curl版本</button>
+            <button onclick="checkTestFile()" style="background-color: #6c757d; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; margin: 2px; font-size: 12px;">检查文件</button>
+            <button onclick="deleteTestFile()" style="background-color: #dc3545; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; margin: 2px; font-size: 12px;">删除文件</button>
+        </div>
+        
+        <div id="test-log" style="background-color: #1e1e1e; color: #d4d4d4; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 11px; max-height: 150px; overflow-y: auto; white-space: pre-wrap;">测试日志将显示在这里...</div>
+    </div>
+
+    <script>
+        // ==================== 测试功能（独立代码，测试完成后可删除） ====================
+        
+        function clearTestLog() {
+            document.getElementById('test-log').textContent = '测试日志已清空...';
+        }
+
+        function testLog(message) {
+            const logElement = document.getElementById('test-log');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.textContent += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        // 测试下载
+        async function testDownload(type) {
+            const url = document.getElementById('testDownloadUrl').value;
+            const path = document.getElementById('testSavePath').value || '/data/local/tmp/test.apk';
+            
+            if (!url) {
+                testLog('请输入下载链接');
+                return;
+            }
+
+            testLog(`=== 开始下载测试 [${type}] ===`);
+            testLog(`链接: ${url}`);
+            testLog(`保存路径: ${path}`);
+
+            let curlCmd = '';
+            switch(type) {
+                case 'basic':
+                    curlCmd = `curl -L --connect-timeout 5 --max-time 10 --retry 0 -o ${path} "${url}"`;
+                    testLog('使用基础参数');
+                    break;
+                case 'optimized':
+                    curlCmd = `curl -L --connect-timeout 15 --max-time 30 --retry 2 --insecure --user-agent "Mozilla/5.0" -o ${path} "${url}"`;
+                    testLog('使用优化参数');
+                    break;
+                case 'verbose':
+                    curlCmd = `curl -v -L --connect-timeout 15 --max-time 30 -o ${path} "${url}" 2>&1`;
+                    testLog('使用详细模式');
+                    break;
+            }
+            
+            testLog(`命令: ${curlCmd}`);
+            testLog('提示：此测试区域仅显示命令，实际执行需要连接ADB设备');
+        }
+
+        // 网络测试
+        function testNetwork(type) {
+            const host = document.getElementById('testDownloadUrl').value || 'file.vju.cc';
+            
+            switch(type) {
+                case 'ping':
+                    testLog(`=== Ping测试: ${host} ===`);
+                    testLog(`命令: ping -c 3 ${host}`);
+                    break;
+                case 'dns':
+                    testLog(`=== DNS解析: ${host} ===`);
+                    testLog(`命令: nslookup ${host}`);
+                    break;
+                case 'curl':
+                    testLog('=== curl版本 ===');
+                    testLog('命令: curl --version');
+                    break;
+            }
+            testLog('提示：此测试区域仅显示命令，实际执行需要连接ADB设备');
+        }
+
+        // 文件检查
+        function checkTestFile() {
+            const path = document.getElementById('testSavePath').value || '/data/local/tmp/test.apk';
+            testLog(`=== 检查文件: ${path} ===`);
+            testLog(`命令: ls -lh ${path}`);
+            testLog('提示：此测试区域仅显示命令，实际执行需要连接ADB设备');
+        }
+
+        function deleteTestFile() {
+            const path = document.getElementById('testSavePath').value || '/data/local/tmp/test.apk';
+            if (confirm(`确定要删除 ${path} 吗？`)) {
+                testLog(`=== 删除文件: ${path} ===`);
+                testLog(`命令: rm -f ${path}`);
+                testLog('提示：此测试区域仅显示命令，实际执行需要连接ADB设备');
+            }
+        }
     </script>
     
     <div style="text-align: center; margin-top: 30px; margin-bottom: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 8px;">

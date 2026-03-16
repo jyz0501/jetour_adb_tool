@@ -107,6 +107,12 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
         return;
     }
     
+    // 检查是否有 ADB 客户端
+    if (!window.adbClient) {
+        alert('未连接到设备，请先点击"开始连接"按钮连接设备');
+        return;
+    }
+    
     clear();
     showProgress(true);
     log('正在从车机下载 ' + appName + '...\n');
@@ -135,7 +141,7 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             
             log(`尝试下载 (${attempt}/2)...`);
             
-            const downloadPromise = execShellAndGetOutput('curl -L --connect-timeout 15 --max-time 30 --retry 2 --insecure --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" -o ' + savePath + ' "' + currentUrl + '"');
+            const downloadPromise = execShellAndGetOutput('curl -L --connect-timeout 30 --max-time 60 --retry 3 --insecure --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" -o ' + savePath + ' "' + currentUrl + '"');
             
             try {
                 await downloadPromise;

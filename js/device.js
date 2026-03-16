@@ -1192,25 +1192,16 @@ let initDeviceDetection = async () => {
                 logDevice('===== USB 设备已连接 =====');
                 logDevice(`设备: ${event.device.productName || 'USB设备'} (VID: ${event.device.vendorId}, PID: ${event.device.productId})`);
                 
-                // 检测设备类型
-                const isMobile = isMobileDevice();
-                logDevice(`检测到${isMobile ? '移动端' : 'PC'}设备连接`);
-                
-                if (isMobile) {
-                    logDevice('移动端设备，不自动连接，请手动点击"开始连接"按钮');
-                } else {
-                    logDevice('PC设备，车机允许USB调试后将自动连接');
-                    logDevice('请在车机上点击"允许USB调试"');
-                    // 延迟15秒让用户有时间点击允许，然后自动连接
-                    setTimeout(async () => {
-                        // 检查是否已经在连接中
-                        if (!window.isConnecting) {
-                            await checkBrowserSupportAndConnect();
-                        } else {
-                            logDevice('正在连接中，跳过自动连接');
-                        }
-                    }, 15000);
-                }
+                // 自动连接设备
+                logDevice('设备已连接，自动连接中...');
+                setTimeout(async () => {
+                    // 检查是否已经在连接中
+                    if (!window.isConnecting) {
+                        await checkBrowserSupportAndConnect();
+                    } else {
+                        logDevice('正在连接中，跳过自动连接');
+                    }
+                }, 3000);
             });
             
             // 监听设备断开事件
@@ -1235,75 +1226,73 @@ if (typeof window !== 'undefined') {
         // 初始化设备检测
         initDeviceDetection();
         
-        // PC端检查已授权设备并自动连接
-        if (!isMobileDevice()) {
-            logDevice('PC端，检查已授权设备...');
-            setTimeout(async () => {
-                try {
-                    // 检查浏览器支持
-                    if (window.browserSupport === null) {
-                        window.browserSupport = checkWebUSBSupport();
-                    }
-                    
-                    if (!window.browserSupport || !navigator.usb) {
-                        return;
-                    }
-                    
-                    // 设置设备日志
-                    const deviceLogElement = document.getElementById('device-log');
-                    if (deviceLogElement) {
-                        deviceLogElement.textContent = '正在等待设备连接...';
-                    }
-                    
-                    // 等待库加载
-                    let attempts = 0;
-                    while (!window.Adb && !window.TangoADB && attempts < 50) {
-                        await new Promise(r => setTimeout(r, 100));
-                        attempts++;
-                    }
-                    
-                    if (!window.Adb && !window.TangoADB) {
-                        logDevice('ADB库未加载');
-                        return;
-                    }
-                    
-                    // 获取API
-                    let adbDaemonWebUsb;
-                    if (window.TangoADB) {
-                        adbDaemonWebUsb = window.TangoADB.AdbDaemonWebUsb;
-                    } else if (window.Adb) {
-                        adbDaemonWebUsb = window.AdbDaemonWebUsb;
-                    }
-                    
-                    if (!adbDaemonWebUsb) {
-                        return;
-                    }
-                    
-                    const DeviceManagerClass = adbDaemonWebUsb.AdbDaemonWebUsbDeviceManager;
-                    const manager = DeviceManagerClass.BROWSER;
-                    
-                    if (!manager) {
-                        return;
-                    }
-                    
-                    // 检查已授权设备
-                    const existingDevices = await manager.getDevices();
-                    if (existingDevices.length > 0) {
-                        logDevice(`发现 ${existingDevices.length} 个已授权设备，尝试自动连接...`);
-                        // 检查是否已经在连接中
-                        if (!window.isConnecting) {
-                            await checkBrowserSupportAndConnect();
-                        } else {
-                            logDevice('正在连接中，跳过自动连接');
-                        }
-                    } else {
-                        logDevice('没有已授权设备');
-                    }
-                } catch (e) {
-                    console.log('检查已授权设备失败:', e);
+        // 检查已授权设备并自动连接
+        logDevice('检查已授权设备...');
+        setTimeout(async () => {
+            try {
+                // 检查浏览器支持
+                if (window.browserSupport === null) {
+                    window.browserSupport = checkWebUSBSupport();
                 }
-            }, 3000); // 延迟3秒，等待页面完全加载
-        }
+                
+                if (!window.browserSupport || !navigator.usb) {
+                    return;
+                }
+                
+                // 设置设备日志
+                const deviceLogElement = document.getElementById('device-log');
+                if (deviceLogElement) {
+                    deviceLogElement.textContent = '正在等待设备连接...';
+                }
+                
+                // 等待库加载
+                let attempts = 0;
+                while (!window.Adb && !window.TangoADB && attempts < 50) {
+                    await new Promise(r => setTimeout(r, 100));
+                    attempts++;
+                }
+                
+                if (!window.Adb && !window.TangoADB) {
+                    logDevice('ADB库未加载');
+                    return;
+                }
+                
+                // 获取API
+                let adbDaemonWebUsb;
+                if (window.TangoADB) {
+                    adbDaemonWebUsb = window.TangoADB.AdbDaemonWebUsb;
+                } else if (window.Adb) {
+                    adbDaemonWebUsb = window.AdbDaemonWebUsb;
+                }
+                
+                if (!adbDaemonWebUsb) {
+                    return;
+                }
+                
+                const DeviceManagerClass = adbDaemonWebUsb.AdbDaemonWebUsbDeviceManager;
+                const manager = DeviceManagerClass.BROWSER;
+                
+                if (!manager) {
+                    return;
+                }
+                
+                // 检查已授权设备
+                const existingDevices = await manager.getDevices();
+                if (existingDevices.length > 0) {
+                    logDevice(`发现 ${existingDevices.length} 个已授权设备，尝试自动连接...`);
+                    // 检查是否已经在连接中
+                    if (!window.isConnecting) {
+                        await checkBrowserSupportAndConnect();
+                    } else {
+                        logDevice('正在连接中，跳过自动连接');
+                    }
+                } else {
+                    logDevice('没有已授权设备');
+                }
+            } catch (e) {
+                console.log('检查已授权设备失败:', e);
+            }
+        }, 3000); // 延迟3秒，等待页面完全加载
     });
 }
 

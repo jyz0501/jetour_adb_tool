@@ -108,7 +108,7 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
     }
     
     // 检查ADB连接状态
-    if (!window.adbClient || !window.adbClient.connected) {
+    if (!window.adbClient) {
         alert('请先建立ADB连接，然后再安装应用');
         return;
     }
@@ -468,7 +468,7 @@ let installApkFile = async () => {
     }
     
     // 检查ADB连接状态
-    if (!window.adbClient || !window.adbClient.connected) {
+    if (!window.adbClient) {
         alert('请先建立ADB连接，然后再安装APK文件');
         return;
     }

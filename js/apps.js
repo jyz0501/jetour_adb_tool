@@ -181,13 +181,6 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
                     setTimeout(async () => {
                         log('正在启动 ' + appName + '...');
                         await execShellAndGetOutput('monkey -p ' + packageName + ' -c android.intent.category.LAUNCHER 1');
-                        
-                        // 启用无线ADB连接
-                        log('正在启用无线ADB连接...');
-                        await execShellAndGetOutput('setprop service.adb.tcp.port 5555');
-                        await execShellAndGetOutput('stop adbd');
-                        await execShellAndGetOutput('start adbd');
-                        log('无线ADB已启用，端口：5555');
                     }, 1000);
                 }
             } else {

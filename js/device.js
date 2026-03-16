@@ -5,6 +5,7 @@
 window.adbDevice = null;
 window.adbTransport = null;
 window.isConnecting = false;
+window.browserSupport = null; // 全局浏览器支持状态
 
 // 获取浏览器名称和版本
 let getBrowserInfo = () => {
@@ -734,8 +735,11 @@ let checkBrowserSupportAndConnect = async () => {
     
     try {
         // 检查浏览器是否支持 WebUSB
-        const isSupported = checkWebUSBSupport();
-        if (!isSupported || !navigator.usb) {
+        if (window.browserSupport === null) {
+            window.browserSupport = checkWebUSBSupport();
+        }
+        
+        if (!window.browserSupport || !navigator.usb) {
             // 不支持，显示 Chrome 下载弹窗
             showChromeDownloadPopup();
             return;
@@ -1166,8 +1170,11 @@ let setDeviceName = async (name) => {
 let initDeviceDetection = async () => {
     try {
         // 检测浏览器支持
-        const isSupported = checkWebUSBSupport();
-        if (isSupported && navigator.usb) {
+        if (window.browserSupport === null) {
+            window.browserSupport = checkWebUSBSupport();
+        }
+        
+        if (window.browserSupport && navigator.usb) {
             const browserInfo = getBrowserInfo();
             logDevice(`您使用的 ${browserInfo.browserName} 浏览器支持 WebUSB`);
             const webusbDevices = await navigator.usb.getDevices();
@@ -1238,8 +1245,11 @@ if (typeof window !== 'undefined') {
             setTimeout(async () => {
                 try {
                     // 检查浏览器支持
-                    const isSupported = checkWebUSBSupport();
-                    if (!isSupported || !navigator.usb) {
+                    if (window.browserSupport === null) {
+                        window.browserSupport = checkWebUSBSupport();
+                    }
+                    
+                    if (!window.browserSupport || !navigator.usb) {
                         return;
                     }
                     

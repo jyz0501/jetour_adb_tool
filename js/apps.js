@@ -226,7 +226,7 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
 
 // 沙发管家
 let sfgj = async () => {
-    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/沙发管家4.9.54.apk';
+    const downloadUrl = 'https://zero.shafa.com/file/pad_webwww/shafa_market/latest';
     const savePath = '/storage/emulated/0/Download/sfgj.apk';
     await downloadToPhoneAndPush('沙发管家', downloadUrl, savePath, null, 'com.shafa.markethd');
 };

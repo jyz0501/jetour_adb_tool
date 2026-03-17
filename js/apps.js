@@ -267,7 +267,7 @@ let ykpip = async () => {
 
 // 侧边栏
 let cdb = async () => {
-    const downloadUrl = 'https://files.catbox.moe/jqv3j9.apk';
+    const downloadUrl = 'https://gjx.cheji.cc/apk/cbl.apk';
     const savePath = '/storage/emulated/0/Download/cdb.apk';
     await downloadToPhoneAndPush('侧边栏', downloadUrl, savePath, null, 'com.hzsoft.sidebar');
 };

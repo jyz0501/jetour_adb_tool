@@ -251,7 +251,7 @@ let sentry = async () => {
 // 小横条
 let hstrip = async () => {
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/Gesture_1.6.4.apk';
-    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/小横条_2.0.0.apk';
+    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/Gesture_1.6.4.apk';
     const savePath = '/storage/emulated/0/Download/Gesture.apk';
     await downloadToPhoneAndPush('小横条', downloadUrl, savePath, backupUrl, 'com.omarea.gesture');
 };
@@ -266,7 +266,7 @@ let ykpip = async () => {
 
 // 侧边栏
 let cdb = async () => {
-    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/侧边栏_1.0.apk';
+    const downloadUrl = 'https://files.catbox.moe/jqv3j9.apk';
     const savePath = '/storage/emulated/0/Download/cdb.apk';
     await downloadToPhoneAndPush('侧边栏', downloadUrl, savePath, null, 'com.hzsoft.sidebar');
 };

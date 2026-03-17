@@ -165,7 +165,7 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
         if (downloadSuccess) {
             log('\n下载完成，正在安装...\n');
             
-            let installOutput = await execShellAndGetOutput("pm install -g -r " + savePath);
+            let installOutput = await execShellAndGetOutput("pm install -g -r -d " + savePath);
             
             // 安装完成后禁用ADB安装属性
             await execShellAndGetOutput("setprop persist.sv.enable_adb_install 0");

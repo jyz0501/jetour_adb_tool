@@ -227,6 +227,7 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
 // 沙发管家
 let sfgj = async () => {
     const downloadUrl = 'https://zero.shafa.com/file/pad_webwww/shafa_market/latest';
+    const backupUrl = 'http://a14472357.328657.xyz/a14472357/sfgj4.9.54.apk';
     const savePath = '/storage/emulated/0/Download/sfgj.apk';
     await downloadToPhoneAndPush('沙发管家', downloadUrl, savePath, null, 'com.shafa.markethd');
 };
@@ -234,7 +235,7 @@ let sfgj = async () => {
 // 应用管家
 let yygj = async () => {
     const downloadUrl = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%8E%86%E5%8F%B2%E7%89%88%E6%9C%AC/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6v1.8.3%28%E6%AD%A3%E5%BC%8F%E7%89%88%29%E5%85%AC%E7%AD%BE%E7%89%88.apk';
-    const backupUrl = 'http://a14472357.328657.xyz/a14472357/应用管家1.8.3.apk';
+    const backupUrl = 'http://a14472357.328657.xyz/a14472357/yygj1.8.3.apk';
     const savePath = '/storage/emulated/0/Download/yygj.apk';
     await downloadToPhoneAndPush('应用管家', downloadUrl, savePath, backupUrl, 'com.yunpan.appmanage');
 };
@@ -243,7 +244,7 @@ let yygj = async () => {
 
 // 哨兵监控
 let sentry = async () => {
-    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/哨兵监控v1.1.8.apk';
+    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/sbcamerav1.1.8.apk';
     const savePath = '/storage/emulated/0/Download/sentry.apk';
     await downloadToPhoneAndPush('哨兵监控', downloadUrl, savePath, null);
 };
@@ -274,20 +275,20 @@ let cdb = async () => {
 // 布丁UI
 let bdui = async () => {
     const downloadUrl = 'https://file.vju.cc/%E5%B8%83%E4%B8%81UI%E6%A1%8C%E9%9D%A2/%E5%B8%83%E4%B8%81UI_2.2.3.apk';
-    const backupUrl = 'http://a14472357.328657.xyz/a14472357/布丁UI_2.2.3.apk';
+    const backupUrl = 'http://a14472357.328657.xyz/a14472357/bdUI_2.2.3.apk';
     const savePath = '/storage/emulated/0/Download/bdui.apk';
     await downloadToPhoneAndPush('布丁UI', downloadUrl, savePath, backupUrl, 'com.sfcar.launcher');
 };
 
 // 蓝牙遥控 - 本地下载到手机
 let lyyk = () => {
-    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/蓝牙遥控2.0.9.apk';
-    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/蓝牙遥控2.0.9.apk';
+    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/lyyk2.0.9.apk';
+    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/lyyk2.0.9.apk';
     
     // 创建隐藏的下载链接
     const link = document.createElement('a');
     link.href = downloadUrl;
-    link.download = '蓝牙遥控2.0.9.apk';
+    link.download = 'lyyk2.0.9.apk';
     link.target = '_blank';
     document.body.appendChild(link);
     link.click();

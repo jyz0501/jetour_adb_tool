@@ -842,17 +842,15 @@ let initDeviceDetection = async () => {
         navigator.usb.addEventListener('connect', async (event) => {
             logDevice('===== USB 设备已连接 =====');
             logDevice(`设备: ${event.device.productName || 'USB设备'} (VID: ${event.device.vendorId}, PID: ${event.device.productId})`);
-            
-            // 自动连接设备
-            logDevice('设备已连接，自动连接中...');
+
             setTimeout(async () => {
                 // 检查是否已经在连接中
                 if (!window.isConnecting) {
                     await connectDevice();
                 } else {
-                    logDevice('正在连接中，跳过自动连接');
+                    logDevice('发现其他连接正在进行中，本操作已被忽略');
                 }
-            }, 3000);
+            }, 1000);
         });
         
         // 监听设备断开事件
@@ -875,10 +873,10 @@ if (typeof window !== 'undefined') {
         
         // 检测浏览器支持并存储到全局变量
         window.browserSupport = checkWebUSBSupport();
-        console.log(`浏览器支持 WebUSB: ${window.browserSupport}`);
+        console.log(`您所使用的浏览器支持WebUSB: ${window.browserSupport}`);
         
         if (!window.browserSupport) {
-            logDevice('浏览器不支持 WebUSB，请使用 Chrome 或 Edge 浏览器');
+            logDevice('您所使用的浏览器不支持WebUSB，请更换Chrome或Edge浏览器');
             return;
         }
         
@@ -934,7 +932,7 @@ if (typeof window !== 'undefined') {
                     if (!window.isConnecting) {
                         await connectDevice();
                     } else {
-                        logDevice('正在连接中，跳过自动连接');
+                        logDevice('发现其他连接正在进行中，跳过自动连接');
                     }
                 } else {
                     logDevice('没有已授权设备');

@@ -94,6 +94,25 @@
             background-color: #dc3545;
             color: white;
         }
+        
+        /* 水印样式 */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            font-size: 14px;
+            color: rgba(0, 0, 0, 0.1);
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
+        }
+        
+        /* 容器相对定位 */
+        .watermark-container {
+            position: relative;
+        }
     </style>
 </head>
 <body>
@@ -117,7 +136,7 @@
         
             <!-- 有线连接 -->
             <div style="margin: 10px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.291.0</span></h3>
+                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.292.0</span></h3>
                 <div class="warning" id="usb-warning">
                     注意！您的浏览器不支持WebUSB。请在Chrome或Edge浏览器中打开。
                 </div>
@@ -145,20 +164,21 @@
                 <hr style="margin: 20px 0; border: 1px solid #eee;">
                 
                 <!-- 必装软件 -->
-                <div style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
-                    <h4 style="margin-top: 0; margin-bottom: 15px;">必装软件</h4>
-                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <div class="watermark-container" style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px; position: relative;">
+                    <div class="watermark">抖音@大伦哥的CDM</div>
+                    <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">必装软件</h4>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; position: relative; z-index: 1;">
                         <button class="btn btn-connect" onclick="yygj()" style="flex-shrink: 0;">应用管家</button>
                         <button class="btn btn-connect" onclick="cdb()" style="flex-shrink: 0;">侧边栏</button>
                         <button class="btn btn-connect" onclick="sfgj()" style="flex-shrink: 0;">沙发管家</button>
                         <button class="btn btn-connect" onclick="bdui()" style="flex-shrink: 0;">布丁UI</button>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; position: relative; z-index: 1;">
                         <button class="btn btn-connect" onclick="startGuanJia()" style="flex-shrink: 0; background-color: #007bff;">启动应用管家</button>
                         <button class="btn btn-connect" onclick="exec_shell('monkey -p com.hzsoft.sidebar -c android.intent.category.LAUNCHER 1')" style="flex-shrink: 0; background-color: #007bff;">启动侧边栏</button>
                         <button class="btn btn-connect" onclick="exec_shell('monkey -p com.shafa.markethd -c android.intent.category.LAUNCHER 1')" style="flex-shrink: 0; background-color: #007bff;">启动沙发管家</button>
                     </div>
-                    <p style="margin-top: 10px; font-size: 12px; color: #6c757d;">请先安装以上软件，以确保系统正常运行。</p>
+                    <p style="margin-top: 10px; font-size: 12px; color: #6c757d; position: relative; z-index: 1;">请先安装以上软件，以确保系统正常运行。</p>
                 </div>
 
                 <!-- 其他软件 -->

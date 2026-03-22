@@ -136,7 +136,7 @@
         
             <!-- 有线连接 -->
             <div style="margin: 10px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.292.0</span></h3>
+                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接 <span id="app-version" style="font-size: 12px; color: #999;">v1.293.0</span></h3>
                 <div class="warning" id="usb-warning">
                     注意！您的浏览器不支持WebUSB。请在Chrome或Edge浏览器中打开。
                 </div>
@@ -182,47 +182,51 @@
                 </div>
 
                 <!-- 其他软件 -->
-                <div style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
-                    <h4 style="margin-top: 0; margin-bottom: 15px;">其他软件</h4>
-                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <div class="watermark-container" style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px; position: relative;">
+                    <div class="watermark">抖音@大伦哥的CDM</div>
+                    <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">其他软件</h4>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; position: relative; z-index: 1;">
                         <button class="btn btn-connect" onclick="sentry()" style="flex-shrink: 0;">哨兵监控</button>
                         <button class="btn btn-connect" onclick="hstrip()" style="flex-shrink: 0;">小横条</button>
                         <button class="btn btn-connect" onclick="ykpip()" style="flex-shrink: 0;">易控车机PIP</button>
                         <button class="btn btn-connect" onclick="lyyk()" style="flex-shrink: 0;">蓝牙遥控</button>
                     </div>
-                    <p style="margin-top: 10px; font-size: 12px; color: #6c757d;">根据需要选择安装其他软件。</p>
+                    <p style="margin-top: 10px; font-size: 12px; color: #6c757d; position: relative; z-index: 1;">根据需要选择安装其他软件。</p>
                 </div>
                 
                 <!-- 自选安装 -->
-                <div style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
-                    <h4 style="margin-top: 0; margin-bottom: 15px;">自主安装</h4>
-                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <div class="watermark-container" style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px; position: relative;">
+                    <div class="watermark">抖音@大伦哥的CDM</div>
+                    <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">自主安装</h4>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; position: relative; z-index: 1;">
                         <input type="file" id="apkFile" multiple accept=".apk" style="display: none;">
                         <button class="btn btn-connect" onclick="loadApkFile()" style="flex-shrink: 0;">选择文件</button>
                         <span id="apkFileName" style="flex: 1; min-width: 200px; padding: 8px; background-color: white; border: 1px solid #dee2e6; border-radius: 4px;">未选择文件</span>
                         <button class="btn btn-connect" onclick="installApkFile()" style="flex-shrink: 0; background-color: #007bff;">安装所选</button>
                     </div>
-                    <p style="margin-top: 10px; font-size: 12px; color: #6c757d;">操作点击按钮后请静候等待执行结果，切勿重复点击！</p>
+                    <p style="margin-top: 10px; font-size: 12px; color: #6c757d; position: relative; z-index: 1;">操作点击按钮后请静候等待执行结果，切勿重复点击！</p>
                 </div>
                 
                 <!-- Shell Command Input -->
-                <div style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
-                    <h4 style="margin-top: 0; margin-bottom: 15px;">手动命令</h4>
-                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <div class="watermark-container" style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px; position: relative;">
+                    <div class="watermark">抖音@大伦哥的CDM</div>
+                    <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">手动命令</h4>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; position: relative; z-index: 1;">
                         <input type="text" id="shell" placeholder="输入命令（不用输入adb shell）" style="flex: 1; min-width: 200px; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;">
                         <button class="btn btn-connect" onclick="exec_command()" style="flex-shrink: 0;">执行命令</button>
                     </div>
                 </div>
                 
                 <!-- 应用管理 -->
-                <div style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
-                    <h4 style="margin-top: 0; margin-bottom: 15px;">应用管理</h4>
+                <div class="watermark-container" style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px; position: relative;">
+                    <div class="watermark">抖音@大伦哥的CDM</div>
+                    <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">应用管理</h4>
                     
                     <!-- 刷新用户应用列表 -->
-                    <button class="btn btn-connect" onclick="loadPackageList()" style="margin-bottom: 15px;">刷新用户应用列表</button>
+                    <button class="btn btn-connect" onclick="loadPackageList()" style="margin-bottom: 15px; position: relative; z-index: 1;">刷新用户应用列表</button>
                     
                     <!-- 已安装应用列表 -->
-                    <table id="package-list" style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                    <table id="package-list" style="width: 100%; border-collapse: collapse; table-layout: fixed; position: relative; z-index: 1;">
                         <thead>
                             <tr style="background-color: #e9ecef;">
                                 <th style="padding: 8px; border: 1px solid #dee2e6; width: 50px;">序号</th>

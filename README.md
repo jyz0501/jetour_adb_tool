@@ -53,14 +53,26 @@ jetour_adb_tool/
 │   ├── device.js           # 设备管理
 │   ├── apps.js             # 应用安装
 │   ├── system.js           # 系统工具
-│   └── main.js             # 主入口
-├── ya-webadb-2.5.2/        # Tango ADB库
+│   ├── adb/                # ADB 通信模块
+│   │   ├── device.js
+│   │   ├── index.js
+│   │   ├── message.js
+│   │   └── transport.js
+│   └── lib/                # Tango ADB 库（@yume-chan/adb 等）
+│       ├── adb.js
+│       ├── adb-credential-web.js
+│       ├── adb-daemon-webusb.js
+│       ├── stream-extra.js
+│       └── tango-adb.js
+├── CNAME                   # GitHub Pages 自定义域名
+├── package.json            # 依赖配置
+├── update-version.sh       # 版本号更新脚本
 └── README.md               # 说明文档
 ```
 
 ## 技术栈
 - **前端**：HTML5, CSS3, JavaScript
-- **ADB**：Tango ADB (ya-webadb 2.5.2)
+- **ADB**：@yume-chan/adb（Tango ADB / ya-webadb）
 - **USB通信**：WebUSB API
 
 ## 使用说明

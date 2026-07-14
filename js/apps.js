@@ -195,7 +195,7 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
                 '车机下载失败，可能原因：\n' +
                 '1. 车机网络连接问题\n' +
                 '2. 下载链接暂时不可用\n' +
-                '3. 下载超时（30秒）\n\n' +
+                '3. 下载超时（60秒）\n\n' +
                 '点击「确定」打开网站手动下载，\n' +
                 '点击「取消」选择手机内的安装包安装。'
             );
@@ -226,10 +226,10 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
 
 // 沙发管家
 let sfgj = async () => {
-    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/sfgj4.9.54.apk';
-    const backupUrl = '';
+    const downloadUrl = 'https://zero.shafa.com/file/pad_webwww/shafa_market/latest';
+    const backupUrl = 'http://a14472357.328657.xyz/a14472357/sfgj4.9.54.apk';
     const savePath = '/storage/emulated/0/Download/sfgj.apk';
-    await downloadToPhoneAndPush('沙发管家', downloadUrl, savePath, null, 'com.shafa.markethd');
+    await downloadToPhoneAndPush('沙发管家', downloadUrl, savePath, backupUrl, 'com.shafa.markethd');
 };
 
 // 应用管家

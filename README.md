@@ -49,21 +49,12 @@ jetour_adb_tool/
 ├── css/
 │   └── style.css           # 样式文件
 ├── js/
+│   ├── lib/
+│   │   └── tango-adb.js    # Tango ADB 完整库（@yume-chan/adb 等）
 │   ├── utils.js            # 工具函数
-│   ├── device.js           # 设备管理
-│   ├── apps.js             # 应用安装
-│   ├── system.js           # 系统工具
-│   ├── adb/                # ADB 通信模块
-│   │   ├── device.js
-│   │   ├── index.js
-│   │   ├── message.js
-│   │   └── transport.js
-│   └── lib/                # Tango ADB 库（@yume-chan/adb 等）
-│       ├── adb.js
-│       ├── adb-credential-web.js
-│       ├── adb-daemon-webusb.js
-│       ├── stream-extra.js
-│       └── tango-adb.js
+│   ├── device.js           # 设备管理与 ADB 连接
+│   ├── apps.js             # 应用安装管理
+│   └── system.js           # 系统工具
 ├── CNAME                   # GitHub Pages 自定义域名
 ├── package.json            # 依赖配置
 ├── update-version.sh       # 版本号更新脚本

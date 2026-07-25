@@ -59,393 +59,9 @@ function clearDeviceLog() {
     }
 }
 
-// 点击检测提示
-let initWebUSB = async (device) => {
-    clear();
-    try {
-        // 使用新的 WebUSB 传输
-        console.log('正在启动 WebUSB 设备...');
-
-        if (device) {
-            // 使用用户已选择的设备
-            window.adbTransport = new WebUsbTransport(device);
-        } else {
-            // 请求新设备
-            window.adbTransport = await WebUsbTransport.requestDevice();
-        }
-
-        await window.adbTransport.open();
-        console.log('WebUSB 传输启动成功');
-        return true;
-    } catch (error) {
-        console.log('WebUSB 启动失败:', error);
-        if (error.message) {
-            if (error.message.indexOf('No device') != -1 || error.name === 'NotFoundError') {
-                console.log('用户取消选择设备');
-                return false;
-            } else if (error.message.indexOf('was disconnected') != -1) {
-                alert('无法连接到此设备，请断开重新尝试。');
-            } else if (error.message.indexOf('Unable to claim interface') != -1) {
-                alert('设备接口被其他程序占用，请尝试以下步骤：\n\n1. 关闭电脑上运行的其他 ADB 工具（如 Android Studio、ADB Helper）\n2. 在终端运行 "adb kill-server" 断开所有连接\n3. 重新插拔 USB 线\n4. 刷新页面后重新连接');
-            } else {
-                alert('启动 WebUSB 失败: ' + error.message);
-            }
-        } else {
-            alert('启动 WebUSB 失败，请检查浏览器版本。');
-        }
-        return false;
-    }
-};
-
-// 扫描 USB 端口设备
-let scanUsbDevices = async () => {
-    log('开始扫描有线 USB 设备...');
-    logDevice('开始扫描有线 USB 设备...');
-    
-    const devices = [];
-    
-    // 1. 先获取已授权的 WebUSB 设备
-    try {
-        const authorizedDevices = await navigator.usb.getDevices();
-        authorizedDevices.forEach(device => {
-            devices.push({
-                type: 'WebUSB',
-                name: device.productName || 'USB设备',
-                vendorId: device.vendorId,
-                productId: device.productId,
-                device: device,
-                authorized: true
-            });
-        });
-        log(`已发现 ${authorizedDevices.length} 个已授权 USB 设备`);
-        logDevice(`已发现 ${authorizedDevices.length} 个已授权 USB 设备`);
-    } catch (error) {
-        log('获取已授权设备失败:', error);
-        logDevice('获取已授权设备失败: ' + (error.message || error.toString()));
-    }
-    
-    // 2. 尝试请求新设备（让用户可以选择更多USB设备）
-    try {
-        // 使用宽泛的过滤器，扫描所有USB设备
-        const newDevice = await navigator.usb.requestDevice({
-            filters: [
-                { classCode: 255, subclassCode: 66, protocolCode: 1 }, // ADB
-                { classCode: 255, subclassCode: 66, protocolCode: 3 }, // Fastboot
-                { classCode: 255 }, // 全部 USB 设备
-            ]
-        });
-        
-        // 检查是否已存在
-        const exists = devices.some(d => 
-            d.vendorId === newDevice.vendorId && d.productId === newDevice.productId
-        );
-        
-        if (!exists) {
-            devices.push({
-                type: 'WebUSB',
-                name: newDevice.productName || 'USB设备',
-                vendorId: newDevice.vendorId,
-                productId: newDevice.productId,
-                device: newDevice,
-                authorized: false
-            });
-            log('发现新 USB 设备');
-            logDevice('发现新 USB 设备: ' + (newDevice.productName || 'USB设备'));
-        }
-    } catch (error) {
-        if (error.name !== 'NotFoundError') {
-            log('请求设备失败:', error);
-            logDevice('请求设备失败: ' + (error.message || error.toString()));
-        }
-        // NotFoundError 表示用户取消选择，正常情况不需要提示
-    }
-    
-    // 记录每个设备的详细信息
-    devices.forEach((device, index) => {
-        const authStatus = device.authorized ? '(已授权)' : '(待授权)';
-        logDevice(`设备 ${index + 1}: ${device.name} ${authStatus} (VID: ${device.vendorId}, PID: ${device.productId})`);
-    });
-    
-    log(`共发现 ${devices.length} 个 USB 设备`);
-    logDevice(`共发现 ${devices.length} 个 USB 设备`);
-    
-    return devices;
-};
-
-// 显示设备选择弹窗
-let showDeviceSelection = (devices) => {
-    return new Promise((resolve, reject) => {
-        // 创建设备选择内容
-        let content = '<div style="max-height: 200px; overflow-y: auto;">';
-
-        if (devices.length === 0) {
-            // 没有设备时显示友好的提示
-            content += `
-                <div style="padding: 20px; text-align: center; color: #666;">
-                    <div style="font-size: 36px; margin-bottom: 10px;">🔍</div>
-                    <div style="font-size: 14px; margin-bottom: 8px;">未发现任何设备</div>
-                    <div style="font-size: 11px; color: #999; line-height: 1.5;">
-                        请检查：USB线连接、USB调试模式、设备授权
-                    </div>
-                </div>
-            `;
-        } else {
-            // 有设备时显示设备列表
-            devices.forEach((device, index) => {
-                let deviceInfo = '';
-                let authBadge = '';
-                if (device.type === 'WebUSB') {
-                    authBadge = device.authorized 
-                        ? '<span style="color: #4caf50; font-size: 11px;">✓ 已授权</span>' 
-                        : '<span style="color: #ff9800; font-size: 11px;">⚠ 待授权</span>';
-                    deviceInfo = `USB 设备: ${device.name} ${authBadge} (VID: ${device.vendorId}, PID: ${device.productId})`;
-                }
-
-                if (deviceInfo) {
-                    content += `<div style="padding: 8px; margin: 4px 0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" onclick="selectDevice(${index})" id="device-${index}">`;
-                    content += `<div style="font-weight: bold; font-size: 13px;">${deviceInfo}</div>`;
-                    content += '</div>';
-                }
-            });
-        }
-        content += '</div>';
-        
-        // 添加设备选择函数到全局
-        let selectedDeviceIndex = -1;
-        
-        window.selectDevice = (index) => {
-            // 清除之前的选择
-            const deviceElements = document.querySelectorAll('[id^="device-"]');
-            deviceElements.forEach(element => {
-                element.style.border = '1px solid #ddd';
-                element.style.backgroundColor = '';
-            });
-            
-            // 选中当前设备
-            selectedDeviceIndex = index;
-            const selectedElement = document.getElementById(`device-${index}`);
-            if (selectedElement) {
-                selectedElement.style.border = '2px solid #007bff';
-                selectedElement.style.backgroundColor = '#e3f2fd';
-            }
-        };
-        
-        // 添加刷新设备函数到全局
-        window.refreshDevices = async () => {
-            try {
-                // 显示加载状态
-                const modalBody = document.querySelector('.custom-modal-body');
-                if (modalBody) {
-                    modalBody.innerHTML = '<div style="text-align: center; padding: 20px;">正在刷新设备...</div>';
-                }
-
-                // 重新扫描设备
-                logDevice('开始刷新设备列表...');
-                const refreshedDevices = await scanUsbDevices();
-
-                // 更新设备列表
-                let updatedContent = '<div style="max-height: 200px; overflow-y: auto;">';
-
-                if (refreshedDevices.length === 0) {
-                    // 没有设备时显示友好的提示
-                    updatedContent += `
-                        <div style="padding: 20px; text-align: center; color: #666;">
-                            <div style="font-size: 36px; margin-bottom: 10px;">🔍</div>
-                            <div style="font-size: 14px; margin-bottom: 8px;">未发现任何设备</div>
-                            <div style="font-size: 11px; color: #999; line-height: 1.5;">
-                                请检查：USB线连接、USB调试模式、设备授权
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    // 有设备时显示设备列表
-                    refreshedDevices.forEach((device, index) => {
-                        let deviceInfo = '';
-                        let authBadge = '';
-                        if (device.type === 'WebUSB') {
-                            authBadge = device.authorized 
-                                ? '<span style="color: #4caf50; font-size: 11px;">✓ 已授权</span>' 
-                                : '<span style="color: #ff9800; font-size: 11px;">⚠ 待授权</span>';
-                            deviceInfo = `USB 设备: ${device.name} ${authBadge} (VID: ${device.vendorId}, PID: ${device.productId})`;
-                        }
-
-                        if (deviceInfo) {
-                            updatedContent += `<div style="padding: 8px; margin: 4px 0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;" onclick="selectDevice(${index})" id="device-${index}">`;
-                            updatedContent += `<div style="font-weight: bold; font-size: 13px;">${deviceInfo}</div>`;
-                            updatedContent += '</div>';
-                        }
-                    });
-                }
-                updatedContent += '</div>';
-
-                // 更新弹窗内容
-                if (modalBody) {
-                    modalBody.innerHTML = updatedContent;
-                }
-
-                // 更新设备列表引用
-                devices = refreshedDevices;
-                // 重置选中状态
-                selectedDeviceIndex = -1;
-
-                logDevice('设备列表刷新完成');
-            } catch (error) {
-                logDevice('刷新设备列表失败: ' + (error.message || error.toString()));
-                alert('刷新设备列表失败，请重试');
-            }
-        };
-        
-        // 清理函数
-        function cleanup() {
-            delete window.selectDevice;
-            delete window.refreshDevices;
-        }
-        
-        // 使用原始的 showModal 函数显示设备选择弹窗
-        showModal('选择设备', content, {
-            showCancel: true,
-            cancelText: '取消',
-            confirmText: '确定连接',
-            callback: function(confirmed) {
-                if (confirmed) {
-                    if (devices.length === 0) {
-                        // 没有设备，提示用户刷新
-                        alert('未发现设备，请点击"刷新设备"按钮重新扫描');
-                        // 返回 false 阻止关闭弹窗
-                        return false;
-                    } else if (selectedDeviceIndex === -1) {
-                        // 有设备但没选择，提示用户
-                        alert('请先选择要连接的设备');
-                        // 返回 false 阻止关闭弹窗
-                        return false;
-                    } else {
-                        // 使用选中的设备
-                        resolve(devices[selectedDeviceIndex]);
-                        // 返回 true 允许关闭弹窗（通过 closeModal 关闭）
-                        closeModal();
-                        cleanup();
-                        return true;
-                    }
-                } else {
-                    reject(new Error('User canceled'));
-                    cleanup();
-                    return true;
-                }
-            }
-        });
-        
-        // 添加刷新按钮到弹窗底部
-        const modalFooter = document.getElementById('modalFooter');
-        if (modalFooter) {
-            // 在取消按钮前添加刷新按钮
-            const refreshBtn = document.createElement('button');
-            refreshBtn.className = 'custom-modal-btn custom-modal-btn-secondary';
-            refreshBtn.textContent = '刷新设备';
-            refreshBtn.onclick = refreshDevices;
-            modalFooter.insertBefore(refreshBtn, modalFooter.firstChild);
-        }
-    });
-};
-
-// 连接设备
-let connect = async () => {
-    try {
-        clearDeviceLog();
-        logDevice('开始连接设备...');
-        
-        // 1. 扫描设备
-        const devices = await scanUsbDevices();
-        
-        // 2. 显示设备选择弹窗
-        logDevice('显示设备选择弹窗...');
-        const selectedDevice = await showDeviceSelection(devices);
-        logDevice('已选择设备: ' + selectedDevice.name);
-        
-        // 3. 连接 WebUSB 设备（开始连接）
-        if (selectedDevice.type === 'WebUSB') {
-            // WebUSB 设备连接
-            logDevice('正在连接有线 USB 设备...');
-            logDevice('设备信息: ' + selectedDevice.name + ' VID:' + selectedDevice.vendorId + ' PID:' + selectedDevice.productId);
-            
-            const initialized = await initWebUSB(selectedDevice.device);
-            if (!initialized || !window.adbTransport) {
-                logDevice('WebUSB 启动失败');
-                return;
-            }
-            
-            window.adbDevice = null;
-            
-            // 创建 ADB 设备并连接
-            logDevice('正在创建 ADB 设备...');
-            window.adbDevice = new AdbDevice(window.adbTransport);
-            logDevice('发送 ADB 连接请求，等待设备授权...');
-            
-            try {
-                await window.adbDevice.connect("host::web", () => {
-                    alert('请在您的设备上允许 ADB 调试');
-                    logDevice('请在您的设备上允许 ADB 调试');
-                });
-            } catch (connectError) {
-                logDevice('ADB 连接错误: ' + connectError.message);
-                if (connectError.message.includes('authentication')) {
-                    logDevice('设备需要授权，请确保手机上点击了"允许"');
-                }
-                throw connectError;
-            }
-            
-            if (window.adbDevice && window.adbDevice.connected) {
-                let deviceName = window.adbDevice.banner || '设备';
-                let serialNumber = window.adbDevice.serial || '未知';
-                setDeviceName('🚗 ' + deviceName + ' | ' + serialNumber);
-                console.log('设备连接成功:', window.adbDevice);
-                logDevice('===== ADB 连接成功 =====');
-                logDevice('设备名称: ' + deviceName);
-                logDevice('最大数据包: ' + window.adbDevice.maxPayload);
-                logDevice('传输类型: ' + (window.adbTransport.constructor.name));
-                logDevice('连接时间: ' + new Date().toLocaleString());
-                
-                let toast = document.getElementById('success-toast');
-                toast.style.visibility = 'visible';
-                setTimeout(function() {
-                    toast.style.visibility = 'hidden';
-                }, 3000);
-                
-                logDevice('');
-                logDevice('提示: 可在终端运行 "adb devices" 查看设备列表');
-                logDevice('');
-                
-                // 开始持续检测设备状态
-                startDeviceMonitoring();
-            }
-        }
-    } catch (error) {
-        log('设备连接失败:', error);
-        logDevice('设备连接失败: ' + (error.message || error.toString()));
-        window.adbDevice = null;
-        window.adbTransport = null;
-        
-        if (error.message && error.message.indexOf('Authentication required') != -1) {
-            alert('需要在设备上允许 ADB 调试');
-            logDevice('需要在设备上允许 ADB 调试');
-        } else if (error.message && error.message.indexOf('User canceled') != -1) {
-            // 用户取消连接，不显示错误
-            logDevice('用户取消连接');
-        } else if (error.message && error.message.indexOf('Refresh devices') != -1) {
-            // 用户点击了刷新设备，重新执行连接流程
-            logDevice('用户请求刷新设备列表');
-            connect();
-        } else {
-            alert('连接失败，请断开重新尝试。');
-        }
-    }
-};
-
 // 断开连接
 let disconnect = async () => {
-    console.log('disconnect called, adbClient:', window.adbClient);
-    
     if (!window.adbClient) {
-        console.log('No device to disconnect');
         logDevice('没有设备需要断开');
         return;
     }
@@ -463,13 +79,21 @@ let disconnect = async () => {
             window.adbClient = null;
         }
         
+        window.adbDevice = null;
+        window.adbTransport = null;
+        
         setDeviceName(null);
         logDevice('===== 设备已断开连接 =====');
         stopDeviceMonitoring();
     } catch (error) {
         console.error('Disconnect error:', error);
-        log('断开连接失败:', error);
         logDevice('断开连接失败: ' + (error.message || error.toString()));
+        
+        // 即使断开失败也清理状态
+        window.adbClient = null;
+        window.adbDevice = null;
+        window.adbTransport = null;
+        setDeviceName(null);
     }
 };
 
@@ -495,35 +119,21 @@ let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
         const credentialStore = new AdbCredentialStore('Jetour ADB Tool');
         
         // 使用 AdbDaemonTransport.authenticate 创建 transport
-        logDevice('正在创建 ADB 传输层...');
+        // 此方法内部会处理 RSA 密钥交换：
+        // 1. 发送 Connect 包
+        // 2. 设备返回 Auth Token
+        // 3. 用本地密钥签名或发送公钥
+        // 4. 等待设备确认（用户需在设备上点击"允许"）
+        logDevice('正在进行 ADB RSA 鉴权...');
         const ADB_DEFAULT_AUTHENTICATORS = adbApi.ADB_DEFAULT_AUTHENTICATORS;
         
-        // 添加重试机制
-        let transport;
-        let maxRetries = 3;
-        let retryCount = 0;
-        
-        while (retryCount < maxRetries) {
-            try {
-                transport = await AdbDaemonTransport.authenticate({
-                    serial: webusbDevice.serial,
-                    connection: connection,
-                    credentialStore: credentialStore,
-                    authenticators: ADB_DEFAULT_AUTHENTICATORS
-                });
-                logDevice('ADB 传输层已创建');
-                break;
-            } catch (error) {
-                retryCount++;
-                if (retryCount < maxRetries) {
-                    logDevice(`创建传输层失败，${retryCount}秒后重试...`);
-                    await new Promise(resolve => setTimeout(resolve, 3000));
-                } else {
-                    logDevice('创建传输层失败，达到最大重试次数');
-                    throw error;
-                }
-            }
-        }
+        const transport = await AdbDaemonTransport.authenticate({
+            serial: webusbDevice.serial,
+            connection: connection,
+            credentialStore: credentialStore,
+            authenticators: ADB_DEFAULT_AUTHENTICATORS
+        });
+        logDevice('ADB 传输层已建立（RSA 鉴权成功）');
         
         // 使用 new Adb(transport) 创建 ADB 客户端
         logDevice('正在创建 ADB 客户端...');
@@ -578,7 +188,10 @@ let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
         // 针对常见错误提供解决方案
         if (e.message && (e.message.includes('Unable to claim interface') || e.message.includes('Busy') || e.message.includes('already in used'))) {
             logDevice('错误原因：USB 接口被其他程序占用');
-            logDevice('解决方案：请刷新页面并重新连接');
+            logDevice('解决方案：请关闭占用 USB 的程序后刷新页面重试');
+        } else if (e.message && (e.message.includes('auth') || e.message.includes('unauthorized') || e.message.includes('UnauthorizedError'))) {
+            logDevice('错误原因：ADB RSA 密钥鉴权失败');
+            logDevice('解决方案：请在车机上点击"允许USB调试"，或在车机开发者选项中撤销 USB 调试授权后重新连接');
         } else if (e.message && e.message.includes('transferOut')) {
             logDevice('错误原因：USB 传输错误，可能是连接不稳定');
             logDevice('建议：检查 USB 线是否牢固，尝试更换 USB 端口');
@@ -693,58 +306,26 @@ let connectDevice = async () => {
                 const device = await manager.requestDevice();
                 
                 if (device) {
-                    // 显示详细的设备信息
-                    logDevice(`用户已选择设备: ${device.productName || '未知'}`);
-                    if (device.device) {
-                        logDevice(`设备PID: ${device.device.productId}`);
-                        logDevice(`设备VID: ${device.device.vendorId}`);
-                        logDevice(`设备序列号: ${device.serial || '未知'}`);
-                        logDevice(`设备制造商: ${device.device.manufacturerName || '未知'}`);
-                    }
-                    alert('请在车机上点击"允许USB调试"');
+                    logDevice(`用户已选择设备: ${device.name || '未知'}`);
+                    logDevice(`设备序列号: ${device.serial || '未知'}`);
+                    logDevice('正在建立 ADB 连接，等待设备 RSA 鉴权...');
                     
-                    // PC连接时，自动检测授权状态
-                    if (!isMobile) {
-                        logDevice('正在等待车机授权...');
-                        let checkCount = 0;
-                        const maxChecks = 30; // 最多检查30次（30秒）
-                        
-                        const checkInterval = setInterval(async () => {
-                            checkCount++;
-                            try {
-                                const devices = await manager.getDevices();
-                                if (devices.length > 0) {
-                                    clearInterval(checkInterval);
-                                    logDevice('检测到车机已授权，开始连接...');
-                                    // 直接使用设备建立连接
-                                    await connectWithDevice(devices[0], adbApi, adbCredentialWeb);
-                                } else if (checkCount >= maxChecks) {
-                                    clearInterval(checkInterval);
-                                    logDevice('等待授权超时，请手动点击"开始连接"按钮');
-                                    window.isConnecting = false;
-                                }
-                            } catch (e) {
-                                console.log('检查授权状态失败:', e);
-                            }
-                        }, 1000); // 每秒检查一次
-                    } else {
-                        // 移动端，延迟后直接使用选择的设备建立连接
-                        setTimeout(async () => {
-                            try {
-                                // 获取已授权设备
-                                const devices = await manager.getDevices();
-                                if (devices.length > 0) {
-                                    logDevice('检测到已授权设备，开始连接...');
-                                    await connectWithDevice(devices[0], adbApi, adbCredentialWeb);
-                                } else {
-                                    logDevice('未检测到已授权设备，请重新连接');
-                                    window.isConnecting = false;
-                                }
-                            } catch(e) {
-                                logDevice('获取设备失败: ' + e.message);
-                                window.isConnecting = false;
-                            }
-                        }, 2000);
+                    // 直接使用 requestDevice 返回的设备建立连接
+                    // AdbDaemonTransport.authenticate 内部会处理 RSA 公钥交换
+                    // 如果设备需要授权，会自动等待用户在设备上点击"允许"
+                    try {
+                        await connectWithDevice(device, adbApi, adbCredentialWeb);
+                    } catch (connError) {
+                        // 如果鉴权失败（如用户拒绝了 RSA 密钥），提示用户
+                        if (connError.message && (
+                            connError.message.includes('auth') ||
+                            connError.message.includes('unauthorized') ||
+                            connError.message.includes('Authentication')
+                        )) {
+                            alert('请在车机上点击"允许USB调试"以完成 RSA 密钥配对');
+                            logDevice('ADB RSA 鉴权被拒绝，请在车机上允许 USB 调试');
+                        }
+                        throw connError;
                     }
                     return;
                 } else {
@@ -1141,8 +722,6 @@ async function getLocalIP() {
 try {
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = {
-            initWebUSB,
-            connect,
             disconnect,
             setDeviceName,
             push,

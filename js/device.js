@@ -66,55 +66,131 @@ let copyToClipboard = async (text) => {
     }
 };
 
-// 显示冲突解决方案对话框
-let showUsbConflictDialog = () => {
-    const command = 'adb kill-server';
-    
-    // 创建或更新模态框
-    let modal = document.getElementById('customModal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'customModal';
-        modal.style.cssText = 'display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.2);z-index:1000;width:400px;overflow:hidden;';
-        document.body.appendChild(modal);
+// ====== USB 冲突检测与处理 ======
+
+// 检测本地 ADB Server 是否运行中（通过端口探测）
+let detectLocalAdbServer = async () => {
+    if (isMobileDevice()) {
+        return false;
     }
     
-    modal.innerHTML = `
-        <div style="padding:15px 20px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:15px;font-weight:bold;color:#d32f2f;">⚠ USB 接口冲突</span>
-            <button onclick="document.getElementById('customModal').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer;color:#999;line-height:1;">×</button>
-        </div>
-        <div style="padding:20px;">
-            <div style="font-size:13px;color:#333;margin-bottom:15px;line-height:1.5;">
-                本地 ADB Server 正在运行，占用了 USB 接口。<br>
-                需要先释放接口才能连接。
+    return new Promise((resolve) => {
+        const timeout = setTimeout(() => {
+            resolve(false);
+        }, 1000);
+        
+        try {
+            // 使用 fetch 检测本地 ADB Server（虽然 ADB Server 不支持 HTTP，但可以检测端口是否被占用）
+            // 注意：由于浏览器安全限制，无法直接检测 TCP 端口
+            // 这里我们假设 PC 端默认可能有 ADB Server 运行
+            resolve(false);
+        } catch (e) {
+            clearTimeout(timeout);
+            resolve(false);
+        }
+    });
+};
+
+// 显示 USB 冲突对话框
+let showUsbConflictDialog = async () => {
+    const command = 'adb kill-server';
+    const dialogHtml = `
+        <div id="usb-conflict-dialog" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); max-width: 450px; width: 90%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 48px; margin-bottom: 10px;">⚠️</div>
+                <h3 style="margin: 0 0 10px 0; color: #333; font-size: 20px;">USB 接口冲突</h3>
+                <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0;">
+                    检测到本地 ADB Server 正在占用 USB 接口<br/>
+                    导致浏览器无法通过 WebUSB 访问设备
+                </p>
             </div>
-            <div style="background:#263238;border-radius:6px;padding:10px 12px;margin-bottom:15px;display:flex;align-items:center;justify-content:space-between;">
-                <code style="color:#4fc3f7;font-family:monospace;font-size:13px;">${command}</code>
-                <button onclick="copyKillServerCmd(this)" style="background:#4fc3f7;color:#263238;border:none;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:bold;">复制</button>
+            <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 20px 0; font-family: monospace; font-size: 14px; color: #333; display: flex; justify-content: space-between; align-items: center;">
+                <code id="adb-command" style="margin: 0;">${command}</code>
+                <button id="copy-btn" style="background: #007bff; color: white; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: background 0.2s;">复制</button>
             </div>
-            <div style="font-size:12px;color:#888;margin-bottom:15px;">
-                在终端/命令提示符中执行后，点击下方按钮重试
+            <div style="margin-bottom: 15px; font-size: 13px; color: #555; line-height: 1.5; background: #fff3cd; padding: 10px; border-radius: 6px; border-left: 3px solid #ffc107;">
+                <strong>操作步骤：</strong><br/>
+                1. 点击"复制"按钮复制命令<br/>
+                2. 打开终端/PowerShell<br/>
+                3. 粘贴并执行命令<br/>
+                4. 点击下方"我已执行"按钮
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button id="retry-btn" style="flex: 1; background: #28a745; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 500; transition: background 0.2s;">
+                    我已执行，重试连接
+                </button>
+                <button id="cancel-btn" style="background: #6c757d; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; transition: background 0.2s;">
+                    取消
+                </button>
             </div>
         </div>
-        <div style="padding:10px 20px;border-top:1px solid #eee;text-align:right;">
-            <button onclick="retryConnect()" style="background:#4caf50;color:white;border:none;padding:8px 20px;border-radius:4px;cursor:pointer;font-size:13px;">重试连接</button>
-        </div>
+        <div id="usb-conflict-mask" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9998;"></div>
     `;
-    modal.style.display = 'block';
     
-    // 绑定全局函数
-    window.copyKillServerCmd = async (btn) => {
-        const ok = await copyToClipboard(command);
-        btn.textContent = ok ? '已复制 ✓' : '失败';
-        btn.style.background = ok ? '#4caf50' : '#f44336';
-        setTimeout(() => { btn.textContent = '复制'; btn.style.background = '#4fc3f7'; }, 2000);
-    };
+    // 移除已存在的对话框
+    const existing = document.getElementById('usb-conflict-dialog');
+    if (existing) existing.remove();
+    const existingMask = document.getElementById('usb-conflict-mask');
+    if (existingMask) existingMask.remove();
     
-    window.retryConnect = () => {
-        modal.style.display = 'none';
-        connectDevice();
-    };
+    // 添加新对话框
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = dialogHtml;
+    document.body.appendChild(tempDiv.firstElementChild);
+    document.body.appendChild(document.getElementById('usb-conflict-mask'));
+    
+    return new Promise((resolve) => {
+        const copyBtn = document.getElementById('copy-btn');
+        const retryBtn = document.getElementById('retry-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const commandEl = document.getElementById('adb-command');
+        
+        copyBtn.addEventListener('click', () => {
+            const text = commandEl.textContent;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    copyBtn.textContent = '✓ 已复制';
+                    copyBtn.style.background = '#28a745';
+                    setTimeout(() => {
+                        copyBtn.textContent = '复制';
+                        copyBtn.style.background = '#007bff';
+                    }, 2000);
+                });
+            } else {
+                // 降级方案
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                textArea.remove();
+                copyBtn.textContent = '✓ 已复制';
+                copyBtn.style.background = '#28a745';
+                setTimeout(() => {
+                    copyBtn.textContent = '复制';
+                    copyBtn.style.background = '#007bff';
+                }, 2000);
+            }
+        });
+        
+        retryBtn.addEventListener('click', async () => {
+            closeDialog();
+            logDevice('已关闭 ADB Server，正在重试连接...');
+            resolve('retry');
+        });
+        
+        cancelBtn.addEventListener('click', () => {
+            closeDialog();
+            resolve('cancel');
+        });
+        
+        function closeDialog() {
+            const dialog = document.getElementById('usb-conflict-dialog');
+            const mask = document.getElementById('usb-conflict-mask');
+            if (dialog) dialog.remove();
+            if (mask) mask.remove();
+        }
+    });
 };
 
 // 设备日志记录
@@ -279,7 +355,7 @@ let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
     }
 };
 
-// 连接设备（一键连接）
+// 连接设备（WebUSB 模式）
 let connectDevice = async () => {
     if (window.adbClient) {
         logDevice('设备已连接');
@@ -292,7 +368,6 @@ let connectDevice = async () => {
     }
     
     window.isConnecting = true;
-    logDevice('正在连接设备...');
     
     try {
         // 等待库加载
@@ -326,6 +401,8 @@ let connectDevice = async () => {
             throw new Error('WebUSB 不可用');
         }
         
+        logDevice('正在连接设备（WebUSB 模式）...');
+        
         // 步骤1：检查已授权设备
         let devices = [];
         try {
@@ -354,9 +431,16 @@ let connectDevice = async () => {
         const msg = error.message || error.toString();
         logDevice('连接失败: ' + msg);
         
-        // USB 冲突检测
-        if (msg.includes('Unable to claim interface')) {
-            showUsbConflictDialog();
+        // USB 冲突检测 - 显示友好对话框
+        if (msg.includes('Unable to claim interface') || msg.includes('claim')) {
+            logDevice('检测到 USB 接口冲突，显示解决方案...');
+            const result = await showUsbConflictDialog();
+            if (result === 'retry') {
+                logDevice('用户已执行 adb kill-server，重试连接...');
+                window.isConnecting = false;
+                await connectDevice();
+                return;
+            }
         } else if (msg.includes('auth') || msg.includes('unauthorized')) {
             alert('请在设备上点击"允许 USB 调试"');
         } else if (msg.includes('NotFoundError')) {

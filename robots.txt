@@ -1,0 +1,8 @@
+# Jetour ADB Tool Robots.txt
+# Allow all search engines to crawl the site
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://jyz0501.github.io/jetour_adb_tool/sitemap.xml

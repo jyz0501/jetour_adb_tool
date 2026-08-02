@@ -339,7 +339,7 @@ let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
         console.error('ADB connection error:', e);
         
         // 针对常见错误提供解决方案
-        if (e.message && (e.message.includes('Unable to claim interface') || e.message.includes('Busy') || e.message.includes('already in used'))) {
+        if (e.message && (e.message.includes('Unable to claim interface') || e.message.includes('Busy') || e.message.includes('already in used') || e.message.includes('claimed'))) {
             logDevice('错误原因：USB 接口被其他程序占用');
             logDevice('解决方案：请关闭占用 USB 的程序后刷新页面重试');
         } else if (e.message && (e.message.includes('auth') || e.message.includes('unauthorized') || e.message.includes('UnauthorizedError'))) {
@@ -355,13 +355,44 @@ let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
     }
 };
 
-// 连接设备（WebUSB 模式）
-let connectDevice = async () => {
-    if (window.adbClient) {
-        logDevice('设备已连接');
-        return;
+// 静默断开已有连接（无 confirm 弹窗）
+let disconnectSilently = async () => {
+    try {
+        if (window.adbClient) {
+            logDevice('检测到已有连接，正在断开旧连接...');
+            await window.adbClient.close();
+        }
+    } catch (e) {
+        console.error('关闭 ADB 客户端失败:', e);
     }
     
+    try {
+        if (window.adbTransport && window.adbTransport.close) {
+            await window.adbTransport.close();
+        }
+    } catch (e) {
+        console.error('关闭 WebUSB 传输失败:', e);
+    }
+    
+    try {
+        if (window.adbDevice && window.adbDevice.close) {
+            await window.adbDevice.close();
+        }
+    } catch (e) {
+        console.error('关闭 WebUSB 设备失败:', e);
+    }
+    
+    window.adbClient = null;
+    window.adbDevice = null;
+    window.adbTransport = null;
+    window.adbConnectionMode = null;
+    setDeviceName(null);
+    stopDeviceMonitoring();
+    logDevice('旧连接已断开');
+};
+
+// 连接设备（WebUSB 模式）
+let connectDevice = async () => {
     if (window.isConnecting) {
         logDevice('正在连接中...');
         return;
@@ -370,6 +401,11 @@ let connectDevice = async () => {
     window.isConnecting = true;
     
     try {
+        // 连接前检测：如果已有连接，先静默断开旧 USB 设备
+        if (window.adbClient || window.adbTransport || window.adbDevice) {
+            await disconnectSilently();
+        }
+        
         // 等待库加载
         let attempts = 0;
         while (!window.Adb && !window.TangoADB && attempts < 50) {
@@ -411,6 +447,8 @@ let connectDevice = async () => {
         
         // 步骤2：如果没有已授权设备，请求用户选择（首次连接）
         if (devices.length === 0) {
+            // 再次确保旧 WebUSB 连接已释放，避免 requestDevice 时接口占用
+            await disconnectSilently();
             logDevice('首次连接，请选择设备...');
             const device = await manager.requestDevice();
             if (!device) {
@@ -433,6 +471,7 @@ let connectDevice = async () => {
         
         // USB 冲突检测 - 显示友好对话框
         if (msg.includes('Unable to claim interface') || msg.includes('claim')) {
+            logDevice('检测到 USB 接口冲突，请停止电脑 ADB 服务，执行 adb kill-server');
             logDevice('检测到 USB 接口冲突，显示解决方案...');
             const result = await showUsbConflictDialog();
             if (result === 'retry') {

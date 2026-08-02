@@ -1,6 +1,6 @@
 # 捷途大伦哥ADB工具
 
-**在线访问**: https://jyz0501.github.io/jetour_adb_tool/
+**在线访问**: https://tool.qianxian.tech/
 
 > ⚠️ **免责声明**：本工具仅供个人学习测试使用，请勿用于商业用途。使用本工具造成的任何后果由使用者自行承担。
 

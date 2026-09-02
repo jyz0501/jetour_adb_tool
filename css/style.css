@@ -118,7 +118,7 @@ a:hover {
     margin-right: 10px;
 }
 
-/* Progress and Toast Styles */
+/* Progress Styles */
 .progress {
     margin: 20px 0;
     height: 20px;
@@ -153,53 +153,6 @@ a:hover {
 @keyframes progress-bar-stripes {
     from { background-position: 40px 0; }
     to { background-position: 0 0; }
-}
-
-/* Toast Styles */
-.toast {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 20px;
-    border-radius: 4px;
-    z-index: 1000;
-    opacity: 0;
-    transition: opacity 0.5s;
-    display: none;
-}
-
-#downloading-toast {
-    width: 300px;
-    text-align: center;
-}
-
-#download-progress {
-    width: 100%;
-    height: 20px;
-    background-color: #f0f0f0;
-    border-radius: 10px;
-    overflow: hidden;
-    margin: 10px 0;
-}
-
-#download-progress-bar {
-    height: 100%;
-    background-color: #4caf50;
-    width: 0%;
-    transition: width 0.3s;
-}
-
-#download-progress-text {
-    margin-top: 10px;
-    font-size: 14px;
-}
-
-#success-toast {
-    background-color: #4caf50;
-    visibility: hidden;
 }
 
 /* Log Styles */

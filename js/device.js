@@ -42,54 +42,7 @@ let isMobileDevice = () => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
 };
 
-// 一键复制命令到剪贴板
-let copyToClipboard = async (text) => {
-    try {
-        await navigator.clipboard.writeText(text);
-        return true;
-    } catch (e) {
-        // 兼容旧浏览器
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            return true;
-        } catch (e2) {
-            document.body.removeChild(textarea);
-            return false;
-        }
-    }
-};
-
 // ====== USB 冲突检测与处理 ======
-
-// 检测本地 ADB Server 是否运行中（通过端口探测）
-let detectLocalAdbServer = async () => {
-    if (isMobileDevice()) {
-        return false;
-    }
-    
-    return new Promise((resolve) => {
-        const timeout = setTimeout(() => {
-            resolve(false);
-        }, 1000);
-        
-        try {
-            // 使用 fetch 检测本地 ADB Server（虽然 ADB Server 不支持 HTTP，但可以检测端口是否被占用）
-            // 注意：由于浏览器安全限制，无法直接检测 TCP 端口
-            // 这里我们假设 PC 端默认可能有 ADB Server 运行
-            resolve(false);
-        } catch (e) {
-            clearTimeout(timeout);
-            resolve(false);
-        }
-    });
-};
 
 // 显示 USB 冲突对话框
 let showUsbConflictDialog = async () => {
@@ -232,7 +185,6 @@ let disconnect = async () => {
         
         window.adbDevice = null;
         window.adbTransport = null;
-        window.adbConnectionMode = null;
         
         setDeviceName(null);
         logDevice('===== 设备已断开连接 =====');
@@ -245,7 +197,6 @@ let disconnect = async () => {
         window.adbClient = null;
         window.adbDevice = null;
         window.adbTransport = null;
-        window.adbConnectionMode = null;
         setDeviceName(null);
     }
 };
@@ -278,13 +229,11 @@ let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
         // 3. 用本地密钥签名或发送公钥
         // 4. 等待设备确认（用户需在设备上点击"允许"）
         logDevice('正在进行 ADB RSA 鉴权...');
-        const ADB_DEFAULT_AUTHENTICATORS = adbApi.ADB_DEFAULT_AUTHENTICATORS;
         
         const transport = await AdbDaemonTransport.authenticate({
             serial: webusbDevice.serial,
             connection: connection,
-            credentialStore: credentialStore,
-            authenticators: ADB_DEFAULT_AUTHENTICATORS
+            credentialStore: credentialStore
         });
         logDevice('ADB 传输层已建立（RSA 鉴权成功）');
         
@@ -385,7 +334,6 @@ let disconnectSilently = async () => {
     window.adbClient = null;
     window.adbDevice = null;
     window.adbTransport = null;
-    window.adbConnectionMode = null;
     setDeviceName(null);
     stopDeviceMonitoring();
     logDevice('旧连接已断开');
@@ -550,7 +498,7 @@ let initDeviceDetection = async () => {
         navigator.usb.addEventListener('disconnect', () => {
             logDevice('USB 设备已断开');
             if (window.adbClient) {
-                disconnect();
+                disconnectSilently();
             }
         });
         
@@ -644,8 +592,8 @@ let exec_shell = async (command) => {
         showProgress(true);
         log('开始执行指令: ' + command + '\n');
         try {
-            // 使用 Tango ADB 的 subprocess.spawnWaitText
-            const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText(command.split(' '));
+            // 使用 Tango ADB 的 subprocess.spawnWaitText（通过 sh -c 包装以支持引号/通配符/管道/重定向）
+            const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['sh', '-c', command]);
             log(result);
             showProgress(false);
             return;
@@ -663,46 +611,14 @@ let exec_shell = async (command) => {
     showProgress(false);
 };
 
-// 优化网络传输性能
-let optimizeNetworkPerformance = async () => {
-    if (!window.adbClient) {
-        alert('未连接到设备，请先点击"开始连接"按钮连接设备');
-        return;
-    }
-    
-    clear();
-    showProgress(true);
-    log('开始优化网络传输性能...\n');
-    
-    try {
-        // 1. 调整 TCP 窗口参数
-        log('1. 调整 TCP 窗口参数...');
-        await exec_shell('echo \'net.ipv4.tcp_window_scaling=1\' >> /proc/sys/net/ipv4/tcp_window_scaling');
-        log('TCP 窗口参数调整成功\n');
-        
-        // 2. 启用 ADB 的压缩传输功能
-        log('2. 启用 ADB 压缩传输功能...');
-        // 注意：ADB 压缩传输功能需要在 ADB 客户端启用，这里我们通过 shell 命令设置相关参数
-        await exec_shell('setprop persist.adb.zlib-deflate 1');
-        log('ADB 压缩传输功能启用成功\n');
-        
-        log('网络传输性能优化完成！');
-        alert('网络传输性能优化完成！');
-    } catch (error) {
-        log('性能优化失败:', error);
-        alert('性能优化失败，请检查设备状态');
-    }
-    showProgress(false);
-};
-
 // 执行命令并返回输出
 let execShellAndGetOutput = async (command) => {
     // 检查是否有 Tango ADB 客户端
     if (window.adbClient) {
         let output = "";
         try {
-            // 使用 Tango ADB 的 subprocess.spawnWaitText
-            const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText(command.split(' '));
+            // 使用 Tango ADB 的 subprocess.spawnWaitText（通过 sh -c 包装以支持引号/通配符/管道/重定向）
+            const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['sh', '-c', command]);
             output = result;
             log(output); // 同时输出到日志
             return output;
@@ -732,8 +648,8 @@ let exec_command = async (args) => {
         showProgress(true);
         log('开始执行指令: ' + command + '\n');
         try {
-            // 使用 Tango ADB 的 subprocess.spawnWaitText
-            const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText(command.split(' '));
+            // 使用 Tango ADB 的 subprocess.spawnWaitText（通过 sh -c 包装以支持引号/通配符/管道/重定向）
+            const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['sh', '-c', command]);
             log(result);
             showProgress(false);
             return;
@@ -749,40 +665,6 @@ let exec_command = async (args) => {
     // 未连接设备
     alert('未连接到设备，请先点击"开始连接"按钮连接设备');
 };
-
-// 通过 WebRTC 获取本机局域网IP
-async function getLocalIP() {
-    return new Promise((resolve) => {
-        const pc = new RTCPeerConnection({
-            iceServers: []
-        });
-        pc.createDataChannel('');
-        pc.createOffer().then(offer => pc.setLocalDescription(offer));
-
-        let ipFound = null;
-        pc.onicecandidate = (evt) => {
-            if (evt.candidate) {
-                const match = evt.candidate.candidate.match(/(\d+\.\d+\.\d+\.\d+)/);
-                if (match) {
-                    const ip = match[1];
-                    // 过滤出局域网IP (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
-                    if (ip.startsWith('192.168.') || ip.startsWith('10.') ||
-                        (ip.startsWith('172.') && parseInt(ip.split('.')[1]) >= 16 && parseInt(ip.split('.')[1]) <= 31)) {
-                        ipFound = ip;
-                        pc.close();
-                        resolve(ipFound);
-                    }
-                }
-            }
-        };
-
-        // 超时返回默认值
-        setTimeout(() => {
-            pc.close();
-            resolve(ipFound || '192.168.1.1');
-        }, 2000);
-    });
-}
 
 // 导出函数
 try {

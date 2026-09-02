@@ -77,7 +77,6 @@ let jcazxz = async () => {
 try {
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = {
-            wifiAdb,
             jcwlxz,
             jcazxz
         };

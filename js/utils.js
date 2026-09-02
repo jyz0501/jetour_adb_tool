@@ -44,50 +44,9 @@ let showProgress = async (show) => {
             progress.className = "progress active progress-striped";
         } else {
             progress.className = "progress";
-            log("");
         }
     }
 };
-
-// 更新下载百分比文本
-function updateDownloadProgressText(percentage) {
-    var progressText = document.getElementById('download-progress-text');
-    var progressBar = document.getElementById('download-progress-bar');
-    progressText.textContent = percentage + '%';
-    progressBar.style.width = percentage + '%';
-}
-
-// 使用 XMLHttpRequest 来获取下载进度
-async function fetchWithProgress(url, onProgress) {
-    return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', url, true);
-        xhr.responseType = 'blob';
-        xhr.onprogress = onProgress;
-        xhr.onload = function() {
-            if (xhr.status === 200) {
-                resolve(xhr.response);
-            } else {
-                reject(new Error('Failed to fetch the resource'));
-            }
-        };
-        xhr.onerror = function() {
-            reject(new Error('Network error'));
-        };
-        xhr.send();
-    });
-}
-
-// 硬刷新
-function hardReload() {
-    const url = new URL(window.location.href);
-    const params = new URLSearchParams(url.search);
-    // 添加/覆盖时间戳参数（确保每次URL不同）
-    params.set('t', new Date().getTime());
-    // 重构完整URL（保留协议/域名/路径/原始参数）
-    url.search = params.toString();
-    window.location.href = url.toString();
-}
 
 // 检测浏览器是否支持WebUSB
 function checkWebUSBSupport() {
@@ -276,21 +235,6 @@ function confirmModal() {
     closeModal();
 }
 
-// 显示带超链接的提示
-function showAlertWithLinks(title, content) {
-    showModal(title, content, {
-        showCancel: false,
-        confirmText: '我知道了'
-    });
-}
-
-// 显示确认对话框
-function showConfirmWithLinks(title, content, callback) {
-    showModal(title, content, {
-        callback: callback
-    });
-}
-
 // 显示浏览器下载弹窗
 function showChromeDownloadPopup() {
     const content = '您的浏览器不支持 WebUSB，请使用以下浏览器：<br><br>' +
@@ -317,9 +261,6 @@ try {
             log,
             clear,
             showProgress,
-            updateDownloadProgressText,
-            fetchWithProgress,
-            hardReload,
             checkWebUSBSupport
         };
     }

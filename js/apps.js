@@ -2,6 +2,13 @@
 
 // 检查浏览器是否支持 WebUSB
 let checkBrowserSupport = () => {
+    // 复用页面加载时的浏览器检测结果（utils.js checkWebUSBSupport 的完整检测）
+    if (typeof window.browserSupport !== 'undefined') {
+        if (window.browserSupport === false) {
+            alert('您的浏览器不支持 WebUSB API，请使用 Chrome 或 Edge 浏览器');
+        }
+        return window.browserSupport !== false;
+    }
     if (!('usb' in navigator)) {
         alert('您的浏览器不支持 WebUSB API，请使用 Chrome 或 Edge 浏览器');
         return false;
@@ -115,6 +122,7 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
     
     clear();
     showProgress(true);
+    showBlockingModal(appName + ' 正在从车机下载...', 'download');
     log('正在从车机下载 ' + appName + '...\n');
     log('下载链接: ' + downloadUrl);
     
@@ -145,17 +153,14 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             
             try {
                 await downloadPromise;
-                // 检查文件是否存在且大小正常（大于50KB）
-                const checkResult = await execShellAndGetOutput('ls -l ' + savePath);
-                if (checkResult.includes('.apk') && !checkResult.includes('No such file')) {
-                    // 检查文件大小是否大于50KB（51200字节）
-                    const sizeMatch = checkResult.match(/\s+(\d+)\s+\d{4}-\d{2}-\d{2}/);
-                    if (sizeMatch && parseInt(sizeMatch[1]) > 51200) {
-                        downloadSuccess = true;
-                        break;
-                    } else {
-                        log('文件太小，可能下载不完整');
-                    }
+                // 检查文件大小是否正常（大于50KB），使用 stat 直接取字节数，不依赖 ls -l 的日期格式
+                const sizeCheck = await execShellAndGetOutput('stat -c %s ' + savePath);
+                const fileSize = parseInt(sizeCheck.trim());
+                if (!isNaN(fileSize) && fileSize > 51200) {
+                    downloadSuccess = true;
+                    break;
+                } else {
+                    log('文件不存在或太小，可能下载不完整');
                 }
             } catch (e) {
                 log('下载失败: ' + e.message);
@@ -164,6 +169,7 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
         
         if (downloadSuccess) {
             log('\n下载完成，正在安装...\n');
+            updateBlockingModal(appName + ' 正在安装...', 'install');
             
             let installOutput = await execShellAndGetOutput("pm install -g -r -d " + savePath);
             
@@ -189,6 +195,7 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             }
         } else {
             // 下载失败，提供手动下载和自选APK选项
+            removeBlockingModal();
             log('车机下载失败');
             
             const userChoice = confirm(
@@ -221,21 +228,22 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
         alert('安装失败: ' + error.message);
     }
     
+    removeBlockingModal();
     showProgress(false);
 };
 
 // 沙发管家
 let sfgj = async () => {
     const downloadUrl = 'https://zero.shafa.com/file/pad_webwww/shafa_market/latest';
-    const backupUrl = 'http://a14472357.328657.xyz/a14472357/sfgj4.9.54.apk';
+    const backupUrl = 'http://49.232.242.222/apk/sfgj4.9.54.apk';
     const savePath = '/storage/emulated/0/Download/sfgj.apk';
     await downloadToPhoneAndPush('沙发管家', downloadUrl, savePath, backupUrl, 'com.shafa.markethd');
 };
 
 // 应用管家
 let yygj = async () => {
-    const downloadUrl = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%8E%86%E5%8F%B2%E7%89%88%E6%9C%AC/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6v1.8.3%28%E6%AD%A3%E5%BC%8F%E7%89%88%29%E5%85%AC%E7%AD%BE%E7%89%88.apk';
-    const backupUrl = 'http://a14472357.328657.xyz/a14472357/yygj1.8.3.apk';
+    const downloadUrl = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6v1.9.0%281905%29%E5%85%AC%E7%AD%BE%E7%89%88.apk';
+    const backupUrl = 'http://49.232.242.222/apk/yygjv1.9.0(1905).apk';
     const savePath = '/storage/emulated/0/Download/yygj.apk';
     await downloadToPhoneAndPush('应用管家', downloadUrl, savePath, backupUrl, 'com.yunpan.appmanage');
 };
@@ -245,45 +253,47 @@ let yygj = async () => {
 // 哨兵监控
 let sentry = async () => {
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/sbcamerav1.1.8.apk';
+    const backupUrl = 'http://49.232.242.222/apk/sbjkv1.1.8.apk';
     const savePath = '/storage/emulated/0/Download/sentry.apk';
-    await downloadToPhoneAndPush('哨兵监控', downloadUrl, savePath, null);
+    await downloadToPhoneAndPush('哨兵监控', downloadUrl, savePath, backupUrl);
 };
 
 // 小横条
 let hstrip = async () => {
     const downloadUrl = 'http://a14472357.328657.xyz/a14472357/Gesture_1.6.4.apk';
-    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/Gesture_1.6.4.apk';
+    const backupUrl = 'http://49.232.242.222/apk/xht_2.0.1_fixed.apk';
     const savePath = '/storage/emulated/0/Download/Gesture.apk';
     await downloadToPhoneAndPush('小横条', downloadUrl, savePath, backupUrl, 'com.omarea.gesture');
 };
 
 // 易控车机PIP
 let ykpip = async () => {
-    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/易控车机版V1.6.10_PIP.apk';
+    const downloadUrl = 'http://49.232.242.222/apk/ykcjV1.6.10_PIP.apk';
+    const backupUrl = 'http://49.232.242.222/apk/ykcjV1.6.10_PIP.apk';
     const savePath = '/storage/emulated/0/Download/ykpip.apk';
-    await downloadToPhoneAndPush('易控车机PIP', downloadUrl, savePath, null);
+    await downloadToPhoneAndPush('易控车机PIP', downloadUrl, savePath, backupUrl);
 };
 
 
 // 侧边栏
 let cdb = async () => {
     const downloadUrl = 'https://gjx.cheji.cc/apk/cbl.apk';
+    const backupUrl = 'http://49.232.242.222/apk/cbl_1.0.apk';
     const savePath = '/storage/emulated/0/Download/cdb.apk';
-    await downloadToPhoneAndPush('侧边栏', downloadUrl, savePath, null, 'com.hzsoft.sidebar');
+    await downloadToPhoneAndPush('侧边栏', downloadUrl, savePath, backupUrl, 'com.hzsoft.sidebar');
 };
 
 // 布丁UI
 let bdui = async () => {
-    const downloadUrl = 'https://file.vju.cc/%E5%B8%83%E4%B8%81UI%E6%A1%8C%E9%9D%A2/%E5%B8%83%E4%B8%81UI_2.2.3.apk';
-    const backupUrl = 'http://a14472357.328657.xyz/a14472357/bdUI_2.2.3.apk';
+    const downloadUrl = 'https://file.vju.cc/%E5%B8%83%E4%B8%81UI%E6%A1%8C%E9%9D%A2/%E5%B8%83%E4%B8%81UI%20V2.2.6.apk';
+    const backupUrl = 'http://49.232.242.222/apk/bdUI_V2.2.6.apk';
     const savePath = '/storage/emulated/0/Download/bdui.apk';
     await downloadToPhoneAndPush('布丁UI', downloadUrl, savePath, backupUrl, 'com.sfcar.launcher');
 };
 
 // 蓝牙遥控 - 本地下载到手机
 let lyyk = () => {
-    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/lyyk2.0.9.apk';
-    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/lyyk2.0.9.apk';
+    const downloadUrl = 'http://49.232.242.222/apk/bdUI_V2.2.6.apk'';
     
     // 创建隐藏的下载链接
     const link = document.createElement('a');
@@ -380,7 +390,7 @@ let loadPackageList = async () => {
         launchButton.style.marginRight = "5px";
         launchButton.onclick = function(pkg) {
             return function() {
-                exec_shell('monkey -p ' + pkg + ' -c android.intent.category.LAUNCHER 1');
+                execShellAndGetOutput('monkey -p ' + pkg + ' -c android.intent.category.LAUNCHER 1');
             };
         }(packageName);
         launchButton.textContent = "启动";
@@ -392,7 +402,7 @@ let loadPackageList = async () => {
         stopButton.style.backgroundColor = "#2196f3";
         stopButton.onclick = function(pkg) {
             return function() {
-                exec_shell('am force-stop ' + pkg);
+                execShellAndGetOutput('am force-stop ' + pkg);
             };
         }(packageName);
         stopButton.textContent = "停止";
@@ -405,7 +415,7 @@ let loadPackageList = async () => {
         removeButton.onclick = function(pkg) {
             return function() {
                 if (confirm("确定要卸载 " + pkg + " 吗？")) {
-                    exec_shell('pm uninstall ' + pkg);
+                    execShellAndGetOutput('pm uninstall ' + pkg);
                 }
             };
         }(packageName);
@@ -473,6 +483,8 @@ let installApkFile = async () => {
     clear();
     showProgress(true);
     log(`开始安装 ${validFiles.length} 个 APK 文件...\n`);
+    let successCount = 0;
+    let failCount = 0;
     try {
         for (let i = 0; i < validFiles.length; i++) {
             const file = validFiles[i];
@@ -483,12 +495,14 @@ let installApkFile = async () => {
             log(`正在安装: ${file.name}`);
             const output = await execShellAndGetOutput(`pm install -g -r ${remotePath}`);
             if (output.includes('Success')) {
+                successCount++;
                 log(`✅ ${file.name} 安装成功\n`);
             } else {
+                failCount++;
                 log(`❌ ${file.name} 安装失败\n`);
             }
         }
-        alert(`🎉 共 ${validFiles.length} 个应用安装完成！`);
+        alert(`🎉 安装完成！成功 ${successCount} 个，失败 ${failCount} 个`);
         loadPackageList();
     } catch (error) {
         console.error("批量安装出错:", error);
@@ -499,76 +513,4 @@ let installApkFile = async () => {
     }
 };
 
-// 列出设备上的APK文件
-let listDeviceApkFiles = async (directory, onSelect) => {
-    if (!window.adbClient) {
-        alert('请先连接设备');
-        return;
-    }
-    
-    clear();
-    showProgress(true);
-    log('正在扫描 ' + directory + ' 目录下的APK文件...\n');
-    log('提示：如果找不到APK文件，请先将APK文件通过数据线传到车机存储目录\n');
-    
-    alert('即将扫描 ' + directory + ' 目录下的APK文件。\n\n如果找不到文件，请先将APK文件传到车机的「下载」或「存储」目录。');
-    
-    try {
-        const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText([
-            'ls', '-la', directory + '/*.apk'
-        ]);
-        
-        const lines = result.trim().split('\n').filter(line => line.endsWith('.apk'));
-        const files = lines.map(line => {
-            const match = line.match(/^[-drwx]+\s+\d+\s+\w+\s+\w+\s+(\d+)\s+.+\s+(.+)$/);
-            const size = match ? match[1] : '0';
-            const filename = match ? match[2] : line.trim().split(/\s+/).pop();
-            return {
-                name: filename,
-                path: directory + '/' + filename,
-                size: parseInt(size) || 0
-            };
-        });
-        
-        if (files.length === 0) {
-            log('未找到APK文件');
-            alert('未在 ' + directory + ' 目录下找到APK文件。\n\n请先将APK文件传到车机的「下载」目录。');
-            showProgress(false);
-            return;
-        }
-        
-        log('找到 ' + files.length + ' 个APK文件:\n');
-        files.forEach((file, index) => {
-            const sizeMB = (file.size / 1024 / 1024).toFixed(2);
-            log((index + 1) + '. ' + file.name + ' (' + sizeMB + ' MB)');
-        });
-        
-        // 创建选择对话框
-        const fileList = files.map((file, index) => {
-            const sizeMB = (file.size / 1024 / 1024).toFixed(2);
-            return `${index + 1}. ${file.name} (${sizeMB} MB)`;
-        }).join('\n');
-        
-        const selectedIndex = prompt(
-            '找到以下APK文件，请输入编号选择要安装的文件:\n\n' + fileList + '\n\n输入编号 (1-' + files.length + '):'
-        );
-        
-        if (selectedIndex !== null) {
-            const index = parseInt(selectedIndex) - 1;
-            if (index >= 0 && index < files.length) {
-                const selectedFile = files[index];
-                log('\n选择了: ' + selectedFile.name);
-                if (onSelect) {
-                    await onSelect(selectedFile);
-                }
-            } else {
-                alert('无效的编号');
-            }
-        }
-    } catch (error) {
-        log('扫描失败: ' + error.message);
-        alert('扫描目录失败: ' + error.message);
-    }
-    
-    showProgress(false);
-};
+

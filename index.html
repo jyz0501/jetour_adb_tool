@@ -14,7 +14,6 @@
     <link rel="canonical" href="https://tool.qianxian.tech/">
     
     <!-- 百度 SEO 标签 -->
-    <meta name="baidu-site-verification" content="你的百度验证码">
     <meta name="baidu-subject" content="车机调试">
     <meta name="baidu-category" content="工具">
     <meta name="baidu-copyright" content="大伦哥CDM">
@@ -38,7 +37,6 @@
     
     <!-- 头条/抖音搜索优化 -->
     <meta name="toutiao-site-verification" content="">
-    <meta property="og:video" content="">
     
     <!-- 微信分享优化 -->
     <meta itemprop="wx:name" content="大伦车机工具箱">
@@ -208,7 +206,6 @@
                         <button class="btn btn-connect" id="connect-btn" onclick="connectDevice()" style="background-color: #28a745; color: white;">开始连接</button>
                         <span style="margin-left: 10px; font-weight: bold; color: #28a745;">
                             <span id="device-status">🚗 未连接</span>
-                            <span id="device-name" style="margin-left: 5px; color: #666;"></span>
                         </span>
                     </div>
                     <p style="font-size: 12px; color: #6c757d; margin: 0;">
@@ -306,25 +303,12 @@
                     <div id="exec-result-toggle" onclick="toggleExecResult()">▲ 点击展开执行结果</div>
                     <h4>执行结果</h4>
                     <div class="progress" id="progress">
-                        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+                        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
                     </div>
                     <div id="log"></div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Toasts -->
-    <div class="toast" id="downloading-toast">
-        <div>正在下载，请稍候...</div>
-        <div id="download-progress">
-            <div id="download-progress-bar"></div>
-        </div>
-        <div id="download-progress-text">0%</div>
-    </div>
-    
-    <div class="toast" id="success-toast">
-        设备连接成功！
     </div>
     
     <!-- 自定义弹窗 -->
@@ -386,19 +370,6 @@
             }
         }
         
-        // 获取并显示版本号（基于Git提交次数）
-        function updateVersion() {
-            // 版本号由构建脚本基于Git提交次数生成
-            // 直接使用构建时设置的版本号
-            const versionElement = document.getElementById('app-version');
-            if (versionElement) {
-                // 保持构建时设置的版本号不变
-                // 移除localStorage逻辑，确保版本号始终与构建时一致
-            }
-        }
-        
-        // 页面加载完成后更新版本号
-        updateVersion();
     </script>
 
 

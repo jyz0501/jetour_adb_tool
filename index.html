@@ -10,7 +10,7 @@
     <meta name="keywords" content="ADB工具,车机调试,WebADB,车机工具箱,车载系统,安卓调试,USB连接,应用安装,车机管理,Jetour,捷途,大伦哥,纵横,G700">
     <meta name="author" content="大伦哥CDM">
     <meta name="robots" content="index, follow">
-    <meta name="theme-color" content="#007bff">
+    <meta name="theme-color" content="#5b5bd6">
     <link rel="canonical" href="https://tool.qianxian.tech/">
     
     <!-- 百度 SEO 标签 -->
@@ -75,39 +75,41 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            background-color: var(--mask, rgba(0,0,0,0.7));
         }
         
         .custom-modal-content {
-            background-color: white;
+            background-color: var(--card, #ffffff);
             margin: 15% auto;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 18px;
+            border-radius: 12px;
+            border: 1px solid var(--line, #e6e9f2);
             width: 90%;
             max-width: 400px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 24px var(--shadow, rgba(0,0,0,0.28));
         }
         
         .custom-modal-header {
             margin-bottom: 12px;
             padding-bottom: 8px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--line, #e6e9f2);
         }
 
         .custom-modal-title {
             margin: 0;
             font-size: 14px;
             font-weight: bold;
-            color: #333;
+            color: var(--txt, #1c2333);
         }
 
         .custom-modal-body {
             margin-bottom: 15px;
             line-height: 1.5;
+            color: var(--txt, #1c2333);
         }
         
         .custom-modal-body a {
-            color: #007bff;
+            color: var(--brand, #5b5bd6);
             text-decoration: none;
         }
         
@@ -123,30 +125,30 @@
         }
         
         .custom-modal-btn {
-            padding: 6px 12px;
+            padding: 6px 14px;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 13px;
         }
         
         .custom-modal-btn-primary {
-            background-color: #007bff;
+            background: var(--brand-grad, linear-gradient(135deg, #5b5bd6, #7c3aed));
             color: white;
         }
         
         .custom-modal-btn-secondary {
-            background-color: #6c757d;
+            background-color: var(--sub, #6b7280);
             color: white;
         }
         
         .custom-modal-btn-success {
-            background-color: #28a745;
+            background-color: var(--ok, #16a34a);
             color: white;
         }
         
         .custom-modal-btn-danger {
-            background-color: #dc3545;
+            background-color: var(--bad, #e11d48);
             color: white;
         }
         
@@ -173,16 +175,16 @@
 <body>
     <div class="container">
         <div style="text-align: center; margin-bottom: 15px;">
-            <h1 style="margin: 0 0 10px 0; font-size: 24px; color: #333;">大伦车机工具箱</h1>
-            <div style="font-size: 14px; color: #999; margin-bottom: 15px;">
-                <span id="app-version">v3.2.0</span>
+            <h1 style="margin: 0 0 10px 0; font-size: 24px; color: var(--txt);">大伦车机工具箱</h1>
+            <div style="font-size: 14px; color: var(--sub); margin-bottom: 15px;">
+                <span id="app-version">v3.2.2</span>
             </div>
-            <a href="https://pw.qianxian.tech/" class="btn" style="background-color: #007bff; color: white; padding: 8px 20px; text-decoration: none; border-radius: 4px; margin: 0 5px;">➡️获取动态密码⬅️</a>
+            <a href="https://pw.qianxian.tech/" class="btn" style="background: var(--brand-grad); color: white; padding: 8px 20px; text-decoration: none; border-radius: 8px; margin: 0 5px; box-shadow: 0 3px 8px rgba(91,91,214,0.25);">➡️获取动态密码⬅️</a>
         </div>
         <!-- 安装方式一：手机App方式 (已隐藏) -->
         <!-- 
         <div style="margin: 10px 0;">
-            <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">安装方式一：手机App方式</h3>
+            <h3 style="margin: 0 0 10px 0; font-size: 16px; color: var(--txt);">安装方式一：手机App方式</h3>
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <a href="https://adb.cheji.cc/apk/sj.apk" class="btn btn-connect" style="flex-shrink: 0;" target="_blank">手机助手下载</a>
                 <a href="https://101.42.10.175:35070/down/mnfds48btpxq.apk" class="btn btn-connect" style="flex-shrink: 0;" target="_blank">应用管家下载</a>
@@ -190,11 +192,11 @@
         </div>
         -->
         
-        <hr style="margin: 15px 0; border: 1px solid #eee;">
+        <hr style="margin: 15px 0; border: 1px solid var(--line);">
         
             <!-- 有线连接 -->
-            <div style="margin: 10px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">有线连接</h3>
+            <div style="margin: 12px 0; background-color: var(--card); border: 1px solid var(--line); padding: 15px; border-radius: 12px;">
+                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: var(--txt);">有线连接</h3>
                 <div class="warning" id="usb-warning">
                     注意！您的浏览器不支持WebUSB。请在Chrome或Edge浏览器中打开。
                 </div>
@@ -203,25 +205,25 @@
 
                 <div style="margin: 15px 0;">
                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
-                        <button class="btn btn-connect" id="connect-btn" onclick="connectDevice()" style="background-color: #28a745; color: white;">开始连接</button>
-                        <span style="margin-left: 10px; font-weight: bold; color: #28a745;">
+                        <button class="btn btn-connect" id="connect-btn" onclick="connectDevice()">开始连接</button>
+                        <span style="margin-left: 10px; font-weight: bold; color: var(--ok);">
                             <span id="device-status">🚗 未连接</span>
                         </span>
                     </div>
-                    <p style="font-size: 12px; color: #6c757d; margin: 0;">
+                    <p style="font-size: 12px; color: var(--sub); margin: 0;">
                         有线连接：使用Chrome或Edge浏览器 + OTG线连接车机USB口。
                     </p>
                 </div>
                 <!-- 设备情况日志 -->
-                <div style="margin-top: 10px; padding: 10px; background-color: #f8f9fa; border-radius: 4px; font-size: 12px; font-family: monospace; max-height: 100px; overflow-y: auto;">
+                <div style="margin-top: 10px; padding: 10px; background-color: #fafbff; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; font-family: monospace; max-height: 100px; overflow-y: auto;">
                     <div id="device-log" style="white-space: pre-wrap;"></div>
                 </div>
             </div>
                 
-                <hr style="margin: 20px 0; border: 1px solid #eee;">
+                <hr style="margin: 20px 0; border: 1px solid var(--line);">
                 
                 <!-- 必装软件 -->
-                <div class="watermark-container" style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px; position: relative;">
+                <div class="watermark-container" style="margin: 16px 0; position: relative;">
                     <div class="watermark">抖音@大伦哥的CDM</div>
                     <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">必装软件</h4>
                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; position: relative; z-index: 1;">
@@ -231,15 +233,15 @@
                         <button class="btn btn-connect" onclick="bdui()" style="flex-shrink: 0;">布丁UI</button>
                     </div>
                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; position: relative; z-index: 1;">
-                        <button class="btn btn-connect" onclick="startGuanJia()" style="flex-shrink: 0; background-color: #007bff;">启动应用管家</button>
-                        <button class="btn btn-connect" onclick="exec_shell('monkey -p com.hzsoft.sidebar -c android.intent.category.LAUNCHER 1')" style="flex-shrink: 0; background-color: #007bff;">启动侧边栏</button>
-                        <button class="btn btn-connect" onclick="exec_shell('monkey -p com.shafa.markethd -c android.intent.category.LAUNCHER 1')" style="flex-shrink: 0; background-color: #007bff;">启动沙发管家</button>
+                        <button class="btn btn-connect" onclick="startGuanJia()" style="flex-shrink: 0;">启动应用管家</button>
+                        <button class="btn btn-connect" onclick="exec_shell('monkey -p com.hzsoft.sidebar -c android.intent.category.LAUNCHER 1')" style="flex-shrink: 0;">启动侧边栏</button>
+                        <button class="btn btn-connect" onclick="exec_shell('monkey -p com.shafa.markethd -c android.intent.category.LAUNCHER 1')" style="flex-shrink: 0;">启动沙发管家</button>
                     </div>
-                    <p style="margin-top: 10px; font-size: 12px; color: #6c757d; position: relative; z-index: 1;">请先安装以上软件，以确保系统正常运行。</p>
+                    <p style="margin-top: 10px; font-size: 12px; color: var(--sub); position: relative; z-index: 1;">请先安装以上软件，以确保系统正常运行。</p>
                 </div>
 
                 <!-- 其他软件 -->
-                <div class="watermark-container" style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px; position: relative;">
+                <div class="watermark-container" style="margin: 16px 0; position: relative;">
                     <div class="watermark">抖音@大伦哥的CDM</div>
                     <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">其他软件</h4>
                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; position: relative; z-index: 1;">
@@ -248,34 +250,34 @@
                         <button class="btn btn-connect" onclick="ykpip()" style="flex-shrink: 0;">易控车机PIP</button>
                         <button class="btn btn-connect" onclick="lyyk()" style="flex-shrink: 0;">蓝牙遥控</button>
                     </div>
-                    <p style="margin-top: 10px; font-size: 12px; color: #6c757d; position: relative; z-index: 1;">根据需要选择安装其他软件。</p>
+                    <p style="margin-top: 10px; font-size: 12px; color: var(--sub); position: relative; z-index: 1;">根据需要选择安装其他软件。</p>
                 </div>
                 
                 <!-- 自选安装 -->
-                <div class="watermark-container" style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px; position: relative;">
+                <div class="watermark-container" style="margin: 16px 0; position: relative;">
                     <div class="watermark">抖音@大伦哥的CDM</div>
                     <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">自主安装</h4>
                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; position: relative; z-index: 1;">
                         <input type="file" id="apkFile" multiple accept=".apk" style="display: none;">
                         <button class="btn btn-connect" onclick="loadApkFile()" style="flex-shrink: 0;">选择文件</button>
-                        <span id="apkFileName" style="flex: 1; min-width: 200px; padding: 8px; background-color: white; border: 1px solid #dee2e6; border-radius: 4px;">未选择文件</span>
-                        <button class="btn btn-connect" onclick="installApkFile()" style="flex-shrink: 0; background-color: #007bff;">安装所选</button>
+                        <span id="apkFileName" style="flex: 1; min-width: 200px; padding: 8px; background-color: var(--card); border: 1px solid var(--line); border-radius: 4px;">未选择文件</span>
+                        <button class="btn btn-connect" onclick="installApkFile()" style="flex-shrink: 0;">安装所选</button>
                     </div>
-                    <p style="margin-top: 10px; font-size: 12px; color: #6c757d; position: relative; z-index: 1;">操作点击按钮后请静候等待执行结果，切勿重复点击！</p>
+                    <p style="margin-top: 10px; font-size: 12px; color: var(--sub); position: relative; z-index: 1;">操作点击按钮后请静候等待执行结果，切勿重复点击！</p>
                 </div>
                 
                 <!-- Shell Command Input -->
-                <div class="watermark-container" style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px; position: relative;">
+                <div class="watermark-container" style="margin: 16px 0; position: relative;">
                     <div class="watermark">抖音@大伦哥的CDM</div>
                     <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">手动命令</h4>
                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; position: relative; z-index: 1;">
-                        <input type="text" id="shell" placeholder="输入命令（不用输入adb shell）" style="flex: 1; min-width: 200px; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;">
+                        <input type="text" id="shell" placeholder="输入命令（不用输入adb shell）" style="flex: 1; min-width: 200px; padding: 8px; border: 1px solid var(--line); border-radius: 4px;">
                         <button class="btn btn-connect" onclick="exec_command()" style="flex-shrink: 0;">执行命令</button>
                     </div>
                 </div>
                 
                 <!-- 应用管理 -->
-                <div class="watermark-container" style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px; position: relative;">
+                <div class="watermark-container" style="margin: 16px 0; position: relative;">
                     <div class="watermark">抖音@大伦哥的CDM</div>
                     <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">应用管理</h4>
                     
@@ -285,11 +287,11 @@
                     <!-- 已安装应用列表 -->
                     <table id="package-list" style="width: 100%; border-collapse: collapse; table-layout: fixed; position: relative; z-index: 1;">
                         <thead>
-                            <tr style="background-color: #e9ecef;">
-                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 50px;">序号</th>
-                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 100%; word-break: break-all;">包名</th>
-                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 80px; white-space: nowrap;">操作</th>
-                                <th style="padding: 8px; border: 1px solid #dee2e6; width: 80px; white-space: nowrap;">卸载</th>
+                            <tr style="background-color: var(--brand-soft);">
+                                <th style="padding: 8px; border: 1px solid var(--line); width: 50px;">序号</th>
+                                <th style="padding: 8px; border: 1px solid var(--line); width: 100%; word-break: break-all;">包名</th>
+                                <th style="padding: 8px; border: 1px solid var(--line); width: 80px; white-space: nowrap;">操作</th>
+                                <th style="padding: 8px; border: 1px solid var(--line); width: 80px; white-space: nowrap;">卸载</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -374,10 +376,10 @@
 
 
     
-    <div style="text-align: center; margin-top: 30px; margin-bottom: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 8px;">
-        <h4 style="margin: 0 0 10px 0; font-size: 14px; color: #666;">特别鸣谢</h4>
-        <p style="margin: 5px 0; font-size: 12px; color: #999;">迪友助手云盘：<a href="https://file.vju.cc" target="_blank" style="color: #007bff;">https://file.vju.cc</a></p>
-        <p style="margin: 5px 0; font-size: 12px; color: #999;">其他资源下载：<a href="http://a14472357.328657.xyz" target="_blank" style="color: #007bff;">http://a14472357.328657.xyz</a>、<a href="http://a14472357.a.328657.xyz" target="_blank" style="color: #007bff;">http://a14472357.a.328657.xyz</a>、<a href="https://pan.ehvip.cn/" target="_blank" style="color: #007bff;">恩华网盘</a></p>
+    <div style="text-align: center; margin: 30px auto; padding: 20px; background-color: var(--card); border: 1px solid var(--line); border-radius: 12px; max-width: 820px;">
+        <h4 style="margin: 0 0 10px 0; font-size: 14px; color: var(--sub);">特别鸣谢</h4>
+        <p style="margin: 5px 0; font-size: 12px; color: var(--sub);">迪友助手云盘：<a href="https://file.vju.cc" target="_blank" style="color: var(--brand);">https://file.vju.cc</a></p>
+        <p style="margin: 5px 0; font-size: 12px; color: var(--sub);">其他资源下载：<a href="http://a14472357.328657.xyz" target="_blank" style="color: var(--brand);">http://a14472357.328657.xyz</a>、<a href="http://a14472357.a.328657.xyz" target="_blank" style="color: var(--brand);">http://a14472357.a.328657.xyz</a>、<a href="https://pan.ehvip.cn/" target="_blank" style="color: var(--brand);">恩华网盘</a></p>
     </div>
 </body>
 </html>

@@ -31,7 +31,7 @@ function showBlockingModal(message, stage = 'download') {
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.8);
+        background: var(--mask);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -40,12 +40,13 @@ function showBlockingModal(message, stage = 'download') {
     
     const content = document.createElement('div');
     content.style.cssText = `
-        background: white;
+        background: var(--card);
+        border: 1px solid var(--line);
         padding: 30px;
-        border-radius: 12px;
+        border-radius: 14px;
         max-width: 500px;
         text-align: center;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 8px 24px var(--shadow);
     `;
     
     let stageText = '';
@@ -63,10 +64,10 @@ function showBlockingModal(message, stage = 'download') {
     }
     
     content.innerHTML = `
-        <div style="font-size: 24px; margin-bottom: 15px; color: #333;">${stageText}</div>
-        <div style="font-size: 16px; color: #666; margin-bottom: 20px;">${message}</div>
-        <div style="width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-        <div style="font-size: 14px; color: #999; margin-top: 20px;">${waitText}</div>
+        <div style="font-size: 24px; margin-bottom: 15px; color: var(--txt);">${stageText}</div>
+        <div style="font-size: 16px; color: var(--sub); margin-bottom: 20px;">${message}</div>
+        <div style="width: 50px; height: 50px; border: 4px solid var(--line); border-top: 4px solid var(--brand); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+        <div style="font-size: 14px; color: var(--sub); margin-top: 20px;">${waitText}</div>
         <style>
             @keyframes spin {
                 0% { transform: rotate(0deg); }
@@ -88,10 +89,10 @@ function updateBlockingModal(message, stage = 'install') {
     const stageText = stage === 'download' ? '正在下载' : '正在安装';
     
     content.innerHTML = `
-        <div style="font-size: 24px; margin-bottom: 15px; color: #333;">${stageText}</div>
-        <div style="font-size: 16px; color: #666; margin-bottom: 20px;">${message}</div>
-        <div style="width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-        <div style="font-size: 14px; color: #999; margin-top: 20px;">请耐心等待，操作完成后将自动关闭此窗口</div>
+        <div style="font-size: 24px; margin-bottom: 15px; color: var(--txt);">${stageText}</div>
+        <div style="font-size: 16px; color: var(--sub); margin-bottom: 20px;">${message}</div>
+        <div style="width: 50px; height: 50px; border: 4px solid var(--line); border-top: 4px solid var(--brand); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+        <div style="font-size: 14px; color: var(--sub); margin-top: 20px;">请耐心等待，操作完成后将自动关闭此窗口</div>
         <style>
             @keyframes spin {
                 0% { transform: rotate(0deg); }
@@ -399,7 +400,7 @@ let loadPackageList = async () => {
         var stopButton = document.createElement("button");
         stopButton.className = "btn btn-connect btn-sm";
         stopButton.style.marginRight = "5px";
-        stopButton.style.backgroundColor = "#2196f3";
+        stopButton.style.backgroundColor = "var(--brand)";
         stopButton.onclick = function(pkg) {
             return function() {
                 execShellAndGetOutput('am force-stop ' + pkg);

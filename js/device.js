@@ -48,20 +48,20 @@ let isMobileDevice = () => {
 let showUsbConflictDialog = async () => {
     const command = 'adb kill-server';
     const dialogHtml = `
-        <div id="usb-conflict-dialog" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); max-width: 450px; width: 90%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <div id="usb-conflict-dialog" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; background: var(--card); border: 1px solid var(--line); padding: 30px; border-radius: 14px; box-shadow: 0 8px 24px var(--shadow); max-width: 450px; width: 90%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
             <div style="text-align: center; margin-bottom: 20px;">
                 <div style="font-size: 48px; margin-bottom: 10px;">⚠️</div>
-                <h3 style="margin: 0 0 10px 0; color: #333; font-size: 20px;">USB 接口冲突</h3>
-                <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0;">
+                <h3 style="margin: 0 0 10px 0; color: var(--txt); font-size: 20px;">USB 接口冲突</h3>
+                <p style="color: var(--sub); font-size: 14px; line-height: 1.6; margin: 0;">
                     检测到本地 ADB Server 正在占用 USB 接口<br/>
                     导致浏览器无法通过 WebUSB 访问设备
                 </p>
             </div>
-            <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 20px 0; font-family: monospace; font-size: 14px; color: #333; display: flex; justify-content: space-between; align-items: center;">
+            <div style="background: #fafbff; border: 1px solid var(--line); padding: 15px; border-radius: 8px; margin: 20px 0; font-family: monospace; font-size: 14px; color: var(--txt); display: flex; justify-content: space-between; align-items: center;">
                 <code id="adb-command" style="margin: 0;">${command}</code>
-                <button id="copy-btn" style="background: #007bff; color: white; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: background 0.2s;">复制</button>
+                <button id="copy-btn" style="background: var(--brand); color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s;">复制</button>
             </div>
-            <div style="margin-bottom: 15px; font-size: 13px; color: #555; line-height: 1.5; background: #fff3cd; padding: 10px; border-radius: 6px; border-left: 3px solid #ffc107;">
+            <div style="margin-bottom: 15px; font-size: 13px; color: var(--txt); line-height: 1.5; background: rgba(245, 158, 11, 0.10); border: 1px solid rgba(245, 158, 11, 0.30); border-left: 3px solid var(--accent); padding: 10px; border-radius: 6px;">
                 <strong>操作步骤：</strong><br/>
                 1. 点击"复制"按钮复制命令<br/>
                 2. 打开终端/PowerShell<br/>
@@ -69,15 +69,15 @@ let showUsbConflictDialog = async () => {
                 4. 点击下方"我已执行"按钮
             </div>
             <div style="display: flex; gap: 10px;">
-                <button id="retry-btn" style="flex: 1; background: #28a745; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-size: 15px; font-weight: 500; transition: background 0.2s;">
+                <button id="retry-btn" style="flex: 1; background: var(--ok); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 500; transition: background 0.2s;">
                     我已执行，重试连接
                 </button>
-                <button id="cancel-btn" style="background: #6c757d; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; transition: background 0.2s;">
+                <button id="cancel-btn" style="background: var(--sub); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; transition: background 0.2s;">
                     取消
                 </button>
             </div>
         </div>
-        <div id="usb-conflict-mask" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9998;"></div>
+        <div id="usb-conflict-mask" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--mask); z-index: 9998;"></div>
     `;
     
     // 移除已存在的对话框
@@ -103,10 +103,10 @@ let showUsbConflictDialog = async () => {
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).then(() => {
                     copyBtn.textContent = '✓ 已复制';
-                    copyBtn.style.background = '#28a745';
+                    copyBtn.style.background = 'var(--ok)';
                     setTimeout(() => {
                         copyBtn.textContent = '复制';
-                        copyBtn.style.background = '#007bff';
+                        copyBtn.style.background = 'var(--brand)';
                     }, 2000);
                 });
             } else {
@@ -118,10 +118,10 @@ let showUsbConflictDialog = async () => {
                 document.execCommand('copy');
                 textArea.remove();
                 copyBtn.textContent = '✓ 已复制';
-                copyBtn.style.background = '#28a745';
+                copyBtn.style.background = 'var(--ok)';
                 setTimeout(() => {
                     copyBtn.textContent = '复制';
-                    copyBtn.style.background = '#007bff';
+                    copyBtn.style.background = 'var(--brand)';
                 }, 2000);
             }
         });

@@ -260,7 +260,7 @@ let sentry = async () => {
 
 // 小横条
 let hstrip = async () => {
-    const downloadUrl = 'http://a14472357.a.328657.xyz/a14472357/Gesture_1.6.4.apk';
+    const downloadUrl = 'http://a14472357.a.328657.xyz/a14472357/Gesture_2.0.0.apk';
     const backupUrl = null;
     const savePath = '/storage/emulated/0/Download/Gesture.apk';
     await downloadToPhoneAndPush('小横条', downloadUrl, savePath, backupUrl, 'com.omarea.gesture');

@@ -1,72 +1,134 @@
+/* ============================================================
+   大伦车机工具箱 主题设计令牌
+   ============================================================ */
+:root {
+    /* 基础底色 */
+    --bg: #f3f5fb;          /* 页面背景(浅灰蓝) */
+    --card: #ffffff;        /* 卡片背景 */
+    --line: #e6e9f2;        /* 描边/分割线 */
+
+    /* 文字 */
+    --txt: #1c2333;         /* 主文字(深蓝黑) */
+    --sub: #6b7280;         /* 次要文字(灰) */
+
+    /* 品牌色(紫系渐变) */
+    --brand: #5b5bd6;       /* 主品牌紫 */
+    --brand-2: #7c3aed;     /* 次品牌紫 */
+    --brand-soft: #f0effc;  /* 选中态浅紫底 */
+    --brand-grad: linear-gradient(135deg, #5b5bd6 0%, #7c3aed 100%);
+
+    /* 状态色 */
+    --accent: #f59e0b;      /* 强调/提示(琥珀橙) */
+    --ok: #16a34a;          /* 成功(绿) */
+    --bad: #e11d48;         /* 警示/错误(玫红) */
+
+    /* 弹窗 */
+    --mask: rgba(0, 0, 0, 0.7);          /* 弹窗遮罩 */
+    --shadow: rgba(0, 0, 0, 0.28);       /* 弹窗阴影 */
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    background-color: var(--bg);
+}
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
     margin: 0;
-    background-color: #f5f5f5;
+    color: var(--txt);
+    background-color: var(--bg);
+    background-image: linear-gradient(180deg, #e9ecfa 0%, var(--bg) 300px);
+    background-repeat: no-repeat;
+    min-height: 100vh;
 }
 
 .container {
-    max-width: 800px;
+    max-width: 820px;
     margin: 0 auto;
-    background-color: white;
-    padding: 20px;
-    border-radius: 0 0 8px 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background-color: var(--card);
+    padding: 24px;
+    border-radius: 0 0 14px 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+h1, h2, h3, h4 {
+    color: var(--txt);
 }
 
 h3 {
-    color: #333;
+    color: var(--txt);
     margin-bottom: 15px;
 }
 
+/* 区块卡片(浅紫渐变顶部光带) */
+.watermark-container {
+    background-color: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* 区块标题前的品牌渐变圆点,形成视觉主线 */
+.watermark-container h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    color: var(--txt);
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.watermark-container h4::before {
+    content: '';
+    flex: 0 0 auto;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--brand-grad);
+    box-shadow: 0 0 0 3px var(--brand-soft);
+}
+
+/* 有线连接 / 标题区直接子卡片 */
 .warning {
-    background-color: #ffebee;
-    color: #c62828;
-    padding: 15px;
-    border-radius: 4px;
-    margin-bottom: 20px;
+    background-color: rgba(225, 29, 72, 0.08);
+    border: 1px solid rgba(225, 29, 72, 0.25);
+    color: var(--bad);
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 14px;
 }
 
 .browser-info {
-    background-color: #f3e5f5;
+    background-color: var(--brand-soft);
+    color: var(--txt);
     padding: 15px;
-    border-radius: 4px;
+    border-radius: 8px;
     margin-bottom: 20px;
-}
-
-.btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    margin-right: 10px;
-}
-
-.btn-connect {
-    background-color: #4caf50;
-    color: white;
-}
-
-.btn-disconnect {
-    background-color: #f44336;
-    color: white;
 }
 
 .status {
     margin-top: 20px;
     padding: 10px;
-    background-color: #e3f2fd;
-    border-radius: 4px;
+    background-color: var(--brand-soft);
+    color: var(--txt);
+    border-radius: 8px;
 }
 
 .tip {
     margin-top: 20px;
     font-size: 14px;
-    color: #666;
+    color: var(--sub);
 }
 
 a {
-    color: #1976d2;
+    color: var(--brand);
     text-decoration: none;
 }
 
@@ -74,17 +136,61 @@ a:hover {
     text-decoration: underline;
 }
 
-/* ADB Section Styles */
+hr {
+    border: none;
+    border-top: 1px solid var(--line);
+    margin: 15px 0;
+}
+
+/* ---------- 按钮体系 ---------- */
+.btn {
+    display: inline-block;
+    padding: 9px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 10px;
+    line-height: 1.4;
+    user-select: none;
+}
+
+.btn-connect {
+    background: var(--brand-grad);
+    color: #fff;
+    box-shadow: 0 3px 8px rgba(91, 91, 214, 0.25);
+    transition: filter 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.btn-connect:hover {
+    filter: brightness(1.06);
+    box-shadow: 0 5px 14px rgba(91, 91, 214, 0.35);
+    transform: translateY(-1px);
+}
+
+.btn-connect:active {
+    transform: translateY(0);
+    filter: brightness(0.97);
+}
+
+.btn-disconnect {
+    background: var(--bad);
+    color: #fff;
+    box-shadow: 0 3px 8px rgba(225, 29, 72, 0.22);
+}
+
+/* ---------- 说明性小卡片 ---------- */
 .adb-section {
     margin: 20px 0;
-    background-color: #f8f9fa;
+    background-color: var(--card);
+    border: 1px solid var(--line);
     padding: 15px;
-    border-radius: 8px;
+    border-radius: 12px;
 }
 
 .adb-tip {
     font-size: 14px;
-    color: #333;
+    color: var(--txt);
     margin-bottom: 15px;
     font-weight: bold;
 }
@@ -97,10 +203,8 @@ a:hover {
     gap: 10px;
 }
 
-
-
 .adb-btn {
-    background-color: #4caf50;
+    background: var(--brand-grad);
     color: white;
     margin: 5px 5px 5px 0;
     vertical-align: middle;
@@ -110,22 +214,38 @@ a:hover {
     margin-top: 15px;
 }
 
+/* ---------- 输入框 ---------- */
+input[type="text"],
+#shell,
 .adb-port input {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    width: 200px;
-    margin-right: 10px;
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background-color: var(--card);
+    color: var(--txt);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-/* Progress Styles */
+input[type="text"]:focus,
+#shell:focus,
+.adb-port input:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-soft);
+}
+
+input[type="text"]::placeholder,
+#shell::placeholder {
+    color: #b0b7c6;
+}
+
+/* ---------- 进度条 ---------- */
 .progress {
     margin: 20px 0;
-    height: 20px;
+    height: 6px;
     overflow: hidden;
-    background-color: #f5f5f5;
-    border-radius: 4px;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,.1);
+    background-color: var(--brand-soft);
+    border-radius: 99px;
 }
 
 .progress-bar {
@@ -134,15 +254,16 @@ a:hover {
     height: 100%;
     font-size: 12px;
     line-height: 20px;
-    color: #fff;
+    color: transparent;
     text-align: center;
-    background-color: #337ab7;
-    box-shadow: inset 0 -1px 0 rgba(0,0,0,.15);
+    background: var(--brand-grad);
+    border-radius: 99px;
+    box-shadow: none;
     transition: width .6s ease;
 }
 
 .progress-striped .progress-bar {
-    background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent);
+    background-image: linear-gradient(45deg, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
     background-size: 40px 40px;
 }
 
@@ -155,17 +276,16 @@ a:hover {
     to { background-position: 0 0; }
 }
 
-/* Log Styles */
+/* ---------- 底部日志区 ---------- */
 #exec-result {
     margin: 0;
-    padding: 15px;
-    background-color: #f8f9fa;
+    padding: 0;
+    background-color: var(--card);
+    border: 1px solid var(--line);
     border-radius: 0;
     box-sizing: border-box;
-    border: 1px solid #ddd;
-    border-bottom: none;
     width: 100%;
-    max-width: 800px;
+    max-width: 820px;
     position: fixed;
     bottom: 0;
     left: 50%;
@@ -173,21 +293,17 @@ a:hover {
     max-height: 40vh;
     overflow-y: auto;
     z-index: 1000;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.10);
     transition: max-height 0.3s ease;
 }
 
 #exec-result.collapsed {
-    max-height: 30px;
+    max-height: 34px;
     overflow-y: hidden;
-    padding: 8px 15px;
-    border-radius: 0;
+    padding: 0;
 }
 
-#exec-result.collapsed #log {
-    display: none;
-}
-
+#exec-result.collapsed #log,
 #exec-result.collapsed .progress {
     display: none;
 }
@@ -197,67 +313,70 @@ a:hover {
     align-items: center;
     justify-content: center;
     padding: 8px 15px;
-    margin: -15px -15px 10px -15px;
-    background-color: #007bff;
+    background: var(--brand-grad);
     color: white;
     cursor: pointer;
-    border-radius: 8px 8px 0 0;
+    border-radius: 0;
     font-weight: bold;
+    transition: filter 0.15s;
 }
 
 #exec-result-toggle:hover {
-    background-color: #0056b3;
+    filter: brightness(1.06);
 }
 
 #exec-result h4 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #333;
-    font-size: 16px;
+    margin: 14px 15px 0 15px;
+    color: var(--txt);
+    font-size: 14px;
 }
 
 #log {
     width: 100%;
     min-height: 150px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 15px;
-    font-family: monospace;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    padding: 12px 15px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 12px;
-    overflow-y: scroll;
+    overflow-y: auto;
     white-space: pre-wrap;
+    word-break: break-all;
     margin: 0;
-    background-color: white;
+    background-color: #fafbff;
+    color: var(--txt);
     box-sizing: border-box;
 }
 
-/* App List Styles */
+/* ---------- 应用列表 ---------- */
 #package-list {
     width: 100%;
     border-collapse: collapse;
-    margin: 20px 0;
+    margin: 0;
+    font-size: 14px;
 }
 
 #package-list th, #package-list td {
-    border: 1px solid #ddd;
-    padding: 8px;
+    border: 1px solid var(--line);
+    padding: 8px 10px;
     text-align: left;
 }
 
 #package-list th {
-    background-color: #f2f2f2;
+    background-color: var(--brand-soft);
+    color: var(--txt);
+    font-weight: 600;
 }
 
-/* Shell Input Styles */
-#shell {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    margin: 10px 0;
+#package-list tbody tr:nth-child(even) {
+    background-color: #fafbff;
 }
 
-/* APK File Styles */
+#package-list tbody tr:hover {
+    background-color: var(--brand-soft);
+}
+
+/* ---------- 自选文件 ---------- */
 #apkFile {
     margin: 10px 0;
 }
@@ -266,22 +385,23 @@ a:hover {
     margin-left: 10px;
 }
 
-/* Responsive Design */
+/* ---------- 响应式 ---------- */
 @media (max-width: 768px) {
     .container {
-        padding: 10px;
+        padding: 12px;
     }
-    
+
     .adb-buttons {
         line-height: 30px;
     }
-    
+
     .btn {
         padding: 8px 15px;
-        font-size: 12px;
+        font-size: 13px;
+        margin-right: 6px;
     }
-    
+
     #log {
-        height: 150px;
+        min-height: 120px;
     }
 }

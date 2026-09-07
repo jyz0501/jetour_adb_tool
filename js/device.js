@@ -592,8 +592,9 @@ let exec_shell = async (command) => {
         showProgress(true);
         log('开始执行指令: ' + command + '\n');
         try {
-            // 使用 Tango ADB 的 subprocess.spawnWaitText（通过 sh -c 包装以支持引号/通配符/管道/重定向）
-            const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['sh', '-c', command]);
+            // 整条命令作为单个参数交给车机 shell 执行；不能再用 ['sh','-c',command]，
+            // 否则多词命令会被截断为只执行第一个词（如 setprop/rm/curl/stat 均报 usage）
+            const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText([command]);
             log(result);
             showProgress(false);
             return;
@@ -617,8 +618,9 @@ let execShellAndGetOutput = async (command) => {
     if (window.adbClient) {
         let output = "";
         try {
-            // 使用 Tango ADB 的 subprocess.spawnWaitText（通过 sh -c 包装以支持引号/通配符/管道/重定向）
-            const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['sh', '-c', command]);
+            // 整条命令作为单个参数交给车机 shell 执行；不能再用 ['sh','-c',command]，
+            // 否则多词命令会被截断为只执行第一个词（如 setprop/rm/curl/stat 均报 usage）
+            const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText([command]);
             output = result;
             log(output); // 同时输出到日志
             return output;
@@ -648,8 +650,9 @@ let exec_command = async (args) => {
         showProgress(true);
         log('开始执行指令: ' + command + '\n');
         try {
-            // 使用 Tango ADB 的 subprocess.spawnWaitText（通过 sh -c 包装以支持引号/通配符/管道/重定向）
-            const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText(['sh', '-c', command]);
+            // 整条命令作为单个参数交给车机 shell 执行；不能再用 ['sh','-c',command]，
+            // 否则多词命令会被截断为只执行第一个词（如 setprop/rm/curl/stat 均报 usage）
+            const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText([command]);
             log(result);
             showProgress(false);
             return;

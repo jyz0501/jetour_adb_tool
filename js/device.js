@@ -1,20 +1,20 @@
-// 设备管理相关功能
-// 使用 Tango ADB 原生 API
 
-// 全局变量
+
+
+
 window.adbDevice = null;
 window.adbTransport = null;
 window.isConnecting = false;
 window.browserSupport = null;
 window.isMobile = null;
 
-// 获取浏览器名称和版本
+
 let getBrowserInfo = () => {
     const ua = navigator.userAgent;
     let browserName = 'Unknown';
     let version = 'Unknown';
     
-    // 检测主流浏览器
+    
     if (ua.indexOf('Chrome') !== -1 && ua.indexOf('Edg') === -1 && ua.indexOf('EdgA') === -1) {
         browserName = 'Chrome';
         version = ua.match(/Chrome\/(\d+\.\d+\.\d+\.\d+)/)[1];
@@ -36,15 +36,15 @@ let getBrowserInfo = () => {
     return { browserName, version, userAgent: ua };
 };
 
-// 检测是否是移动端设备
+
 let isMobileDevice = () => {
     const userAgent = navigator.userAgent;
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
 };
 
-// ====== USB 冲突检测与处理 ======
 
-// 显示 USB 冲突对话框
+
+
 let showUsbConflictDialog = async () => {
     const command = 'adb kill-server';
     const dialogHtml = `
@@ -80,13 +80,13 @@ let showUsbConflictDialog = async () => {
         <div id="usb-conflict-mask" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--mask); z-index: 9998;"></div>
     `;
     
-    // 移除已存在的对话框
+    
     const existing = document.getElementById('usb-conflict-dialog');
     if (existing) existing.remove();
     const existingMask = document.getElementById('usb-conflict-mask');
     if (existingMask) existingMask.remove();
     
-    // 添加新对话框
+    
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = dialogHtml;
     document.body.appendChild(tempDiv.firstElementChild);
@@ -110,7 +110,7 @@ let showUsbConflictDialog = async () => {
                     }, 2000);
                 });
             } else {
-                // 降级方案
+                
                 const textArea = document.createElement('textarea');
                 textArea.value = text;
                 document.body.appendChild(textArea);
@@ -146,7 +146,7 @@ let showUsbConflictDialog = async () => {
     });
 };
 
-// 设备日志记录
+
 function logDevice(message) {
     console.log(message);
     const deviceLogElement = document.getElementById('device-log');
@@ -155,7 +155,7 @@ function logDevice(message) {
     }
 }
 
-// 清除设备日志
+
 function clearDeviceLog() {
     const deviceLogElement = document.getElementById('device-log');
     if (deviceLogElement) {
@@ -163,7 +163,7 @@ function clearDeviceLog() {
     }
 }
 
-// 断开连接
+
 let disconnect = async () => {
     if (!window.adbClient) {
         logDevice('没有设备需要断开');
@@ -193,7 +193,7 @@ let disconnect = async () => {
         console.error('Disconnect error:', error);
         logDevice('断开连接失败: ' + (error.message || error.toString()));
         
-        // 即使断开失败也清理状态
+        
         window.adbClient = null;
         window.adbDevice = null;
         window.adbTransport = null;
@@ -201,33 +201,33 @@ let disconnect = async () => {
     }
 };
 
-// 使用指定设备建立ADB连接
+
 let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
     try {
         logDevice('设备: ' + webusbDevice.name + ' (Serial: ' + webusbDevice.serial + ')');
         
-        // 使用 Tango ADB 的 API 创建连接
+        
         logDevice('正在创建 ADB 连接...');
         
-        // 获取所需的类
+        
         const AdbCredentialStore = adbCredentialWeb.default;
         const AdbNamespace = adbApi;
         const Adb = AdbNamespace.Adb;
         const AdbDaemonTransport = AdbNamespace.AdbDaemonTransport;
         
-        // 直接使用设备的 connect 方法
+        
         const connection = await webusbDevice.connect();
         logDevice('WebUSB 连接已建立');
         
-        // 创建凭据管理器
+        
         const credentialStore = new AdbCredentialStore('Jetour ADB Tool');
         
-        // 使用 AdbDaemonTransport.authenticate 创建 transport
-        // 此方法内部会处理 RSA 密钥交换：
-        // 1. 发送 Connect 包
-        // 2. 设备返回 Auth Token
-        // 3. 用本地密钥签名或发送公钥
-        // 4. 等待设备确认（用户需在设备上点击"允许"）
+        
+        
+        
+        
+        
+        
         logDevice('正在进行 ADB RSA 鉴权...');
         
         const transport = await AdbDaemonTransport.authenticate({
@@ -237,17 +237,17 @@ let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
         });
         logDevice('ADB 传输层已建立（RSA 鉴权成功）');
         
-        // 使用 new Adb(transport) 创建 ADB 客户端
+        
         logDevice('正在创建 ADB 客户端...');
         const adb = new Adb(transport);
         logDevice('ADB 客户端已创建');
         
-        // 保存连接对象到全局变量
+        
         window.adbClient = adb;
         window.adbDevice = webusbDevice;
         window.adbTransport = connection;
         
-        // 获取设备信息
+        
         logDevice('获取设备信息...');
         const model = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.model"]);
         const manufacturer = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.manufacturer"]);
@@ -257,7 +257,7 @@ let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
         const board = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.product.board"]);
         const hardware = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.hardware"]);
         
-        // ADB 连接成功，显示弹窗提示
+        
         logDevice('===== ADB 连接成功 =====');
         alert('ADB 连接成功！设备信息：\n品牌: ' + brand.trim() + '\n型号: ' + model.trim() + '\n设备: ' + device.trim());
         const version = await adb.subprocess.noneProtocol.spawnWaitText(["getprop", "ro.build.version.release"]);
@@ -277,17 +277,17 @@ let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
         
         setDeviceName('🚗 ' + deviceName + ' | ' + serialNumber);
         
-        // 开始监控
+        
         startDeviceMonitoring();
         
-        // 连接成功，重置连接状态
+        
         window.isConnecting = false;
         
     } catch (e) {
         logDevice('连接失败: ' + e.message);
         console.error('ADB connection error:', e);
         
-        // 针对常见错误提供解决方案
+        
         if (e.message && (e.message.includes('Unable to claim interface') || e.message.includes('Busy') || e.message.includes('already in used') || e.message.includes('claimed'))) {
             logDevice('错误原因：USB 接口被其他程序占用');
             logDevice('解决方案：请关闭占用 USB 的程序后刷新页面重试');
@@ -299,12 +299,12 @@ let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
             logDevice('建议：检查 USB 线是否牢固，尝试更换 USB 端口');
         }
         
-        // 连接失败，重置连接状态
+        
         window.isConnecting = false;
     }
 };
 
-// 静默断开已有连接（无 confirm 弹窗）
+
 let disconnectSilently = async () => {
     try {
         if (window.adbClient) {
@@ -339,7 +339,7 @@ let disconnectSilently = async () => {
     logDevice('旧连接已断开');
 };
 
-// 连接设备（WebUSB 模式）
+
 let connectDevice = async () => {
     if (window.isConnecting) {
         logDevice('正在连接中...');
@@ -349,19 +349,19 @@ let connectDevice = async () => {
     window.isConnecting = true;
     
     try {
-        // 连接前检测：如果已有连接，先静默断开旧 USB 设备
+        
         if (window.adbClient || window.adbTransport || window.adbDevice) {
             await disconnectSilently();
         }
         
-        // 等待库加载
+        
         let attempts = 0;
         while (!window.Adb && !window.TangoADB && attempts < 50) {
             await new Promise(r => setTimeout(r, 100));
             attempts++;
         }
         
-        // 获取 API
+        
         let adbApi, adbDaemonWebUsb, adbCredentialWeb;
         
         if (window.TangoADB) {
@@ -387,15 +387,15 @@ let connectDevice = async () => {
         
         logDevice('正在连接设备（WebUSB 模式）...');
         
-        // 步骤1：检查已授权设备
+        
         let devices = [];
         try {
             devices = await manager.getDevices();
         } catch (e) {}
         
-        // 步骤2：如果没有已授权设备，请求用户选择（首次连接）
+        
         if (devices.length === 0) {
-            // 再次确保旧 WebUSB 连接已释放，避免 requestDevice 时接口占用
+            
             await disconnectSilently();
             logDevice('首次连接，请选择设备...');
             const device = await manager.requestDevice();
@@ -408,7 +408,7 @@ let connectDevice = async () => {
             logDevice('设备已选择');
         }
         
-        // 步骤3：建立 ADB 连接
+        
         logDevice('建立 ADB 连接...');
         await connectWithDevice(devices[0], adbApi, adbCredentialWeb);
         window.isConnecting = false;
@@ -417,7 +417,7 @@ let connectDevice = async () => {
         const msg = error.message || error.toString();
         logDevice('连接失败: ' + msg);
         
-        // USB 冲突检测 - 显示友好对话框
+        
         if (msg.includes('Unable to claim interface') || msg.includes('claim')) {
             logDevice('检测到 USB 接口冲突，请停止电脑 ADB 服务，执行 adb kill-server');
             logDevice('检测到 USB 接口冲突，显示解决方案...');
@@ -440,10 +440,10 @@ let connectDevice = async () => {
     }
 };
 
-// 设备状态监控
+
 let deviceMonitoringInterval = null;
 
-// 开始持续检测设备状态
+
 let startDeviceMonitoring = () => {
     stopDeviceMonitoring();
     deviceMonitoringInterval = setInterval(async () => {
@@ -459,7 +459,7 @@ let startDeviceMonitoring = () => {
     }, 5000);
 };
 
-// 停止设备状态监控
+
 let stopDeviceMonitoring = () => {
     if (deviceMonitoringInterval) {
         clearInterval(deviceMonitoringInterval);
@@ -467,7 +467,7 @@ let stopDeviceMonitoring = () => {
     }
 };
 
-// 当前设备状态
+
 let setDeviceName = async (name) => {
     if (!name) {
         name = '🚗 未连接';
@@ -478,7 +478,7 @@ let setDeviceName = async (name) => {
     }
 };
 
-// 初始化设备检测
+
 let initDeviceDetection = async () => {
     try {
         if (!navigator.usb) {
@@ -486,7 +486,7 @@ let initDeviceDetection = async () => {
             return;
         }
         
-        // 监听 USB 设备连接事件 - 自动触发连接
+        
         navigator.usb.addEventListener('connect', async () => {
             logDevice('检测到 USB 设备插入');
             if (!window.isConnecting && !window.adbClient) {
@@ -494,7 +494,7 @@ let initDeviceDetection = async () => {
             }
         });
         
-        // 监听 USB 设备断开事件
+        
         navigator.usb.addEventListener('disconnect', () => {
             logDevice('USB 设备已断开');
             if (window.adbClient) {
@@ -502,7 +502,7 @@ let initDeviceDetection = async () => {
             }
         });
         
-        // 页面加载后延迟检查已授权设备，自动连接
+        
         setTimeout(async () => {
             try {
                 const devices = await navigator.usb.getDevices();
@@ -524,7 +524,7 @@ let initDeviceDetection = async () => {
     }
 };
 
-// 页面加载完成后初始化
+
 if (typeof window !== 'undefined') {
     window.addEventListener('DOMContentLoaded', async () => {
         window.isMobile = isMobileDevice();
@@ -539,20 +539,20 @@ if (typeof window !== 'undefined') {
     });
 }
 
-// 推送应用
+
 let push = async (filePath, blob) => {
-    // 检查是否有 Tango ADB 客户端
+    
     if (window.adbClient) {
         clear();
         showProgress(true);
         try {
             log("正在推送 " + filePath + " ...");
             
-            // 将 Blob 转换为 Uint8Array
+            
             const arrayBuffer = await blob.arrayBuffer();
             const uint8Array = new Uint8Array(arrayBuffer);
             
-            // 创建 ReadableStream
+            
             const readableStream = new ReadableStream({
                 start(controller) {
                     controller.enqueue(uint8Array);
@@ -560,7 +560,7 @@ let push = async (filePath, blob) => {
                 }
             });
             
-            // 使用 sync 协议推送文件
+            
             const sync = await window.adbClient.sync();
             await sync.write({
                 filename: filePath,
@@ -579,21 +579,21 @@ let push = async (filePath, blob) => {
         }
     }
     
-    // 未连接设备
+    
     alert('未连接到设备，请先点击"开始连接"按钮连接设备');
     showProgress(false);
 };
 
-// 执行命令
+
 let exec_shell = async (command) => {
-    // 检查是否有 Tango ADB 客户端
+    
     if (window.adbClient) {
         clear();
         showProgress(true);
         log('开始执行指令: ' + command + '\n');
         try {
-            // 整条命令作为单个参数交给车机 shell 执行；不能再用 ['sh','-c',command]，
-            // 否则多词命令会被截断为只执行第一个词（如 setprop/rm/curl/stat 均报 usage）
+            
+            
             const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText([command]);
             log(result);
             showProgress(false);
@@ -607,22 +607,22 @@ let exec_shell = async (command) => {
         }
     }
     
-    // 未连接设备
+    
     alert('未连接到设备，请先点击"开始连接"按钮连接设备');
     showProgress(false);
 };
 
-// 执行命令并返回输出
+
 let execShellAndGetOutput = async (command) => {
-    // 检查是否有 Tango ADB 客户端
+    
     if (window.adbClient) {
         let output = "";
         try {
-            // 整条命令作为单个参数交给车机 shell 执行；不能再用 ['sh','-c',command]，
-            // 否则多词命令会被截断为只执行第一个词（如 setprop/rm/curl/stat 均报 usage）
+            
+            
             const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText([command]);
             output = result;
-            log(output); // 同时输出到日志
+            log(output); 
             return output;
         } catch (error) {
             console.error('Tango ADB shell error:', error);
@@ -631,12 +631,12 @@ let execShellAndGetOutput = async (command) => {
         }
     }
     
-    // 未连接设备
+    
     alert('未连接到设备，请先点击"开始连接"按钮连接设备');
     return "";
 };
 
-// 手动执行命令
+
 let exec_command = async (args) => {
     const command = document.getElementById('shell').value;
     if (!command) {
@@ -644,14 +644,14 @@ let exec_command = async (args) => {
         return;
     }
     
-    // 检查是否有 Tango ADB 客户端
+    
     if (window.adbClient) {
         clear();
         showProgress(true);
         log('开始执行指令: ' + command + '\n');
         try {
-            // 整条命令作为单个参数交给车机 shell 执行；不能再用 ['sh','-c',command]，
-            // 否则多词命令会被截断为只执行第一个词（如 setprop/rm/curl/stat 均报 usage）
+            
+            
             const result = await window.adbClient.subprocess.noneProtocol.spawnWaitText([command]);
             log(result);
             showProgress(false);
@@ -665,11 +665,11 @@ let exec_command = async (args) => {
         }
     }
     
-    // 未连接设备
+    
     alert('未连接到设备，请先点击"开始连接"按钮连接设备');
 };
 
-// 导出函数
+
 try {
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = {
@@ -684,10 +684,10 @@ try {
             connectDevice
         };
     }
-    // 浏览器环境，暴露到全局作用域
+    
     if (typeof window !== 'undefined') {
         window.connectDevice = connectDevice;
     }
 } catch (e) {
-    // 忽略错误
+    
 }

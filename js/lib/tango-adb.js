@@ -15,7 +15,7 @@ var TangoADB = (() => {
   var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
   var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "access private method"), method);
 
-  // node_modules/@yume-chan/adb/esm/index.js
+  
   var esm_exports2 = {};
   __export(esm_exports2, {
     ADB_DAEMON_DEFAULT_FEATURES: () => ADB_DAEMON_DEFAULT_FEATURES,
@@ -136,7 +136,7 @@ var TangoADB = (() => {
     write4HexDigits: () => write4HexDigits
   });
 
-  // node_modules/@yume-chan/stream-extra/esm/index.js
+  
   var esm_exports = {};
   __export(esm_exports, {
     AbortController: () => AbortController,
@@ -167,7 +167,7 @@ var TangoADB = (() => {
     tryClose: () => tryClose
   });
 
-  // node_modules/@yume-chan/async/esm/promise-resolver.js
+  
   var _promise, _resolve, _reject, _state;
   var PromiseResolver = class {
     constructor() {
@@ -200,11 +200,11 @@ var TangoADB = (() => {
   _reject = new WeakMap();
   _state = new WeakMap();
 
-  // node_modules/@yume-chan/async/esm/async-operation-manager.js
+  
   var AsyncOperationManager = class {
     constructor(startId = 0) {
       __publicField(this, "nextId");
-      __publicField(this, "pendingResolvers", /* @__PURE__ */ new Map());
+      __publicField(this, "pendingResolvers",  new Map());
       this.nextId = startId;
     }
     add() {
@@ -239,19 +239,19 @@ var TangoADB = (() => {
     }
   };
 
-  // node_modules/@yume-chan/async/esm/delay.js
+  
   function delay(time) {
     return new Promise((resolve) => {
       globalThis.setTimeout(() => resolve(), time);
     });
   }
 
-  // node_modules/@yume-chan/async/esm/maybe-promise.js
+  
   function isPromiseLike(value) {
     return typeof value === "object" && value !== null && "then" in value;
   }
 
-  // node_modules/@yume-chan/struct/esm/bipedal.js
+  
   function advance(iterator, next) {
     while (true) {
       const { done, value } = iterator.next(next);
@@ -264,7 +264,7 @@ var TangoADB = (() => {
       next = value;
     }
   }
-  // @__NO_SIDE_EFFECTS__
+  
   function bipedal(fn, bindThis) {
     function result(...args) {
       const iterator = fn.call(this, function* (value) {
@@ -287,7 +287,7 @@ var TangoADB = (() => {
     }
   }
 
-  // node_modules/@yume-chan/struct/esm/field/serialize.js
+  
   function defaultFieldSerializer(serializer) {
     return (source, context) => {
       if ("buffer" in context) {
@@ -317,8 +317,8 @@ var TangoADB = (() => {
     };
   }
 
-  // node_modules/@yume-chan/struct/esm/field/factory.js
-  // @__NO_SIDE_EFFECTS__
+  
+  
   function _field(size, type, serialize, deserialize, options) {
     const field2 = {
       size,
@@ -334,7 +334,7 @@ var TangoADB = (() => {
   }
   var field = _field;
 
-  // node_modules/@yume-chan/struct/esm/buffer.js
+  
   var EmptyUint8Array = new Uint8Array(0);
   function copyMaybeDifferentLength(dest, source, index, length) {
     if (source.length < length) {
@@ -346,7 +346,7 @@ var TangoADB = (() => {
       dest.set(source.subarray(0, length), index);
     }
   }
-  // @__NO_SIDE_EFFECTS__
+  
   function buffer(lengthOrField, converter) {
     if (typeof lengthOrField === "number") {
       let serialize;
@@ -480,7 +480,7 @@ var TangoADB = (() => {
     return field(0, "default", (source) => source, deserialize, { init });
   }
 
-  // node_modules/@yume-chan/struct/esm/readable.js
+  
   var ExactReadableEndedError = class extends Error {
     constructor() {
       super("ExactReadable ended");
@@ -509,7 +509,7 @@ var TangoADB = (() => {
   _data = new WeakMap();
   _position = new WeakMap();
 
-  // node_modules/@yume-chan/struct/esm/struct.js
+  
   var StructDeserializeError = class extends Error {
     constructor(message) {
       super(message);
@@ -525,7 +525,7 @@ var TangoADB = (() => {
       super("The underlying readable doesn't contain any more struct");
     }
   };
-  // @__NO_SIDE_EFFECTS__
+  
   function struct(fields, options) {
     const fieldList = Object.entries(fields);
     let size = 0;
@@ -640,8 +640,8 @@ var TangoADB = (() => {
     };
   }
 
-  // node_modules/@yume-chan/struct/esm/extend.js
-  // @__NO_SIDE_EFFECTS__
+  
+  
   function extend(base, fields, options) {
     return struct(Object.assign({}, base.fields, fields), {
       littleEndian: options?.littleEndian ?? base.littleEndian,
@@ -650,8 +650,8 @@ var TangoADB = (() => {
     });
   }
 
-  // node_modules/@yume-chan/no-data-view/esm/int32.js
-  // @__NO_SIDE_EFFECTS__
+  
+  
   function getInt32(buffer2, offset, littleEndian) {
     return littleEndian ? buffer2[offset] | buffer2[offset + 1] << 8 | buffer2[offset + 2] << 16 | buffer2[offset + 3] << 24 : buffer2[offset] << 24 | buffer2[offset + 1] << 16 | buffer2[offset + 2] << 8 | buffer2[offset + 3];
   }
@@ -669,7 +669,7 @@ var TangoADB = (() => {
     }
   }
 
-  // node_modules/@yume-chan/no-data-view/esm/int64.js
+  
   function setInt64LittleEndian(buffer2, offset, value) {
     buffer2[offset] = Number(value & 0xffn);
     buffer2[offset + 1] = Number(value >> 8n & 0xffn);
@@ -691,12 +691,12 @@ var TangoADB = (() => {
     buffer2[offset + 7] = Number(value & 0xffn);
   }
 
-  // node_modules/@yume-chan/no-data-view/esm/uint32.js
-  // @__NO_SIDE_EFFECTS__
+  
+  
   function getUint32LittleEndian(buffer2, offset) {
     return (buffer2[offset] | buffer2[offset + 1] << 8 | buffer2[offset + 2] << 16 | buffer2[offset + 3] << 24) >>> 0;
   }
-  // @__NO_SIDE_EFFECTS__
+  
   function getUint32(buffer2, offset, littleEndian) {
     return littleEndian ? (buffer2[offset] | buffer2[offset + 1] << 8 | buffer2[offset + 2] << 16 | buffer2[offset + 3] << 24) >>> 0 : (buffer2[offset] << 24 | buffer2[offset + 1] << 16 | buffer2[offset + 2] << 8 | buffer2[offset + 3]) >>> 0;
   }
@@ -720,7 +720,7 @@ var TangoADB = (() => {
     }
   }
 
-  // node_modules/@yume-chan/no-data-view/esm/uint64.js
+  
   function getUint64LittleEndian(buffer2, offset) {
     return BigInt(buffer2[offset]) | BigInt(buffer2[offset + 1]) << 8n | BigInt(buffer2[offset + 2]) << 16n | BigInt(buffer2[offset + 3]) << 24n | BigInt(buffer2[offset + 4]) << 32n | BigInt(buffer2[offset + 5]) << 40n | BigInt(buffer2[offset + 6]) << 48n | BigInt(buffer2[offset + 7]) << 56n;
   }
@@ -752,53 +752,53 @@ var TangoADB = (() => {
     }
   }
 
-  // node_modules/@yume-chan/struct/esm/number.js
-  // @__NO_SIDE_EFFECTS__
+  
+  
   function number(size, serialize, deserialize) {
     const fn = (() => fn);
     Object.assign(fn, field(size, "byob", serialize, deserialize));
     return fn;
   }
-  var u8 = /* @__PURE__ */ number(1, (value, { buffer: buffer2, index }) => {
+  var u8 =  number(1, (value, { buffer: buffer2, index }) => {
     buffer2[index] = value;
   }, function* (then, reader) {
     const data = yield* then(reader.readExactly(1));
     return data[0];
   });
-  var u32 = /* @__PURE__ */ number(4, (value, { buffer: buffer2, index, littleEndian }) => {
+  var u32 =  number(4, (value, { buffer: buffer2, index, littleEndian }) => {
     setUint32(buffer2, index, value, littleEndian);
   }, function* (then, reader, { littleEndian }) {
     const data = yield* then(reader.readExactly(4));
     return getUint32(data, 0, littleEndian);
   });
-  var s32 = /* @__PURE__ */ number(4, (value, { buffer: buffer2, index, littleEndian }) => {
+  var s32 =  number(4, (value, { buffer: buffer2, index, littleEndian }) => {
     setInt32(buffer2, index, value, littleEndian);
   }, function* (then, reader, { littleEndian }) {
     const data = yield* then(reader.readExactly(4));
     return getInt32(data, 0, littleEndian);
   });
-  var u64 = /* @__PURE__ */ number(8, (value, { buffer: buffer2, index, littleEndian }) => {
+  var u64 =  number(8, (value, { buffer: buffer2, index, littleEndian }) => {
     setUint64(buffer2, index, value, littleEndian);
   }, function* (then, reader, { littleEndian }) {
     const data = yield* then(reader.readExactly(8));
     return getUint64(data, 0, littleEndian);
   });
 
-  // node_modules/@yume-chan/struct/esm/utils.js
+  
   var { TextEncoder, TextDecoder } = globalThis;
-  var SharedEncoder = /* @__PURE__ */ new TextEncoder();
-  var SharedDecoder = /* @__PURE__ */ new TextDecoder();
-  // @__NO_SIDE_EFFECTS__
+  var SharedEncoder =  new TextEncoder();
+  var SharedDecoder =  new TextDecoder();
+  
   function encodeUtf8(input) {
     return SharedEncoder.encode(input);
   }
-  // @__NO_SIDE_EFFECTS__
+  
   function decodeUtf8(buffer2) {
     return SharedDecoder.decode(buffer2);
   }
 
-  // node_modules/@yume-chan/struct/esm/string.js
-  var string = (/* @__NO_SIDE_EFFECTS__ */ (lengthOrField) => {
+  
+  var string = ( (lengthOrField) => {
     const field2 = buffer(lengthOrField, {
       convert: decodeUtf8,
       back: encodeUtf8
@@ -807,9 +807,9 @@ var TangoADB = (() => {
     return field2;
   });
 
-  // node_modules/@yume-chan/stream-extra/esm/stream.js
+  
   var { AbortController } = globalThis;
-  var ReadableStream = /* @__PURE__ */ (() => {
+  var ReadableStream =  (() => {
     const { ReadableStream: ReadableStream2 } = globalThis;
     if (!ReadableStream2.from) {
       ReadableStream2.from = function(iterable) {
@@ -847,22 +847,16 @@ var TangoADB = (() => {
           reader.releaseLock();
         }
       };
-      ReadableStream2.prototype[Symbol.asyncIterator] = // eslint-disable-next-line @typescript-eslint/unbound-method
+      ReadableStream2.prototype[Symbol.asyncIterator] = 
       ReadableStream2.prototype.values;
     }
     return ReadableStream2;
   })();
   var { WritableStream, TransformStream } = globalThis;
 
-  // node_modules/@yume-chan/stream-extra/esm/push-readable.js
+  
   var PushReadableStream = class extends ReadableStream {
-    /**
-     * Create a new `PushReadableStream` from a source.
-     *
-     * @param source If `source` returns a `Promise`, the stream will be closed
-     * when the `Promise` is resolved, and be errored when the `Promise` is rejected.
-     * @param strategy
-     */
+    
     constructor(source, strategy, logger) {
       let waterMarkLow;
       let zeroHighWaterMarkAllowEnqueue = false;
@@ -1045,7 +1039,7 @@ var TangoADB = (() => {
     }
   };
 
-  // node_modules/@yume-chan/stream-extra/esm/try-close.js
+  
   function tryClose(controller) {
     try {
       controller.close();
@@ -1063,14 +1057,14 @@ var TangoADB = (() => {
     }
   }
 
-  // node_modules/@yume-chan/stream-extra/esm/buffered.js
+  
   var _buffered, _bufferedOffset, _bufferedLength, _position2, _BufferedReadableStream_instances, readBuffered_fn, readSource_fn;
   var BufferedReadableStream = class {
     constructor(stream) {
       __privateAdd(this, _BufferedReadableStream_instances);
       __privateAdd(this, _buffered);
-      // PERF: `subarray` is slow
-      // don't use it until absolutely necessary
+      
+      
       __privateAdd(this, _bufferedOffset, 0);
       __privateAdd(this, _bufferedLength, 0);
       __privateAdd(this, _position2, 0);
@@ -1144,11 +1138,7 @@ var TangoADB = (() => {
         }
       };
     }
-    /**
-     * Return a readable stream with unconsumed data (if any) and
-     * all data from the wrapped stream.
-     * @returns A `ReadableStream`
-     */
+    
     release() {
       if (__privateGet(this, _bufferedLength) > 0) {
         return new PushReadableStream(async (controller) => {
@@ -1212,7 +1202,7 @@ var TangoADB = (() => {
     return value;
   };
 
-  // node_modules/@yume-chan/stream-extra/esm/buffered-transform.js
+  
   var _readable, _writable;
   var BufferedTransformStream = class {
     constructor(transform) {
@@ -1265,11 +1255,11 @@ var TangoADB = (() => {
   _readable = new WeakMap();
   _writable = new WeakMap();
 
-  // node_modules/@yume-chan/stream-extra/esm/concat.js
+  
   var _result, _resolver, _writable2, _readableController, _readable2;
   var ConcatStringStream = class {
     constructor() {
-      // PERF: rope (concat strings) is faster than `[].join('')`
+      
       __privateAdd(this, _result, "");
       __privateAdd(this, _resolver, new PromiseResolver());
       __privateAdd(this, _writable2, new WritableStream({
@@ -1383,7 +1373,7 @@ var TangoADB = (() => {
   _readableController2 = new WeakMap();
   _readable3 = new WeakMap();
 
-  // node_modules/@yume-chan/stream-extra/esm/consumable/readable.js
+  
   var ConsumableReadableStream = class _ConsumableReadableStream extends ReadableStream {
     static async enqueue(controller, chunk) {
       const output = new Consumable(chunk);
@@ -1429,7 +1419,7 @@ var TangoADB = (() => {
     }
   };
 
-  // node_modules/@yume-chan/stream-extra/esm/consumable/wrap-byte-readable.js
+  
   var ConsumableWrapByteReadableStream = class extends ReadableStream {
     constructor(stream, chunkSize, min) {
       const reader = stream.getReader({ mode: "byob" });
@@ -1451,7 +1441,7 @@ var TangoADB = (() => {
     }
   };
 
-  // node_modules/@yume-chan/stream-extra/esm/consumable/wrap-writable.js
+  
   var ConsumableWrapWritableStream = class extends WritableStream {
     constructor(stream) {
       const writer = stream.getWriter();
@@ -1469,7 +1459,7 @@ var TangoADB = (() => {
     }
   };
 
-  // node_modules/@yume-chan/stream-extra/esm/consumable/writable.js
+  
   var ConsumableWritableStream = class extends WritableStream {
     static async write(writer, value) {
       const consumable = new Consumable(value);
@@ -1506,15 +1496,15 @@ var TangoADB = (() => {
     }
   };
 
-  // node_modules/@yume-chan/stream-extra/esm/task.js
+  
   var { console: console2 } = globalThis;
-  var createTask = /* @__PURE__ */ (() => console2?.createTask?.bind(console2) ?? (() => ({
+  var createTask =  (() => console2?.createTask?.bind(console2) ?? (() => ({
     run(callback) {
       return callback();
     }
   })))();
 
-  // node_modules/@yume-chan/stream-extra/esm/consumable.js
+  
   var _task, _resolver3;
   var Consumable = class {
     constructor(value) {
@@ -1561,7 +1551,7 @@ var TangoADB = (() => {
   __publicField(Consumable, "ReadableStream", ConsumableReadableStream);
   __publicField(Consumable, "WrapByteReadableStream", ConsumableWrapByteReadableStream);
 
-  // node_modules/@yume-chan/stream-extra/esm/maybe-consumable/index.js
+  
   var maybe_consumable_exports = {};
   __export(maybe_consumable_exports, {
     WrapWritableStream: () => MaybeConsumableWrapWritableStream,
@@ -1570,7 +1560,7 @@ var TangoADB = (() => {
     tryConsume: () => tryConsume
   });
 
-  // node_modules/@yume-chan/stream-extra/esm/maybe-consumable/utils.js
+  
   function getValue(value) {
     return value instanceof Consumable ? value.value : value;
   }
@@ -1582,7 +1572,7 @@ var TangoADB = (() => {
     }
   }
 
-  // node_modules/@yume-chan/stream-extra/esm/maybe-consumable/wrap-writable.js
+  
   var MaybeConsumableWrapWritableStream = class extends WritableStream {
     constructor(stream) {
       const writer = stream.getWriter();
@@ -1600,7 +1590,7 @@ var TangoADB = (() => {
     }
   };
 
-  // node_modules/@yume-chan/stream-extra/esm/maybe-consumable/writable.js
+  
   var MaybeConsumableWritableStream = class extends WritableStream {
     constructor(sink, strategy) {
       let wrappedStrategy;
@@ -1632,7 +1622,7 @@ var TangoADB = (() => {
     }
   };
 
-  // node_modules/@yume-chan/stream-extra/esm/distribution.js
+  
   var _capacity, _buffer, _offset, _available;
   var BufferCombiner = class {
     constructor(size) {
@@ -1645,13 +1635,7 @@ var TangoADB = (() => {
       __privateSet(this, _offset, 0);
       __privateSet(this, _available, size);
     }
-    /**
-     * Pushes data to the combiner.
-     * @param data The input data to be split or combined.
-     * @returns
-     * A generator that yields buffers of specified size.
-     * It may yield the same buffer multiple times, consume the data before calling `next`.
-     */
+    
     *push(data) {
       let offset = 0;
       let available = data.length;
@@ -1733,7 +1717,7 @@ var TangoADB = (() => {
     }
   };
 
-  // node_modules/@yume-chan/stream-extra/esm/wrap-readable.js
+  
   function getWrappedReadableStream(wrapper, controller) {
     if ("start" in wrapper) {
       return wrapper.start(controller);
@@ -1781,7 +1765,7 @@ var TangoADB = (() => {
   };
   _reader = new WeakMap();
 
-  // node_modules/@yume-chan/stream-extra/esm/duplex.js
+  
   var NOOP = () => {
   };
   var _readableControllers, _writers, _writableClosed, _closed, _options;
@@ -1858,12 +1842,12 @@ var TangoADB = (() => {
   _closed = new WeakMap();
   _options = new WeakMap();
 
-  // node_modules/@yume-chan/stream-extra/esm/encoding.js
+  
   var Global = globalThis;
   var TextDecoderStream = Global.TextDecoderStream;
   var TextEncoderStream = Global.TextEncoderStream;
 
-  // node_modules/@yume-chan/stream-extra/esm/inspect.js
+  
   var InspectStream = class extends TransformStream {
     constructor(callback) {
       super({
@@ -1875,7 +1859,7 @@ var TangoADB = (() => {
     }
   };
 
-  // node_modules/@yume-chan/stream-extra/esm/pipe-from.js
+  
   function pipeFrom(writable, pair) {
     const writer = pair.writable.getWriter();
     const pipe = pair.readable.pipeTo(writable);
@@ -1890,7 +1874,7 @@ var TangoADB = (() => {
     });
   }
 
-  // node_modules/@yume-chan/stream-extra/esm/split-string.js
+  
   var SplitStringStream = class extends TransformStream {
     constructor(separator) {
       let remaining = void 0;
@@ -1920,7 +1904,7 @@ var TangoADB = (() => {
     }
   };
 
-  // node_modules/@yume-chan/stream-extra/esm/struct-deserialize.js
+  
   var StructDeserializeStream = class extends BufferedTransformStream {
     constructor(struct2) {
       super((stream) => {
@@ -1929,7 +1913,7 @@ var TangoADB = (() => {
     }
   };
 
-  // node_modules/@yume-chan/stream-extra/esm/struct-serialize.js
+  
   var StructSerializeStream = class extends TransformStream {
     constructor(struct2) {
       super({
@@ -1940,7 +1924,7 @@ var TangoADB = (() => {
     }
   };
 
-  // node_modules/@yume-chan/stream-extra/esm/wrap-writable.js
+  
   async function getWrappedWritableStream(start) {
     if ("start" in start) {
       return await start.start();
@@ -1994,7 +1978,7 @@ var TangoADB = (() => {
   _writer = new WeakMap();
   var WrapWritableStream = _WrapWritableStream;
 
-  // node_modules/@yume-chan/event/esm/disposable.js
+  
   var _disposables;
   var AutoDisposable = class {
     constructor() {
@@ -2014,7 +1998,7 @@ var TangoADB = (() => {
   };
   _disposables = new WeakMap();
 
-  // node_modules/@yume-chan/event/esm/event-emitter.js
+  
   var EventEmitter = class {
     constructor() {
       __publicField(this, "listeners", []);
@@ -2049,8 +2033,8 @@ var TangoADB = (() => {
     }
   };
 
-  // node_modules/@yume-chan/event/esm/sticky-event-emitter.js
-  var Undefined = /* @__PURE__ */ Symbol("undefined");
+  
+  var Undefined =  Symbol("undefined");
   var _value;
   var StickyEventEmitter = class extends EventEmitter {
     constructor() {
@@ -2070,7 +2054,7 @@ var TangoADB = (() => {
   };
   _value = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/commands/base.js
+  
   var _adb;
   var AdbServiceBase = class extends AutoDisposable {
     constructor(adb) {
@@ -2084,7 +2068,7 @@ var TangoADB = (() => {
   };
   _adb = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/commands/framebuffer.js
+  
   var Version = struct({ version: u32 }, { littleEndian: true });
   var AdbFrameBufferV1 = struct({
     bpp: u32,
@@ -2154,7 +2138,7 @@ var TangoADB = (() => {
     }
   }
 
-  // node_modules/@yume-chan/adb/esm/commands/power.js
+  
   var AdbPower = class extends AdbServiceBase {
     reboot(mode = "") {
       return this.adb.createSocketAndWait(`reboot:${mode}`);
@@ -2171,11 +2155,7 @@ var TangoADB = (() => {
     sideload() {
       return this.reboot("sideload");
     }
-    /**
-     * Reboot to Qualcomm Emergency Download (EDL) Mode.
-     *
-     * Only works on some Qualcomm devices.
-     */
+    
     qualcommEdlMode() {
       return this.reboot("edl");
     }
@@ -2190,17 +2170,13 @@ var TangoADB = (() => {
       args.push("POWER");
       return this.adb.subprocess.noneProtocol.spawnWaitText(args);
     }
-    /**
-     * Reboot to Samsung Odin download mode.
-     *
-     * Only works on Samsung devices.
-     */
+    
     samsungOdin() {
       return this.reboot("download");
     }
   };
 
-  // node_modules/@yume-chan/adb/esm/utils/array-buffer.js
+  
   function toLocalUint8Array(value) {
     if (value.buffer instanceof ArrayBuffer) {
       return value;
@@ -2210,7 +2186,7 @@ var TangoADB = (() => {
     return copy;
   }
 
-  // node_modules/@yume-chan/adb/esm/utils/auto-reset-event.js
+  
   var _set, _queue;
   var AutoResetEvent = class {
     constructor(initialSet = false) {
@@ -2246,8 +2222,8 @@ var TangoADB = (() => {
   _set = new WeakMap();
   _queue = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/utils/base64.js
-  var [charToIndex, indexToChar, paddingChar] = /* @__PURE__ */ (() => {
+  
+  var [charToIndex, indexToChar, paddingChar] =  (() => {
     const charToIndex2 = [];
     const indexToChar2 = [];
     const paddingChar2 = "=".charCodeAt(0);
@@ -2428,7 +2404,7 @@ var TangoADB = (() => {
     return result;
   }
 
-  // node_modules/@yume-chan/adb/esm/utils/hex.js
+  
   function hexCharToNumber(char) {
     if (char < 48) {
       throw new TypeError(`Invalid hex char ${char}`);
@@ -2476,14 +2452,14 @@ var TangoADB = (() => {
     }
   }
 
-  // node_modules/@yume-chan/adb/esm/utils/no-op.js
-  var NOOP2 = /* @__NO_SIDE_EFFECTS__ */ () => {
+  
+  var NOOP2 =  () => {
   };
   function unreachable(...args) {
     throw new Error("Unreachable. Arguments:\n" + args.join("\n"));
   }
 
-  // node_modules/@yume-chan/adb/esm/utils/ref.js
+  
   var { setInterval, clearInterval } = globalThis;
   var _intervalId;
   var Ref = class {
@@ -2506,7 +2482,7 @@ var TangoADB = (() => {
   };
   _intervalId = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/utils/sequence-equal.js
+  
   function sequenceEqual(a, b) {
     if (a.length !== b.length) {
       return false;
@@ -2519,7 +2495,7 @@ var TangoADB = (() => {
     return true;
   }
 
-  // node_modules/@yume-chan/adb/esm/commands/reverse.js
+  
   var AdbReverseStringResponse = struct({
     length: string(4),
     content: string({
@@ -2566,7 +2542,7 @@ var TangoADB = (() => {
   var AdbReverseService = class extends AdbServiceBase {
     constructor() {
       super(...arguments);
-      __privateAdd(this, _deviceAddressToLocalAddress, /* @__PURE__ */ new Map());
+      __privateAdd(this, _deviceAddressToLocalAddress,  new Map());
     }
     async createBufferedStream(service) {
       const socket = await this.adb.createSocket(service);
@@ -2580,9 +2556,7 @@ var TangoADB = (() => {
       }
       return stream;
     }
-    /**
-     * Get a list of all reverse port forwarding on the device.
-     */
+    
     async list() {
       const stream = await this.createBufferedStream("reverse:list-forward");
       const response = await AdbReverseStringResponse.deserialize(stream);
@@ -2591,9 +2565,7 @@ var TangoADB = (() => {
         return { deviceSerial, localName, remoteName };
       });
     }
-    /**
-     * Add a reverse port forwarding for a program that already listens on a port.
-     */
+    
     async addExternal(deviceAddress, localAddress) {
       const stream = await this.sendRequest(`reverse:forward:${deviceAddress};${localAddress}`);
       if (deviceAddress.startsWith("tcp:")) {
@@ -2611,9 +2583,7 @@ var TangoADB = (() => {
       }
       return deviceAddress;
     }
-    /**
-     * Add a reverse port forwarding.
-     */
+    
     async add(deviceAddress, handler, localAddress) {
       localAddress = await this.adb.transport.addReverseTunnel(handler, localAddress);
       try {
@@ -2625,9 +2595,7 @@ var TangoADB = (() => {
         throw e;
       }
     }
-    /**
-     * Remove a reverse port forwarding.
-     */
+    
     async remove(deviceAddress) {
       const localAddress = __privateGet(this, _deviceAddressToLocalAddress).get(deviceAddress);
       if (localAddress) {
@@ -2635,9 +2603,7 @@ var TangoADB = (() => {
       }
       await this.sendRequest(`reverse:killforward:${deviceAddress}`);
     }
-    /**
-     * Remove all reverse port forwarding, including the ones added by other programs.
-     */
+    
     async removeAll() {
       await this.adb.transport.clearReverseTunnels();
       __privateGet(this, _deviceAddressToLocalAddress).clear();
@@ -2646,7 +2612,7 @@ var TangoADB = (() => {
   };
   _deviceAddressToLocalAddress = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/commands/subprocess/none/process.js
+  
   var _socket, _exited;
   var AdbNoneProtocolProcessImpl = class {
     constructor(socket, signal) {
@@ -2681,7 +2647,7 @@ var TangoADB = (() => {
   _socket = new WeakMap();
   _exited = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/commands/subprocess/none/pty.js
+  
   var _socket2, _writer2, _input;
   var AdbNoneProtocolPtyProcess = class {
     constructor(socket) {
@@ -2714,7 +2680,7 @@ var TangoADB = (() => {
   _writer2 = new WeakMap();
   _input = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/commands/subprocess/utils.js
+  
   function escapeArg(s) {
     let result = "";
     result += `'`;
@@ -2769,7 +2735,7 @@ var TangoADB = (() => {
     return result;
   }
 
-  // node_modules/@yume-chan/adb/esm/commands/subprocess/none/spawner.js
+  
   var _spawn;
   var AdbNoneProtocolSpawner = class {
     constructor(spawn) {
@@ -2794,7 +2760,7 @@ var TangoADB = (() => {
   };
   _spawn = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/commands/subprocess/none/service.js
+  
   var _adb2;
   var AdbNoneProtocolSubprocessService = class extends AdbNoneProtocolSpawner {
     constructor(adb) {
@@ -2819,14 +2785,14 @@ var TangoADB = (() => {
         command = command.join(" ");
       }
       return new AdbNoneProtocolPtyProcess(
-        // https://github.com/microsoft/typescript/issues/17002
+        
         await __privateGet(this, _adb2).createSocket(`shell:${command}`)
       );
     }
   };
   _adb2 = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/features.js
+  
   var AdbFeature = {
     ShellV2: "shell_v2",
     Cmd: "cmd",
@@ -2839,7 +2805,7 @@ var TangoADB = (() => {
     DelayedAck: "delayed_ack"
   };
 
-  // node_modules/@yume-chan/adb/esm/commands/subprocess/shell/shared.js
+  
   var AdbShellProtocolId = {
     Stdin: 0,
     Stdout: 1,
@@ -2853,7 +2819,7 @@ var TangoADB = (() => {
     data: buffer(u32)
   }, { littleEndian: true });
 
-  // node_modules/@yume-chan/adb/esm/commands/subprocess/shell/process.js
+  
   var _socket3, _writer3, _stdin, _stdout, _stderr, _exited2;
   var AdbShellProtocolProcessImpl = class {
     constructor(socket, signal) {
@@ -2914,7 +2880,7 @@ var TangoADB = (() => {
           }));
         },
         close: () => (
-          // Only shell protocol + raw mode supports closing stdin
+          
           __privateGet(this, _writer3).write(AdbShellProtocolPacket.serialize({
             id: AdbShellProtocolId.CloseStdin,
             data: EmptyUint8Array
@@ -2945,7 +2911,7 @@ var TangoADB = (() => {
   _stderr = new WeakMap();
   _exited2 = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/commands/subprocess/shell/pty.js
+  
   var _socket4, _writer4, _input2, _stdout2, _exited3, _AdbShellProtocolPtyProcess_instances, writeStdin_fn;
   var AdbShellProtocolPtyProcess = class {
     constructor(socket) {
@@ -2995,9 +2961,9 @@ var TangoADB = (() => {
     async resize(rows, cols) {
       await __privateGet(this, _writer4).write(AdbShellProtocolPacket.serialize({
         id: AdbShellProtocolId.WindowSizeChange,
-        // The "correct" format is `${rows}x${cols},${x_pixels}x${y_pixels}`
-        // However, according to https://linux.die.net/man/4/tty_ioctl
-        // `x_pixels` and `y_pixels` are unused, so always sending `0` should be fine.
+        
+        
+        
         data: encodeUtf8(`${rows}x${cols},0x0\0`)
       }));
     }
@@ -3021,7 +2987,7 @@ var TangoADB = (() => {
     }));
   };
 
-  // node_modules/@yume-chan/adb/esm/commands/subprocess/shell/spawner.js
+  
   var _spawn2;
   var AdbShellProtocolSpawner = class {
     constructor(spawn) {
@@ -3056,7 +3022,7 @@ var TangoADB = (() => {
   };
   _spawn2 = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/commands/subprocess/shell/service.js
+  
   var _adb3;
   var AdbShellProtocolSubprocessService = class extends AdbShellProtocolSpawner {
     constructor(adb) {
@@ -3095,7 +3061,7 @@ var TangoADB = (() => {
   };
   _adb3 = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/commands/subprocess/service.js
+  
   var _adb4, _noneProtocol, _shellProtocol;
   var AdbSubprocessService = class {
     constructor(adb) {
@@ -3122,7 +3088,7 @@ var TangoADB = (() => {
   _noneProtocol = new WeakMap();
   _shellProtocol = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/commands/sync/response.js
+  
   function encodeAsciiUnchecked(value) {
     const result = new Uint8Array(value.length);
     for (let i = 0; i < value.length; i += 1) {
@@ -3130,21 +3096,21 @@ var TangoADB = (() => {
     }
     return result;
   }
-  // @__NO_SIDE_EFFECTS__
+  
   function adbSyncEncodeId(value) {
     const buffer2 = encodeAsciiUnchecked(value);
     return getUint32LittleEndian(buffer2, 0);
   }
   var AdbSyncResponseId = {
-    Entry: /* @__PURE__ */ adbSyncEncodeId("DENT"),
-    Entry2: /* @__PURE__ */ adbSyncEncodeId("DNT2"),
-    Lstat: /* @__PURE__ */ adbSyncEncodeId("STAT"),
-    Stat: /* @__PURE__ */ adbSyncEncodeId("STA2"),
-    Lstat2: /* @__PURE__ */ adbSyncEncodeId("LST2"),
-    Done: /* @__PURE__ */ adbSyncEncodeId("DONE"),
-    Data: /* @__PURE__ */ adbSyncEncodeId("DATA"),
-    Ok: /* @__PURE__ */ adbSyncEncodeId("OKAY"),
-    Fail: /* @__PURE__ */ adbSyncEncodeId("FAIL")
+    Entry:  adbSyncEncodeId("DENT"),
+    Entry2:  adbSyncEncodeId("DNT2"),
+    Lstat:  adbSyncEncodeId("STAT"),
+    Stat:  adbSyncEncodeId("STA2"),
+    Lstat2:  adbSyncEncodeId("LST2"),
+    Done:  adbSyncEncodeId("DONE"),
+    Data:  adbSyncEncodeId("DATA"),
+    Ok:  adbSyncEncodeId("OKAY"),
+    Fail:  adbSyncEncodeId("FAIL")
   };
   var AdbSyncError = class extends Error {
   };
@@ -3156,7 +3122,7 @@ var TangoADB = (() => {
   });
   async function adbSyncReadResponse(stream, id, type) {
     if (typeof id === "string") {
-      id = /* @__PURE__ */ adbSyncEncodeId(id);
+      id =  adbSyncEncodeId(id);
     }
     const buffer2 = await stream.readExactly(4);
     switch (getUint32LittleEndian(buffer2, 0)) {
@@ -3171,7 +3137,7 @@ var TangoADB = (() => {
   }
   async function* adbSyncReadResponses(stream, id, type) {
     if (typeof id === "string") {
-      id = /* @__PURE__ */ adbSyncEncodeId(id);
+      id =  adbSyncEncodeId(id);
     }
     while (true) {
       const buffer2 = await stream.readExactly(4);
@@ -3191,7 +3157,7 @@ var TangoADB = (() => {
     }
   }
 
-  // node_modules/@yume-chan/adb/esm/commands/sync/request.js
+  
   var AdbSyncRequestId = {
     List: adbSyncEncodeId("LIST"),
     ListV2: adbSyncEncodeId("LIS2"),
@@ -3220,7 +3186,7 @@ var TangoADB = (() => {
     await writable.write(value);
   }
 
-  // node_modules/@yume-chan/adb/esm/commands/sync/stat.js
+  
   var LinuxFileType = {
     Directory: 4,
     File: 8,
@@ -3266,7 +3232,7 @@ var TangoADB = (() => {
     EROFS: 30,
     ETXTBSY: 26
   };
-  var AdbSyncStatErrorName = /* @__PURE__ */ (() => Object.fromEntries(Object.entries(AdbSyncStatErrorCode).map(([key, value]) => [
+  var AdbSyncStatErrorName =  (() => Object.fromEntries(Object.entries(AdbSyncStatErrorCode).map(([key, value]) => [
     value,
     key
   ])))();
@@ -3310,7 +3276,7 @@ var TangoADB = (() => {
         const response = await adbSyncReadResponse(locked, AdbSyncResponseId.Lstat, AdbSyncLstatResponse);
         return {
           mode: response.mode,
-          // Convert to `BigInt` to make it compatible with `AdbSyncStatResponse`
+          
           size: BigInt(response.size),
           mtime: BigInt(response.mtime),
           get type() {
@@ -3335,7 +3301,7 @@ var TangoADB = (() => {
     }
   }
 
-  // node_modules/@yume-chan/adb/esm/commands/sync/list.js
+  
   var AdbSyncEntryResponse = extend(AdbSyncLstatResponse, {
     name: string(u32)
   });
@@ -3388,7 +3354,7 @@ var TangoADB = (() => {
     }
   }
 
-  // node_modules/@yume-chan/adb/esm/commands/sync/pull.js
+  
   var AdbSyncDataResponse = struct({ data: buffer(u32) }, { littleEndian: true });
   async function* adbSyncPullGenerator(socket, path) {
     const locked = await socket.lock();
@@ -3415,7 +3381,7 @@ var TangoADB = (() => {
     return ReadableStream.from(adbSyncPullGenerator(socket, path));
   }
 
-  // node_modules/@yume-chan/adb/esm/commands/sync/push.js
+  
   var ADB_SYNC_MAX_PACKET_SIZE = 64 * 1024;
   var AdbSyncOkResponse = struct({ unused: u32 }, { littleEndian: true });
   async function pipeFileData(locked, file, packetSize, mtime) {
@@ -3447,13 +3413,9 @@ var TangoADB = (() => {
   var AdbSyncSendV2Flags = {
     None: 0,
     Brotli: 1,
-    /**
-     * 2
-     */
+    
     Lz4: 1 << 1,
-    /**
-     * 4
-     */
+    
     Zstd: 1 << 2,
     DryRun: 2147483648
   };
@@ -3487,7 +3449,7 @@ var TangoADB = (() => {
     return adbSyncPushV1(options);
   }
 
-  // node_modules/@yume-chan/adb/esm/commands/sync/socket.js
+  
   var _writer5, _readable4, _socketLock, _writeLock, _combiner, _AdbSyncSocketLocked_instances, write_fn;
   var AdbSyncSocketLocked = class {
     constructor(writer, readable, bufferSize, lock) {
@@ -3569,7 +3531,7 @@ var TangoADB = (() => {
   _socket5 = new WeakMap();
   _locked = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/commands/sync/sync.js
+  
   function dirname(path) {
     const end = path.lastIndexOf("/");
     if (end === -1) {
@@ -3613,30 +3575,18 @@ var TangoADB = (() => {
     get needPushMkdirWorkaround() {
       return __privateGet(this, _needPushMkdirWorkaround);
     }
-    /**
-     * Gets information of a file or folder.
-     *
-     * If `path` points to a symbolic link, the returned information is about the link itself (with `type` being `LinuxFileType.Link`).
-     */
+    
     async lstat(path) {
       return await adbSyncLstat(this._socket, path, __privateGet(this, _supportsStat));
     }
-    /**
-     * Gets the information of a file or folder.
-     *
-     * If `path` points to a symbolic link, it will be resolved and the returned information is about the target (with `type` being `LinuxFileType.File` or `LinuxFileType.Directory`).
-     */
+    
     async stat(path) {
       if (!__privateGet(this, _supportsStat)) {
         throw new Error("Not supported");
       }
       return await adbSyncStat(this._socket, path);
     }
-    /**
-     * Checks if `path` is a directory, or a symbolic link to a directory.
-     *
-     * This uses `lstat` internally, thus works on all Android versions.
-     */
+    
     async isDirectory(path) {
       try {
         await this.lstat(path + "/");
@@ -3655,20 +3605,11 @@ var TangoADB = (() => {
       }
       return results;
     }
-    /**
-     * Reads the content of a file on device.
-     *
-     * @param filename The full path of the file on device to read.
-     * @returns A `ReadableStream` that contains the file content.
-     */
+    
     read(filename) {
       return adbSyncPull(this._socket, filename);
     }
-    /**
-     * Writes a file on device. If the file name already exists, it will be overwritten.
-     *
-     * @param options The content and options of the file to write.
-     */
+    
     async write(options) {
       if (this.needPushMkdirWorkaround) {
         await this._adb.subprocess.noneProtocol.spawnWait([
@@ -3696,7 +3637,7 @@ var TangoADB = (() => {
   _supportsSendReceiveV2 = new WeakMap();
   _needPushMkdirWorkaround = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/commands/tcpip.js
+  
   function parsePort(value) {
     if (!value || value === "0") {
       return void 0;
@@ -3734,7 +3675,7 @@ var TangoADB = (() => {
     }
   };
 
-  // node_modules/@yume-chan/adb/esm/adb.js
+  
   var _transport;
   var Adb = class {
     constructor(transport) {
@@ -3773,9 +3714,7 @@ var TangoADB = (() => {
     canUseFeature(feature) {
       return this.clientFeatures.includes(feature) && this.deviceFeatures.includes(feature);
     }
-    /**
-     * Creates a new ADB Socket to the specified service or socket address.
-     */
+    
     async createSocket(service) {
       return __privateGet(this, _transport).connect(service);
     }
@@ -3817,7 +3756,7 @@ var TangoADB = (() => {
   };
   _transport = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/banner.js
+  
   var AdbBannerKey = {
     Product: "ro.product.name",
     Model: "ro.product.model",
@@ -3890,7 +3829,7 @@ var TangoADB = (() => {
   _features = new WeakMap();
   var AdbBanner = _AdbBanner;
 
-  // node_modules/@yume-chan/adb/esm/daemon/crypto.js
+  
   function getBigUint(array, byteOffset, length) {
     let result = 0n;
     for (let i = byteOffset; i < byteOffset + length; i += 8) {
@@ -4016,7 +3955,7 @@ var TangoADB = (() => {
     13 + SHA1_DIGEST_LENGTH,
     ASN1_SEQUENCE,
     9,
-    // SHA-1 (1 3 14 3 2 26)
+    
     ASN1_OID,
     5,
     1 * 40 + 3,
@@ -4052,20 +3991,20 @@ var TangoADB = (() => {
     return padded;
   }
 
-  // node_modules/@yume-chan/adb/esm/daemon/packet.js
+  
   var AdbCommand = {
     Auth: 1213486401,
-    // 'AUTH'
+    
     Close: 1163086915,
-    // 'CLSE'
+    
     Connect: 1314410051,
-    // 'CNXN'
+    
     Okay: 1497451343,
-    // 'OKAY'
+    
     Open: 1313165391,
-    // 'OPEN'
+    
     Write: 1163154007
-    // 'WRTE'
+    
   };
   var AdbPacketHeader = struct({
     command: u32,
@@ -4100,7 +4039,7 @@ var TangoADB = (() => {
     }
   };
 
-  // node_modules/@yume-chan/adb/esm/daemon/auth.js
+  
   var AdbAuthType = {
     Token: 1,
     Signature: 2,
@@ -4137,7 +4076,7 @@ var TangoADB = (() => {
     const publicKeyLength = adbGetPublicKeySize();
     const [publicKeyBase64Length] = calculateBase64EncodedLength(publicKeyLength);
     const nameBuffer = privateKey.name?.length ? encodeUtf8(privateKey.name) : EmptyUint8Array;
-    const publicKeyBuffer = new Uint8Array(publicKeyBase64Length + (nameBuffer.length ? nameBuffer.length + 1 : 0) + // Space character + name
+    const publicKeyBuffer = new Uint8Array(publicKeyBase64Length + (nameBuffer.length ? nameBuffer.length + 1 : 0) + 
     1);
     adbGeneratePublicKey(privateKey.buffer, publicKeyBuffer);
     encodeBase64(publicKeyBuffer.subarray(0, publicKeyLength), publicKeyBuffer);
@@ -4199,7 +4138,7 @@ var TangoADB = (() => {
     }
   };
 
-  // node_modules/@yume-chan/adb/esm/daemon/socket.js
+  
   var _dispatcher, _readable5, _readableController3, _writableController, _closed2, _closedPromise, _socket6, _availableWriteBytesChanged, _availableWriteBytes, _AdbDaemonSocketController_instances, writeChunk_fn;
   var AdbDaemonSocketController = class {
     constructor(options) {
@@ -4217,14 +4156,7 @@ var TangoADB = (() => {
       __privateAdd(this, _closedPromise, new PromiseResolver());
       __privateAdd(this, _socket6);
       __privateAdd(this, _availableWriteBytesChanged);
-      /**
-       * When delayed ack is disabled, returns `Infinity` if the socket is ready to write
-       * (exactly one packet can be written no matter how large it is), or `-1` if the socket
-       * is waiting for ack message.
-       *
-       * When delayed ack is enabled, returns a non-negative finite number indicates the number of
-       * bytes that can be written to the socket before waiting for ack message.
-       */
+      
       __privateAdd(this, _availableWriteBytes, 0);
       __privateSet(this, _dispatcher, options.dispatcher);
       this.localId = options.localId;
@@ -4343,23 +4275,21 @@ var TangoADB = (() => {
   };
   _controller = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/daemon/dispatcher.js
+  
   var _initializers, _sockets, _writer6, _closed3, _disconnected, _incomingSocketHandlers, _readAbortController, _AdbPacketDispatcher_instances, handleClose_fn, handleOkay_fn, sendOkay_fn, handleOpen_fn, handleWrite_fn, dispose_fn;
   var AdbPacketDispatcher = class {
     constructor(connection, options) {
       __privateAdd(this, _AdbPacketDispatcher_instances);
-      // ADB socket id starts from 1
-      // (0 means open failed)
+      
+      
       __privateAdd(this, _initializers, new AsyncOperationManager(1));
-      /**
-       * Socket local ID to the socket controller.
-       */
-      __privateAdd(this, _sockets, /* @__PURE__ */ new Map());
+      
+      __privateAdd(this, _sockets,  new Map());
       __privateAdd(this, _writer6);
       __publicField(this, "options");
       __privateAdd(this, _closed3, false);
       __privateAdd(this, _disconnected, new PromiseResolver());
-      __privateAdd(this, _incomingSocketHandlers, /* @__PURE__ */ new Map());
+      __privateAdd(this, _incomingSocketHandlers,  new Map());
       __privateAdd(this, _readAbortController, new AbortController());
       this.options = options;
       if (this.options.initialDelayedAckBytes < 0) {
@@ -4582,9 +4512,9 @@ var TangoADB = (() => {
     __privateGet(this, _disconnected).resolve();
   };
 
-  // node_modules/@yume-chan/adb/esm/daemon/transport.js
+  
   var ADB_DAEMON_VERSION_OMIT_CHECKSUM = 16777217;
-  var ADB_DAEMON_DEFAULT_FEATURES = /* @__PURE__ */ (() => [
+  var ADB_DAEMON_DEFAULT_FEATURES =  (() => [
     AdbFeature.ShellV2,
     AdbFeature.Cmd,
     AdbFeature.StatV2,
@@ -4592,8 +4522,8 @@ var TangoADB = (() => {
     AdbFeature.FixedPushMkdir,
     "apex",
     AdbFeature.Abb,
-    // only tells the client the symlink timestamp issue in `adb push --sync` has been fixed.
-    // No special handling required.
+    
+    
     "fixed_push_symlink_timestamp",
     AdbFeature.AbbExec,
     "remount_shell",
@@ -4646,9 +4576,7 @@ var TangoADB = (() => {
       }));
       __privateSet(this, _protocolVersion, version);
     }
-    /**
-     * Authenticate with the ADB Daemon and create a new transport.
-     */
+    
     static async authenticate({ serial, connection, credentialStore, authenticators = ADB_DEFAULT_AUTHENTICATORS, features = ADB_DAEMON_DEFAULT_FEATURES, initialDelayedAckBytes = ADB_DAEMON_DEFAULT_INITIAL_PAYLOAD_SIZE, ...options }) {
       let version = 16777217;
       let maxPayloadSize = 1024 * 1024;
@@ -4673,7 +4601,7 @@ var TangoADB = (() => {
           }
         }
       }), {
-        // Don't cancel the source ReadableStream on AbortSignal abort.
+        
         preventCancel: true,
         signal: abortController.signal
       }).then(() => {
@@ -4700,8 +4628,8 @@ var TangoADB = (() => {
           command: AdbCommand.Connect,
           arg0: version,
           arg1: maxPayloadSize,
-          // The terminating `;` is required in formal definition
-          // But ADB daemon (all versions) can still work without it
+          
+          
           payload: encodeUtf8(`host::features=${actualFeatures.join(",")}`)
         });
         banner = await resolver.promise;
@@ -4771,7 +4699,7 @@ var TangoADB = (() => {
   _clientFeatures = new WeakMap();
   var AdbDaemonTransport = _AdbDaemonTransport;
 
-  // node_modules/@yume-chan/adb/esm/server/commands/m-dns.js
+  
   var _client;
   var MDnsCommands = class {
     constructor(client) {
@@ -4806,7 +4734,7 @@ var TangoADB = (() => {
   };
   _client = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/server/stream.js
+  
   var OKAY2 = encodeUtf8("OKAY");
   var FAIL = encodeUtf8("FAIL");
   var _connection2, _buffered2, _writer7;
@@ -4879,7 +4807,7 @@ var TangoADB = (() => {
   _buffered2 = new WeakMap();
   _writer7 = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/server/commands/wireless.js
+  
   var NetworkError = class extends Error {
     constructor(message) {
       super(message);
@@ -4904,9 +4832,7 @@ var TangoADB = (() => {
       __privateAdd(this, _client2);
       __privateSet(this, _client2, client);
     }
-    /**
-     * `adb pair <password> <address>`
-     */
+    
     async pair(address, password) {
       const connection = await __privateGet(this, _client2).createConnection(`host:pair:${password}:${address}`);
       try {
@@ -4920,9 +4846,7 @@ var TangoADB = (() => {
         await connection.dispose();
       }
     }
-    /**
-     * `adb connect <address>`
-     */
+    
     async connect(address) {
       const connection = await __privateGet(this, _client2).createConnection(`host:connect:${address}`);
       try {
@@ -4931,7 +4855,7 @@ var TangoADB = (() => {
           case `already connected to ${address}`:
             throw new AlreadyConnectedError(response);
           case `failed to connect to ${address}`:
-          // `adb pair` mode not authorized
+          
           case `failed to authenticate to ${address}`:
             throw new UnauthorizedError(response);
           case `connected to ${address}`:
@@ -4943,9 +4867,7 @@ var TangoADB = (() => {
         await connection.dispose();
       }
     }
-    /**
-     * `adb disconnect <address>`
-     */
+    
     async disconnect(address) {
       const connection = await __privateGet(this, _client2).createConnection(`host:disconnect:${address}`);
       try {
@@ -4957,7 +4879,7 @@ var TangoADB = (() => {
   };
   _client2 = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/server/observer.js
+  
   function unorderedRemove(array, index) {
     if (index < 0 || index >= array.length) {
       return;
@@ -5090,7 +5012,7 @@ var TangoADB = (() => {
   connect_fn = async function() {
     const stream = await __privateGet(this, _client3).createConnection(
       "host:track-devices-l",
-      // Each individual observer will ref depending on their options
+      
       { unref: true }
     );
     await __privateMethod(this, _AdbServerDeviceObserverOwner_instances, receive_fn).call(this, stream);
@@ -5104,8 +5026,8 @@ var TangoADB = (() => {
     }
   };
 
-  // node_modules/@yume-chan/adb/esm/server/transport.js
-  var ADB_SERVER_DEFAULT_FEATURES = /* @__PURE__ */ (() => [
+  
+  var ADB_SERVER_DEFAULT_FEATURES =  (() => [
     AdbFeature.ShellV2,
     AdbFeature.Cmd,
     AdbFeature.StatV2,
@@ -5113,8 +5035,8 @@ var TangoADB = (() => {
     AdbFeature.FixedPushMkdir,
     "apex",
     AdbFeature.Abb,
-    // only tells the client the symlink timestamp issue in `adb push --sync` has been fixed.
-    // No special handling required.
+    
+    
     "fixed_push_symlink_timestamp",
     AdbFeature.AbbExec,
     "remount_shell",
@@ -5127,7 +5049,7 @@ var TangoADB = (() => {
   ])();
   var _client4, _sockets2, _closed4, _disconnected2;
   var AdbServerTransport = class {
-    // eslint-disable-next-line @typescript-eslint/max-params
+    
     constructor(client, serial, banner, transportId, disconnected) {
       __privateAdd(this, _client4);
       __publicField(this, "serial");
@@ -5176,7 +5098,7 @@ var TangoADB = (() => {
   _closed4 = new WeakMap();
   _disconnected2 = new WeakMap();
 
-  // node_modules/@yume-chan/adb/esm/server/client.js
+  
   var _observerOwner, _AdbServerClient_instances, waitForUnchecked_fn;
   var _AdbServerClient = class _AdbServerClient {
     constructor(connector) {
@@ -5273,9 +5195,7 @@ var TangoADB = (() => {
         throw e;
       }
     }
-    /**
-     * `adb version`
-     */
+    
     async getVersion() {
       const connection = await this.createConnection("host:version");
       try {
@@ -5292,16 +5212,12 @@ var TangoADB = (() => {
         throw new Error(`adb server version (${version}) doesn't match this client (${minimalVersion})`);
       }
     }
-    /**
-     * `adb kill-server`
-     */
+    
     async killServer() {
       const connection = await this.createConnection("host:kill");
       await connection.dispose();
     }
-    /**
-     * `adb host-features`
-     */
+    
     async getServerFeatures() {
       const connection = await this.createConnection("host:host-features");
       try {
@@ -5311,11 +5227,7 @@ var TangoADB = (() => {
         await connection.dispose();
       }
     }
-    /**
-     * Get a list of connected devices from ADB Server.
-     *
-     * Equivalent ADB Command: `adb devices -l`
-     */
+    
     async getDevices(includeStates = [
       "device",
       "unauthorized"
@@ -5328,15 +5240,11 @@ var TangoADB = (() => {
         await connection.dispose();
       }
     }
-    /**
-     * Monitors device list changes.
-     */
+    
     async trackDevices(options) {
       return __privateGet(this, _observerOwner).createObserver(options);
     }
-    /**
-     * `adb -s <device> reconnect` or `adb reconnect offline`
-     */
+    
     async reconnectDevice(device) {
       const connection = await this.createConnection(device === "offline" ? "host:reconnect-offline" : _AdbServerClient.formatDeviceService(device, "reconnect"));
       try {
@@ -5345,13 +5253,7 @@ var TangoADB = (() => {
         await connection.dispose();
       }
     }
-    /**
-     * Gets the features supported by the device.
-     * The transport ID of the selected device is also returned,
-     * so the caller can execute other commands against the same device.
-     * @param device The device selector
-     * @returns The transport ID of the selected device, and the features supported by the device.
-     */
+    
     async getDeviceFeatures(device) {
       const connection = await this.createDeviceConnection(device, "host:features");
       const stream = new AdbServerStream(connection);
@@ -5363,12 +5265,7 @@ var TangoADB = (() => {
         await stream.dispose();
       }
     }
-    /**
-     * Creates a connection that will forward the service to device.
-     * @param device The device selector
-     * @param service The service to forward
-     * @returns An `AdbServerClient.Socket` that can be used to communicate with the service
-     */
+    
     async createDeviceConnection(device, service) {
       let switchService;
       let transportId;
@@ -5421,16 +5318,7 @@ var TangoADB = (() => {
         throw e;
       }
     }
-    /**
-     * Wait for a device to be connected or disconnected.
-     *
-     * `adb wait-for-<state>`
-     *
-     * @param device The device selector
-     * @param state The state to wait for
-     * @param options The options
-     * @returns A promise that resolves when the condition is met.
-     */
+    
     async waitFor(device, state, options) {
       if (state === "disconnect") {
         await this.validateVersion(41);
@@ -5457,9 +5345,7 @@ var TangoADB = (() => {
         });
       }
     }
-    /**
-     * Creates an ADB Transport for the specified device.
-     */
+    
     async createTransport(device) {
       const { transportId, features } = await this.getDeviceFeatures(device);
       const devices = await this.getDevices();
@@ -5534,7 +5420,7 @@ var TangoADB = (() => {
     }
   }
 
-  // node_modules/@yume-chan/adb-daemon-webusb/esm/index.js
+  
   var esm_exports3 = {};
   __export(esm_exports3, {
     AdbDaemonWebUsbConnection: () => AdbDaemonWebUsbConnection,
@@ -5552,7 +5438,7 @@ var TangoADB = (() => {
     mergeDefaultAdbInterfaceFilter: () => mergeDefaultAdbInterfaceFilter
   });
 
-  // node_modules/@yume-chan/adb-daemon-webusb/esm/error.js
+  
   var DeviceBusyError = class extends Error {
     constructor(cause) {
       super("The device is already in used by another program", {
@@ -5561,7 +5447,7 @@ var TangoADB = (() => {
     }
   };
 
-  // node_modules/@yume-chan/adb-daemon-webusb/esm/utils.js
+  
   function isErrorName(e, name) {
     return typeof e === "object" && e !== null && "name" in e && e.name === name;
   }
@@ -5652,7 +5538,7 @@ var TangoADB = (() => {
     return false;
   }
 
-  // node_modules/@yume-chan/adb-daemon-webusb/esm/device.js
+  
   var AdbDefaultInterfaceFilter = {
     classCode: 255,
     subclassCode: 66,
@@ -5788,12 +5674,7 @@ var TangoADB = (() => {
   };
   var _interface, _usbManager, _raw, _serial2, _AdbDaemonWebUsbDevice_instances, claimInterface_fn;
   var _AdbDaemonWebUsbDevice = class _AdbDaemonWebUsbDevice {
-    /**
-     * Create a new instance of `AdbDaemonWebUsbConnection` using a specified `USBDevice` instance
-     *
-     * @param device The `USBDevice` instance obtained elsewhere.
-     * @param filters The filters to use when searching for ADB interface. Defaults to {@link ADB_DEFAULT_DEVICE_FILTER}.
-     */
+    
     constructor(device, interface_, usbManager) {
       __privateAdd(this, _AdbDaemonWebUsbDevice_instances);
       __privateAdd(this, _interface);
@@ -5814,9 +5695,7 @@ var TangoADB = (() => {
     get name() {
       return __privateGet(this, _raw).productName;
     }
-    /**
-     * Open the device and create a new connection to the ADB Daemon.
-     */
+    
     async connect() {
       const { inEndpoint, outEndpoint } = await __privateMethod(this, _AdbDaemonWebUsbDevice_instances, claimInterface_fn).call(this);
       return new AdbDaemonWebUsbConnection(this, inEndpoint, outEndpoint, __privateGet(this, _usbManager));
@@ -5853,7 +5732,7 @@ var TangoADB = (() => {
   __publicField(_AdbDaemonWebUsbDevice, "DeviceBusyError", DeviceBusyError);
   var AdbDaemonWebUsbDevice = _AdbDaemonWebUsbDevice;
 
-  // node_modules/@yume-chan/adb-daemon-webusb/esm/observer.js
+  
   var _filters, _exclusionFilters, _usbManager2, _onDeviceAdd, _onDeviceRemove, _onListChange, _AdbDaemonWebUsbDeviceObserver_instances, convertDevice_fn, _handleConnect, _handleDisconnect;
   var _AdbDaemonWebUsbDeviceObserver = class _AdbDaemonWebUsbDeviceObserver {
     constructor(usb, initial, options = {}) {
@@ -5931,20 +5810,15 @@ var TangoADB = (() => {
   _handleDisconnect = new WeakMap();
   var AdbDaemonWebUsbDeviceObserver = _AdbDaemonWebUsbDeviceObserver;
 
-  // node_modules/@yume-chan/adb-daemon-webusb/esm/manager.js
+  
   var _usbManager3;
   var _AdbDaemonWebUsbDeviceManager = class _AdbDaemonWebUsbDeviceManager {
-    /**
-     * Create a new instance of {@link AdbDaemonWebUsbDeviceManager} using the specified WebUSB implementation.
-     * @param usbManager A WebUSB compatible interface.
-     */
+    
     constructor(usbManager) {
       __privateAdd(this, _usbManager3);
       __privateSet(this, _usbManager3, usbManager);
     }
-    /**
-     * Call `USB#requestDevice()` to prompt the user to select a device.
-     */
+    
     async requestDevice(options = {}) {
       const filters = mergeDefaultAdbInterfaceFilter(options.filters);
       try {
@@ -5965,9 +5839,7 @@ var TangoADB = (() => {
         throw e;
       }
     }
-    /**
-     * Get all connected and requested devices that match the specified filters.
-     */
+    
     async getDevices(options = {}) {
       const filters = mergeDefaultAdbInterfaceFilter(options.filters);
       const devices = await __privateGet(this, _usbManager3).getDevices();
@@ -5985,15 +5857,11 @@ var TangoADB = (() => {
     }
   };
   _usbManager3 = new WeakMap();
-  /**
-   * Gets the instance of {@link AdbDaemonWebUsbDeviceManager} using browser WebUSB implementation.
-   *
-   * May be `undefined` if current runtime does not support WebUSB.
-   */
-  __publicField(_AdbDaemonWebUsbDeviceManager, "BROWSER", /* @__PURE__ */ (() => typeof globalThis.navigator !== "undefined" && globalThis.navigator.usb ? new _AdbDaemonWebUsbDeviceManager(globalThis.navigator.usb) : void 0)());
+  
+  __publicField(_AdbDaemonWebUsbDeviceManager, "BROWSER",  (() => typeof globalThis.navigator !== "undefined" && globalThis.navigator.usb ? new _AdbDaemonWebUsbDeviceManager(globalThis.navigator.usb) : void 0)());
   var AdbDaemonWebUsbDeviceManager = _AdbDaemonWebUsbDeviceManager;
 
-  // node_modules/@yume-chan/adb-credential-web/esm/index.js
+  
   var esm_exports4 = {};
   __export(esm_exports4, {
     default: () => AdbWebCredentialStore
@@ -6060,18 +5928,12 @@ var TangoADB = (() => {
       __privateAdd(this, _appName);
       __privateSet(this, _appName, appName);
     }
-    /**
-     * Generates a RSA private key and store it into LocalStorage.
-     *
-     * Calling this method multiple times will overwrite the previous key.
-     *
-     * @returns The private key in PKCS #8 format.
-     */
+    
     async generateKey() {
       const { privateKey: cryptoKey } = await crypto.subtle.generateKey({
         name: "RSASSA-PKCS1-v1_5",
         modulusLength: 2048,
-        // 65537
+        
         publicExponent: new Uint8Array([1, 0, 1]),
         hash: "SHA-1"
       }, true, ["sign", "verify"]);
@@ -6082,11 +5944,7 @@ var TangoADB = (() => {
         name: `${__privateGet(this, _appName)}@${globalThis.location.hostname}`
       };
     }
-    /**
-     * Yields the stored RSA private key.
-     *
-     * This method returns a generator, so `for await...of...` loop should be used to read the key.
-     */
+    
     async *iterateKeys() {
       for (const key of await getAllKeys()) {
         yield {
@@ -6098,8 +5956,8 @@ var TangoADB = (() => {
   };
   _appName = new WeakMap();
 
-  // js/tango-entry.js
-  // 直接导出类而不是 exports 对象
+  
+  
   window.Adb = {
     Adb: Adb,
     AdbDaemonTransport: AdbDaemonTransport,
@@ -6109,7 +5967,7 @@ var TangoADB = (() => {
     AdbBanner: AdbBanner,
     AdbPacket: AdbPacket
   };
-  // AdbDaemonWebUsb 是从 esm_exports3 导出的命名空间
+  
   window.AdbDaemonWebUsb = {
     AdbDaemonWebUsbConnection: AdbDaemonWebUsbConnection,
     AdbDaemonWebUsbDevice: AdbDaemonWebUsbDevice,
@@ -6129,7 +5987,7 @@ var TangoADB = (() => {
     default: AdbWebCredentialStore
   };
   window.StreamExtra = esm_exports;
-  // 保持兼容性
+  
   window.TangoADB = {
     Adb: Adb,
     AdbDaemonWebUsb: window.AdbDaemonWebUsb,
@@ -6141,4 +5999,4 @@ var TangoADB = (() => {
   console.log("Adb.authenticate:", Adb.authenticate);
   console.log("AdbDaemonWebUsb:", window.AdbDaemonWebUsb);
 })();
-//# sourceMappingURL=tango-adb.js.map
+

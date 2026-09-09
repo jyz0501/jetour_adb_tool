@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     
-    <!-- SEO Meta Tags -->
+    
     <title>大伦车机工具箱 - 在线 ADB 调试工具 | WebADB 车机助手</title>
     <meta name="description" content="大伦车机工具箱是一款基于 WebADB 技术的在线车机调试工具，支持 USB 连接、应用安装、系统修改、数据备份恢复等功能，为车机用户提供便捷的设备管理解决方案，无需安装任何软件即可使用。">
     <meta name="keywords" content="ADB工具,车机调试,WebADB,车机工具箱,车载系统,安卓调试,USB连接,应用安装,车机管理,Jetour,捷途,大伦哥,纵横,G700">
@@ -13,13 +13,13 @@
     <meta name="theme-color" content="#5b5bd6">
     <link rel="canonical" href="https://tool.qianxian.tech/">
     
-    <!-- 百度 SEO 标签 -->
+    
     <meta name="baidu-subject" content="车机调试">
     <meta name="baidu-category" content="工具">
     <meta name="baidu-copyright" content="大伦哥CDM">
     <meta name="baidu-summary" content="大伦车机工具箱 - 基于WebADB的在线车机调试工具，支持USB连接、应用安装、系统修改等功能">
     
-    <!-- 中国互联网搜索优化 -->
+    
     <meta name="revisit-after" content="1 days">
     <meta name="rating" content="general">
     <meta name="distribution" content="global">
@@ -28,21 +28,21 @@
     <meta name="MobileOptimized" content="width">
     <meta name="HandheldFriendly" content="true">
     
-    <!-- 中国短视频/社交平台标签 -->
+    
     <meta itemprop="name" content="大伦车机工具箱">
     <meta itemprop="description" content="基于WebADB的在线车机调试工具，为捷途、纵横等车机用户提供便捷的ADB调试服务">
     <meta itemprop="image" content="https://tool.qianxian.tech/og-image.png">
     <meta itemprop="url" content="https://tool.qianxian.tech/">
     <meta itemprop="category" content="工具/车机调试">
     
-    <!-- 头条/抖音搜索优化 -->
+    
     <meta name="toutiao-site-verification" content="">
     
-    <!-- 微信分享优化 -->
+    
     <meta itemprop="wx:name" content="大伦车机工具箱">
     <meta itemprop="wx:desc" content="在线ADB调试工具，车机用户必备">
     
-    <!-- Open Graph / Facebook -->
+    
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://tool.qianxian.tech/">
     <meta property="og:title" content="大伦车机工具箱 - 在线 ADB 调试工具">
@@ -52,21 +52,21 @@
     <meta property="og:image:height" content="630">
     <meta property="og:locale" content="zh_CN">
     
-    <!-- Twitter Card -->
+    
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://tool.qianxian.tech/">
     <meta name="twitter:title" content="大伦车机工具箱 - 在线 ADB 调试工具">
     <meta name="twitter:description" content="基于 WebADB 的在线车机调试工具，支持 USB 连接、应用安装、系统修改等功能。">
     <meta name="twitter:image" content="https://tool.qianxian.tech/og-image.png">
     
-    <!-- Favicon -->
+    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
     
-    <!-- Styles -->
+    
     <link rel="stylesheet" href="css/style.css">
-    <!-- 自定义弹窗样式 -->
+    
     <style>
-        /* 自定义弹窗样式 */
+        
         .custom-modal {
             display: none;
             position: fixed;
@@ -152,7 +152,7 @@
             color: white;
         }
         
-        /* 水印样式 */
+        
         .watermark {
             position: absolute;
             top: 50%;
@@ -166,7 +166,7 @@
             white-space: nowrap;
         }
         
-        /* 容器相对定位 */
+        
         .watermark-container {
             position: relative;
         }
@@ -181,27 +181,19 @@
             </div>
             <a href="https://pw.qianxian.tech/" class="btn" style="background: var(--brand-grad); color: white; padding: 8px 20px; text-decoration: none; border-radius: 8px; margin: 0 5px; box-shadow: 0 3px 8px rgba(91,91,214,0.25);">➡️获取动态密码⬅️</a>
         </div>
-        <!-- 安装方式一：手机App方式 (已隐藏) -->
-        <!-- 
-        <div style="margin: 10px 0;">
-            <h3 style="margin: 0 0 10px 0; font-size: 16px; color: var(--txt);">安装方式一：手机App方式</h3>
-            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <a href="https://adb.cheji.cc/apk/sj.apk" class="btn btn-connect" style="flex-shrink: 0;" target="_blank">手机助手下载</a>
-                <a href="https://101.42.10.175:35070/down/mnfds48btpxq.apk" class="btn btn-connect" style="flex-shrink: 0;" target="_blank">应用管家下载</a>
-            </div>
-        </div>
-        -->
+        
+        
         
         <hr style="margin: 15px 0; border: 1px solid var(--line);">
         
-            <!-- 有线连接 -->
+            
             <div style="margin: 12px 0; background-color: var(--card); border: 1px solid var(--line); padding: 15px; border-radius: 12px;">
                 <h3 style="margin: 0 0 10px 0; font-size: 16px; color: var(--txt);">有线连接</h3>
                 <div class="warning" id="usb-warning">
                     注意！您的浏览器不支持WebUSB。请在Chrome或Edge浏览器中打开。
                 </div>
 
-                <!-- Chrome/Edge浏览器下载地址已隐藏，将在检测到非支持浏览器时弹窗显示 -->
+                
 
                 <div style="margin: 15px 0;">
                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
@@ -214,7 +206,7 @@
                         有线连接：使用Chrome或Edge浏览器 + OTG线连接车机USB口。
                     </p>
                 </div>
-                <!-- 设备情况日志 -->
+                
                 <div style="margin-top: 10px; padding: 10px; background-color: #fafbff; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; font-family: monospace; max-height: 100px; overflow-y: auto;">
                     <div id="device-log" style="white-space: pre-wrap;"></div>
                 </div>
@@ -222,7 +214,7 @@
                 
                 <hr style="margin: 20px 0; border: 1px solid var(--line);">
                 
-                <!-- 必装软件 -->
+                
                 <div class="watermark-container" style="margin: 16px 0; position: relative;">
                     <div class="watermark">抖音@大伦哥的CDM</div>
                     <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">必装软件</h4>
@@ -240,7 +232,7 @@
                     <p style="margin-top: 10px; font-size: 12px; color: var(--sub); position: relative; z-index: 1;">请先安装以上软件，以确保系统正常运行。</p>
                 </div>
 
-                <!-- 其他软件 -->
+                
                 <div class="watermark-container" style="margin: 16px 0; position: relative;">
                     <div class="watermark">抖音@大伦哥的CDM</div>
                     <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">其他软件</h4>
@@ -253,7 +245,7 @@
                     <p style="margin-top: 10px; font-size: 12px; color: var(--sub); position: relative; z-index: 1;">根据需要选择安装其他软件。</p>
                 </div>
                 
-                <!-- 自选安装 -->
+                
                 <div class="watermark-container" style="margin: 16px 0; position: relative;">
                     <div class="watermark">抖音@大伦哥的CDM</div>
                     <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">自主安装</h4>
@@ -266,7 +258,7 @@
                     <p style="margin-top: 10px; font-size: 12px; color: var(--sub); position: relative; z-index: 1;">操作点击按钮后请静候等待执行结果，切勿重复点击！</p>
                 </div>
                 
-                <!-- Shell Command Input -->
+                
                 <div class="watermark-container" style="margin: 16px 0; position: relative;">
                     <div class="watermark">抖音@大伦哥的CDM</div>
                     <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">手动命令</h4>
@@ -276,15 +268,15 @@
                     </div>
                 </div>
                 
-                <!-- 应用管理 -->
+                
                 <div class="watermark-container" style="margin: 16px 0; position: relative;">
                     <div class="watermark">抖音@大伦哥的CDM</div>
                     <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">应用管理</h4>
                     
-                    <!-- 刷新用户应用列表 -->
+                    
                     <button class="btn btn-connect" onclick="loadPackageList()" style="margin-bottom: 15px; position: relative; z-index: 1;">刷新用户应用列表</button>
                     
-                    <!-- 已安装应用列表 -->
+                    
                     <table id="package-list" style="width: 100%; border-collapse: collapse; table-layout: fixed; position: relative; z-index: 1;">
                         <thead>
                             <tr style="background-color: var(--brand-soft);">
@@ -295,12 +287,12 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- 应用列表将通过JavaScript动态添加 -->
+                            
                         </tbody>
                     </table>
                 </div>
                 
-                <!-- Log Area -->
+                
                 <div id="exec-result" class="collapsed">
                     <div id="exec-result-toggle" onclick="toggleExecResult()">▲ 点击展开执行结果</div>
                     <h4>执行结果</h4>
@@ -313,7 +305,7 @@
         </div>
     </div>
     
-    <!-- 自定义弹窗 -->
+    
     <div id="customModal" class="custom-modal">
         <div class="custom-modal-content">
             <div class="custom-modal-header">
@@ -329,27 +321,27 @@
         </div>
     </div>
     
-    <!-- ADB 核心模块 -->
-    <!-- 使用 ya-webadb 库 (Tango ADB) -->
+    
+    
     <script src="js/lib/tango-adb.js" onerror="console.error('Failed to load tango-adb.js')"></script>
 
-    <!-- Custom JavaScript -->
+    
     <script src="js/utils.js"></script>
     <script src="js/device.js"></script>
     <script src="js/apps.js"></script>
     <script src="js/system.js"></script>
-    <!-- 移除main.js，因为它会导致无限递归 -->
-    <!-- <script src="js/main.js"></script> -->
+    
+    
 
-    <!-- 页面加载完成后检查浏览器支持 -->
+    
     <script>
-        // 页面加载完成后检查浏览器是否支持WebUSB
+        
         window.addEventListener('DOMContentLoaded', function() {
-            // 检查浏览器支持
+            
             checkWebUSBSupport();
         });
 
-        // 折叠/展开执行结果
+        
         function toggleExecResult() {
             const execResult = document.getElementById('exec-result');
             const toggleBtn = document.getElementById('exec-result-toggle');
@@ -362,7 +354,7 @@
             }
         }
         
-        // 展开执行结果
+        
         function expandExecResult() {
             const execResult = document.getElementById('exec-result');
             const toggleBtn = document.getElementById('exec-result-toggle');
@@ -379,7 +371,7 @@
     <div style="text-align: center; margin: 30px auto; padding: 20px; background-color: var(--card); border: 1px solid var(--line); border-radius: 12px; max-width: 820px;">
         <h4 style="margin: 0 0 10px 0; font-size: 14px; color: var(--sub);">特别鸣谢</h4>
         <p style="margin: 5px 0; font-size: 12px; color: var(--sub);">迪友助手云盘：<a href="https://file.vju.cc" target="_blank" style="color: var(--brand);">https://file.vju.cc</a></p>
-        <p style="margin: 5px 0; font-size: 12px; color: var(--sub);">其他资源下载：<a href="http://a14472357.328657.xyz" target="_blank" style="color: var(--brand);">http://a14472357.328657.xyz</a>、<a href="http://a14472357.a.328657.xyz" target="_blank" style="color: var(--brand);">http://a14472357.a.328657.xyz</a>、<a href="https://pan.ehvip.cn/" target="_blank" style="color: var(--brand);">恩华网盘</a></p>
+        <p style="margin: 5px 0; font-size: 12px; color: var(--sub);">其他资源下载：<a href="http://a14472357.a.328657.xyz" target="_blank" style="color: var(--brand);">http://a14472357.a.328657.xyz</a>、<a href="https://pan.ehvip.cn/" target="_blank" style="color: var(--brand);">恩华网盘</a></p>
     </div>
 </body>
 </html>

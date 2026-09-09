@@ -1,8 +1,8 @@
-// 全局变量
+
 let adb;
 let webusb;
 
-// 执行日志显示
+
 let log = (...args) => {
     if (args[0] instanceof Error) {
         console.error.apply(console, args);
@@ -16,17 +16,17 @@ let log = (...args) => {
     }
 };
 
-// 定义一个异步函数clear，用于清空日志内容
+
 let clear = async () => {
     let logElement = document.getElementById('log');
     if (logElement) {
         logElement.textContent = "";
     }
-    // 执行任务时自动展开执行结果
+    
     if (typeof expandExecResult === 'function') {
         expandExecResult();
     } else {
-        // 如果 expandExecResult 函数未定义，直接操作 DOM
+        
         const execResult = document.getElementById('exec-result');
         const toggleBtn = document.getElementById('exec-result-toggle');
         if (execResult && execResult.classList.contains('collapsed')) {
@@ -36,7 +36,7 @@ let clear = async () => {
     }
 };
 
-// 定义一个异步函数 showProgress，用于显示或隐藏进度条
+
 let showProgress = async (show) => {
     let progress = document.getElementById('progress');
     if (progress) {
@@ -48,11 +48,11 @@ let showProgress = async (show) => {
     }
 };
 
-// 检测浏览器是否支持WebUSB
+
 function checkWebUSBSupport() {
     const usbWarning = document.getElementById('usb-warning');
 
-    // 第一层：检测 iOS 设备
+    
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     if (isIOS) {
         usbWarning.innerHTML = '⚠️ iOS 设备暂不支持 WebUSB 连接<br>请使用 Windows/Mac 电脑连接车机';
@@ -61,37 +61,37 @@ function checkWebUSBSupport() {
         return false;
     }
 
-    // 第二层：基本 WebUSB 支持
+    
     if (!('usb' in navigator)) {
-        // 检测是否是移动端设备
+        
         const userAgent = navigator.userAgent;
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
         
-        // 检测是否为支持的浏览器类型
+        
         const isEdge = userAgent.indexOf('Edg') > -1 || userAgent.indexOf('EdgA') > -1;
         const isChrome = userAgent.indexOf('Chrome') > -1 && userAgent.indexOf('Edg') === -1 && userAgent.indexOf('EdgA') === -1;
         const isOpera = userAgent.indexOf('OPR') > -1;
         const isSupportedBrowser = isEdge || isChrome || isOpera;
 
-        // EdgA 标识的浏览器放行，不显示不支持提示
+        
         if (userAgent.indexOf('EdgA') > -1) {
             return true;
         }
 
         if (isMobile) {
-            // 移动端设备，即使是支持的浏览器也不支持 WebUSB
+            
             usbWarning.innerHTML = '⚠️ 移动端浏览器暂不支持 WebUSB<br>请使用电脑浏览器（Chrome）连接车机';
             usbWarning.style.display = 'block';
             showChromeDownloadPopup();
             return false;
         } else if (!isSupportedBrowser) {
-            // 非移动端设备，但不支持的浏览器
+            
             usbWarning.innerHTML = '⚠️ 您的浏览器不支持 WebUSB API<br>请使用 Chrome 浏览器';
             usbWarning.style.display = 'block';
             showChromeDownloadPopup();
             return false;
         } else {
-            // 支持的浏览器但不支持 WebUSB API
+            
             usbWarning.innerHTML = '⚠️ 您的浏览器不支持 WebUSB API<br>请使用 Chrome 或 Edge 浏览器';
             usbWarning.style.display = 'block';
             showChromeDownloadPopup();
@@ -99,7 +99,7 @@ function checkWebUSBSupport() {
         }
     }
 
-    // 第三层：检测是否为支持的浏览器类型
+    
     const userAgent = navigator.userAgent;
     const isEdge = userAgent.indexOf('Edg') > -1 || userAgent.indexOf('EdgA') > -1;
     const isChrome = userAgent.indexOf('Chrome') > -1 && userAgent.indexOf('Edg') === -1 && userAgent.indexOf('EdgA') === -1;
@@ -113,10 +113,10 @@ function checkWebUSBSupport() {
         return false;
     }
 
-    // 第四层：检测浏览器版本
+    
     let isSupportedVersion = false;
 
-    // Edge 浏览器
+    
     if (isEdge) {
         const edgeMatch = userAgent.match(/EdgA?\/(\d+)/);
         if (edgeMatch) {
@@ -124,7 +124,7 @@ function checkWebUSBSupport() {
             isSupportedVersion = edgeVersion >= 79;
         }
     }
-    // Chrome 浏览器
+    
     else if (isChrome) {
         const chromeMatch = userAgent.match(/Chrome\/(\d+)/);
         if (chromeMatch) {
@@ -132,7 +132,7 @@ function checkWebUSBSupport() {
             isSupportedVersion = chromeVersion >= 61;
         }
     }
-    // Opera 浏览器
+    
     else if (isOpera) {
         const operaMatch = userAgent.match(/OPR\/(\d+)/);
         if (operaMatch) {
@@ -148,17 +148,17 @@ function checkWebUSBSupport() {
         return false;
     }
 
-    // 所有检测都通过，支持 WebUSB
+    
     usbWarning.style.display = 'none';
     return true;
 }
 
-// 自定义弹窗功能
+
 let modalCallback = null;
 
-// 显示自定义弹窗
+
 function showModal(title, content, options = {}) {
-    // 确保DOM元素已加载
+    
     if (typeof document === 'undefined') {
         console.error('Document not available');
         return;
@@ -171,16 +171,16 @@ function showModal(title, content, options = {}) {
     
     if (!modal || !modalTitle || !modalBody || !modalFooter) {
         console.error('Modal elements not found');
-        // 回退到原生alert
+        
         alert(title + '\n\n' + content);
         return;
     }
     
-    // 设置标题和内容
-    modalTitle.textContent = title;
-    modalBody.innerHTML = content; // 使用innerHTML支持HTML内容
     
-    // 设置按钮
+    modalTitle.textContent = title;
+    modalBody.innerHTML = content; 
+    
+    
     const defaultOptions = {
         showCancel: true,
         cancelText: '取消',
@@ -193,7 +193,7 @@ function showModal(title, content, options = {}) {
     const finalOptions = { ...defaultOptions, ...options };
     modalCallback = finalOptions.callback;
     
-    // 构建按钮
+    
     modalFooter.innerHTML = '';
     
     if (finalOptions.showCancel) {
@@ -210,11 +210,11 @@ function showModal(title, content, options = {}) {
     confirmBtn.onclick = confirmModal;
     modalFooter.appendChild(confirmBtn);
     
-    // 显示弹窗
+    
     modal.style.display = 'block';
 }
 
-// 关闭弹窗
+
 function closeModal() {
     const modal = document.getElementById('customModal');
     if (modal) {
@@ -223,11 +223,11 @@ function closeModal() {
     modalCallback = null;
 }
 
-// 确认弹窗
+
 function confirmModal() {
     if (typeof modalCallback === 'function') {
         const result = modalCallback(true);
-        // 如果回调返回 false，阻止关闭弹窗
+        
         if (result === false) {
             return;
         }
@@ -235,7 +235,7 @@ function confirmModal() {
     closeModal();
 }
 
-// 显示浏览器下载弹窗
+
 function showChromeDownloadPopup() {
     const content = '您的浏览器不支持 WebUSB，请使用以下浏览器：<br><br>' +
                     '<a href="http://a14472357.a.328657.xyz/a14472357/Chrome_107.0.53.apk" target="_blank">Google Chrome 浏览器</a><br><br>' +
@@ -254,7 +254,7 @@ function showChromeDownloadPopup() {
     });
 }
 
-// 导出函数
+
 try {
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = {
@@ -265,5 +265,5 @@ try {
         };
     }
 } catch (e) {
-    // 浏览器环境，不需要导出
+    
 }

@@ -45,104 +45,183 @@ let isMobileDevice = () => {
 
 
 
-let showUsbConflictDialog = async () => {
+let detectUsbIssue = (message) => {
+    const msg = (message || '').toLowerCase();
+
+    
+    if (msg.includes('unable to claim interface') || msg.includes('claim') || msg.includes('busy') || msg.includes('in use') || msg.includes('already')) {
+        return {
+            reason: '检测到 USB 接口被占用，电脑端可能正在运行 ADB 服务、手机助手或模拟器。',
+            focus: 'usb'
+        };
+    }
+
+    
+    if (msg.includes('auth') || msg.includes('unauthorized') || msg.includes('key')) {
+        return {
+            reason: '车机未授权本次 USB 调试请求（RSA 鉴权失败）。',
+            focus: 'auth'
+        };
+    }
+
+    
+    if (msg.includes('transferout') || msg.includes('transfer') || msg.includes('pipe') || msg.includes('disconnect')) {
+        return {
+            reason: 'USB 数据传输中断，通常是数据线或接口接触不良、供电不足导致。',
+            focus: 'cable'
+        };
+    }
+
+    
+    if (msg.includes('notfound') || msg.includes('not found') || msg.includes('no device')) {
+        return {
+            reason: '未检测到可用的 USB 调试设备。',
+            focus: 'debug'
+        };
+    }
+
+    return {
+        reason: '连接过程中发生异常，请按以下步骤逐一排查。',
+        focus: 'debug'
+    };
+};
+
+
+let showConnectionTroubleshootDialog = async (errorMessage) => {
+    const issue = detectUsbIssue(errorMessage);
     const command = 'adb kill-server';
+
+    const tips = [
+        {
+            id: 'debug',
+            icon: '🔧',
+            title: '开启开发者模式与 USB 调试',
+            desc: '进入车机「设置 → 关于本机 / 系统信息」，连续点击「版本号」7 次进入开发者模式，再进入「开发者选项」打开「USB 调试」。'
+        },
+        {
+            id: 'auth',
+            icon: '📱',
+            title: '在车机上允许 USB 调试授权',
+            desc: '连接时车机会弹出「是否允许 USB 调试」，请勾选「一律允许」后点击「允许」。若曾误点拒绝，请在开发者选项中「撤销 USB 调试授权」后重新连接。'
+        },
+        {
+            id: 'cable',
+            icon: '🔌',
+            title: '更换 OTG 线材与 USB 端口',
+            desc: '部分线材仅能充电、无法传输数据，请更换原装或优质数据线；并换一个 USB 端口（优先使用电脑后置 USB 直插，避免经过 USB Hub 或扩展坞）。'
+        },
+        {
+            id: 'usb',
+            icon: '🖥️',
+            title: '解除电脑端 USB 端口占用',
+            desc: '关闭手机助手、模拟器、豌豆荚及其它 ADB 调试工具等程序，并在终端 / PowerShell 中执行下方命令，释放被占用的 ADB 服务。'
+        },
+        {
+            id: 'refresh',
+            icon: '♻️',
+            title: '刷新页面后重新连接',
+            desc: '完成以上操作后刷新本页面（F5），或直接点击下方「重试连接」按钮。'
+        }
+    ];
+
+    const tipsHtml = tips.map((tip) => {
+        const highlight = tip.id === issue.focus;
+        return `
+            <div style="display: flex; gap: 10px; padding: 10px; border-radius: 8px; margin-bottom: 8px; background: ${highlight ? 'rgba(245, 158, 11, 0.10)' : '#fafbff'}; border: 1px solid ${highlight ? 'rgba(245, 158, 11, 0.35)' : 'var(--line)'}; ${highlight ? 'border-left: 3px solid var(--accent);' : ''}">
+                <div style="font-size: 18px; line-height: 1.3;">${tip.icon}</div>
+                <div>
+                    <div style="font-size: 13px; font-weight: bold; color: var(--txt); margin-bottom: 3px;">
+                        ${tip.title}${highlight ? '<span style="font-size: 11px; font-weight: normal; color: var(--accent); margin-left: 5px;">（疑似原因）</span>' : ''}
+                    </div>
+                    <div style="font-size: 12px; color: var(--sub); line-height: 1.6;">${tip.desc}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
     const dialogHtml = `
-        <div id="usb-conflict-dialog" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; background: var(--card); border: 1px solid var(--line); padding: 30px; border-radius: 14px; box-shadow: 0 8px 24px var(--shadow); max-width: 450px; width: 90%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <div style="font-size: 48px; margin-bottom: 10px;">⚠️</div>
-                <h3 style="margin: 0 0 10px 0; color: var(--txt); font-size: 20px;">USB 接口冲突</h3>
-                <p style="color: var(--sub); font-size: 14px; line-height: 1.6; margin: 0;">
-                    检测到本地 ADB Server 正在占用 USB 接口<br/>
-                    导致浏览器无法通过 WebUSB 访问设备
-                </p>
+        <div id="conn-trouble-dialog" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; background: var(--card); border: 1px solid var(--line); padding: 22px; border-radius: 14px; box-shadow: 0 8px 24px var(--shadow); max-width: 480px; width: 92%; max-height: 88vh; overflow-y: auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+            <div style="text-align: center; margin-bottom: 14px;">
+                <div style="font-size: 40px; margin-bottom: 6px;">⚠️</div>
+                <h3 style="margin: 0 0 8px 0; color: var(--txt); font-size: 18px;">连接失败 · 排错指引</h3>
+                <p style="color: var(--sub); font-size: 13px; line-height: 1.6; margin: 0;">${issue.reason}</p>
             </div>
-            <div style="background: #fafbff; border: 1px solid var(--line); padding: 15px; border-radius: 8px; margin: 20px 0; font-family: monospace; font-size: 14px; color: var(--txt); display: flex; justify-content: space-between; align-items: center;">
-                <code id="adb-command" style="margin: 0;">${command}</code>
-                <button id="copy-btn" style="background: var(--brand); color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s;">复制</button>
+            <div style="background: rgba(225, 29, 72, 0.08); border: 1px solid rgba(225, 29, 72, 0.25); border-left: 3px solid var(--bad); padding: 10px 12px; border-radius: 6px; margin-bottom: 14px; font-family: monospace; font-size: 12px; color: var(--txt); word-break: break-all;">
+                ${errorMessage ? errorMessage : '未知错误'}
             </div>
-            <div style="margin-bottom: 15px; font-size: 13px; color: var(--txt); line-height: 1.5; background: rgba(245, 158, 11, 0.10); border: 1px solid rgba(245, 158, 11, 0.30); border-left: 3px solid var(--accent); padding: 10px; border-radius: 6px;">
-                <strong>操作步骤：</strong><br/>
-                1. 点击"复制"按钮复制命令<br/>
-                2. 打开终端/PowerShell<br/>
-                3. 粘贴并执行命令<br/>
-                4. 点击下方"我已执行"按钮
+            ${tipsHtml}
+            <div style="background: #fafbff; border: 1px solid var(--line); padding: 12px; border-radius: 8px; margin: 12px 0; font-family: monospace; font-size: 13px; color: var(--txt); display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                <code style="margin: 0;">${command}</code>
+                <button id="conn-trouble-copy" style="background: var(--brand); color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; white-space: nowrap;">复制命令</button>
             </div>
             <div style="display: flex; gap: 10px;">
-                <button id="retry-btn" style="flex: 1; background: var(--ok); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 500; transition: background 0.2s;">
-                    我已执行，重试连接
+                <button id="conn-trouble-retry" style="flex: 1; background: var(--ok); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 500;">
+                    我已排查，重试连接
                 </button>
-                <button id="cancel-btn" style="background: var(--sub); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; transition: background 0.2s;">
-                    取消
+                <button id="conn-trouble-close" style="background: var(--sub); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 14px;">
+                    关闭
                 </button>
             </div>
         </div>
-        <div id="usb-conflict-mask" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--mask); z-index: 9998;"></div>
+        <div id="conn-trouble-mask" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--mask); z-index: 9998;"></div>
     `;
+
     
-    
-    const existing = document.getElementById('usb-conflict-dialog');
+    const existing = document.getElementById('conn-trouble-dialog');
     if (existing) existing.remove();
-    const existingMask = document.getElementById('usb-conflict-mask');
+    const existingMask = document.getElementById('conn-trouble-mask');
     if (existingMask) existingMask.remove();
-    
+
     
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = dialogHtml;
     document.body.appendChild(tempDiv.firstElementChild);
-    document.body.appendChild(document.getElementById('usb-conflict-mask'));
-    
+    document.body.appendChild(tempDiv.lastElementChild);
+
     return new Promise((resolve) => {
-        const copyBtn = document.getElementById('copy-btn');
-        const retryBtn = document.getElementById('retry-btn');
-        const cancelBtn = document.getElementById('cancel-btn');
-        const commandEl = document.getElementById('adb-command');
-        
+        const copyBtn = document.getElementById('conn-trouble-copy');
+        const retryBtn = document.getElementById('conn-trouble-retry');
+        const closeBtn = document.getElementById('conn-trouble-close');
+
+        function closeDialog() {
+            const dialog = document.getElementById('conn-trouble-dialog');
+            const mask = document.getElementById('conn-trouble-mask');
+            if (dialog) dialog.remove();
+            if (mask) mask.remove();
+        }
+
         copyBtn.addEventListener('click', () => {
-            const text = commandEl.textContent;
+            const done = () => {
+                copyBtn.textContent = '✓ 已复制';
+                copyBtn.style.background = 'var(--ok)';
+                setTimeout(() => {
+                    copyBtn.textContent = '复制命令';
+                    copyBtn.style.background = 'var(--brand)';
+                }, 2000);
+            };
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(() => {
-                    copyBtn.textContent = '✓ 已复制';
-                    copyBtn.style.background = 'var(--ok)';
-                    setTimeout(() => {
-                        copyBtn.textContent = '复制';
-                        copyBtn.style.background = 'var(--brand)';
-                    }, 2000);
-                });
+                navigator.clipboard.writeText(command).then(done).catch(done);
             } else {
-                
                 const textArea = document.createElement('textarea');
-                textArea.value = text;
+                textArea.value = command;
                 document.body.appendChild(textArea);
                 textArea.select();
                 document.execCommand('copy');
                 textArea.remove();
-                copyBtn.textContent = '✓ 已复制';
-                copyBtn.style.background = 'var(--ok)';
-                setTimeout(() => {
-                    copyBtn.textContent = '复制';
-                    copyBtn.style.background = 'var(--brand)';
-                }, 2000);
+                done();
             }
         });
-        
-        retryBtn.addEventListener('click', async () => {
+
+        retryBtn.addEventListener('click', () => {
             closeDialog();
-            logDevice('已关闭 ADB Server，正在重试连接...');
+            logDevice('用户已排查问题，正在重试连接...');
             resolve('retry');
         });
-        
-        cancelBtn.addEventListener('click', () => {
+
+        closeBtn.addEventListener('click', () => {
             closeDialog();
             resolve('cancel');
         });
-        
-        function closeDialog() {
-            const dialog = document.getElementById('usb-conflict-dialog');
-            const mask = document.getElementById('usb-conflict-mask');
-            if (dialog) dialog.remove();
-            if (mask) mask.remove();
-        }
     });
 };
 
@@ -229,7 +308,7 @@ let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
         
         
         logDevice('正在进行 ADB RSA 鉴权...');
-        
+
         const transport = await AdbDaemonTransport.authenticate({
             serial: webusbDevice.serial,
             connection: connection,
@@ -288,19 +367,13 @@ let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
         console.error('ADB connection error:', e);
         
         
-        if (e.message && (e.message.includes('Unable to claim interface') || e.message.includes('Busy') || e.message.includes('already in used') || e.message.includes('claimed'))) {
-            logDevice('错误原因：USB 接口被其他程序占用');
-            logDevice('解决方案：请关闭占用 USB 的程序后刷新页面重试');
-        } else if (e.message && (e.message.includes('auth') || e.message.includes('unauthorized') || e.message.includes('UnauthorizedError'))) {
-            logDevice('错误原因：ADB RSA 密钥鉴权失败');
-            logDevice('解决方案：请在车机上点击"允许USB调试"，或在车机开发者选项中撤销 USB 调试授权后重新连接');
-        } else if (e.message && e.message.includes('transferOut')) {
-            logDevice('错误原因：USB 传输错误，可能是连接不稳定');
-            logDevice('建议：检查 USB 线是否牢固，尝试更换 USB 端口');
-        }
-        
-        
         window.isConnecting = false;
+        
+        
+        const result = await showConnectionTroubleshootDialog(e.message);
+        if (result === 'retry') {
+            await connectDevice();
+        }
     }
 };
 
@@ -417,26 +490,20 @@ let connectDevice = async () => {
         const msg = error.message || error.toString();
         logDevice('连接失败: ' + msg);
         
+        window.isConnecting = false;
         
-        if (msg.includes('Unable to claim interface') || msg.includes('claim')) {
-            logDevice('检测到 USB 接口冲突，请停止电脑 ADB 服务，执行 adb kill-server');
-            logDevice('检测到 USB 接口冲突，显示解决方案...');
-            const result = await showUsbConflictDialog();
-            if (result === 'retry') {
-                logDevice('用户已执行 adb kill-server，重试连接...');
-                window.isConnecting = false;
-                await connectDevice();
-                return;
-            }
-        } else if (msg.includes('auth') || msg.includes('unauthorized')) {
-            alert('请在设备上点击"允许 USB 调试"');
-        } else if (msg.includes('NotFoundError')) {
+        
+        if (msg.includes('NotFoundError')) {
             logDevice('用户取消了操作');
-        } else {
-            alert('连接失败：' + msg);
+            return;
         }
         
-        window.isConnecting = false;
+        
+        const result = await showConnectionTroubleshootDialog(msg);
+        if (result === 'retry') {
+            logDevice('用户已排查问题，重试连接...');
+            await connectDevice();
+        }
     }
 };
 

@@ -174,137 +174,173 @@
 </head>
 <body>
     <div class="container">
-        <div style="text-align: center; margin-bottom: 15px;">
-            <h1 style="margin: 0 0 10px 0; font-size: 24px; color: var(--txt);">大伦车机工具箱</h1>
-            <div style="font-size: 14px; color: var(--sub); margin-bottom: 15px;">
-                <span id="app-version">v3.2.2</span>
-            </div>
-            <a href="https://pw.qianxian.tech/" class="btn" style="background: var(--brand-grad); color: white; padding: 8px 20px; text-decoration: none; border-radius: 8px; margin: 0 5px; box-shadow: 0 3px 8px rgba(91,91,214,0.25);">➡️获取动态密码⬅️</a>
+
+        
+        <div class="hero">
+            <h1>大伦车机工具箱</h1>
+            <div class="ver"><span id="app-version">v3.2.2</span></div>
+            <a href="https://pw.qianxian.tech/" class="btn-pw">➡️ 获取动态密码 ⬅️</a>
         </div>
-        
-        
-        
-        <hr style="margin: 15px 0; border: 1px solid var(--line);">
-        
-            
-            <div style="margin: 12px 0; background-color: var(--card); border: 1px solid var(--line); padding: 15px; border-radius: 12px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: var(--txt);">有线连接</h3>
-                <div class="warning" id="usb-warning">
-                    注意！您的浏览器不支持WebUSB。请在Chrome或Edge浏览器中打开。
-                </div>
 
-                
+        
+        <div class="card">
+            <h4>有线连接</h4>
+            <div class="warning" id="usb-warning">
+                注意！您的浏览器不支持WebUSB。请在Chrome或Edge浏览器中打开。
+            </div>
+            <div class="conn-row">
+                <button class="btn btn-connect" id="connect-btn" onclick="connectDevice()">开始连接</button>
+                <span class="conn-status" id="device-status">🚗 未连接</span>
+            </div>
+            <p class="hint">有线连接：使用Chrome或Edge浏览器 + OTG线连接车机USB口。</p>
+            <div class="devlog" id="device-log"></div>
+        </div>
 
-                <div style="margin: 15px 0;">
-                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
-                        <button class="btn btn-connect" id="connect-btn" onclick="connectDevice()">开始连接</button>
-                        <span style="margin-left: 10px; font-weight: bold; color: var(--ok);">
-                            <span id="device-status">🚗 未连接</span>
-                        </span>
+        
+        <div class="card">
+            <h4>必装软件</h4>
+            <div class="tile-grid">
+                <div class="tile">
+                    <div class="tile-icon">📦</div>
+                    <div class="tile-name">应用管家</div>
+                    <div class="tile-desc">应用管理必备</div>
+                    <div class="tile-actions">
+                        <button class="btn btn-connect btn-sm" onclick="yygj()">安装</button>
+                        <button class="btn btn-ghost btn-sm" onclick="startGuanJia()">启动</button>
                     </div>
-                    <p style="font-size: 12px; color: var(--sub); margin: 0;">
-                        有线连接：使用Chrome或Edge浏览器 + OTG线连接车机USB口。
-                    </p>
                 </div>
-                
-                <div style="margin-top: 10px; padding: 10px; background-color: #fafbff; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; font-family: monospace; max-height: 100px; overflow-y: auto;">
-                    <div id="device-log" style="white-space: pre-wrap;"></div>
+                <div class="tile">
+                    <div class="tile-icon">📐</div>
+                    <div class="tile-name">侧边栏</div>
+                    <div class="tile-desc">快捷侧边工具</div>
+                    <div class="tile-actions">
+                        <button class="btn btn-connect btn-sm" onclick="cdb()">安装</button>
+                        <button class="btn btn-ghost btn-sm" onclick="exec_shell('monkey -p com.hzsoft.sidebar -c android.intent.category.LAUNCHER 1')">启动</button>
+                    </div>
+                </div>
+                <div class="tile">
+                    <div class="tile-icon">🛋️</div>
+                    <div class="tile-name">沙发管家</div>
+                    <div class="tile-desc">车机应用市场</div>
+                    <div class="tile-actions">
+                        <button class="btn btn-connect btn-sm" onclick="sfgj()">安装</button>
+                        <button class="btn btn-ghost btn-sm" onclick="exec_shell('monkey -p com.shafa.markethd -c android.intent.category.LAUNCHER 1')">启动</button>
+                    </div>
+                </div>
+                <div class="tile">
+                    <div class="tile-icon">🍮</div>
+                    <div class="tile-name">布丁UI</div>
+                    <div class="tile-desc">桌面美化</div>
+                    <div class="tile-actions">
+                        <button class="btn btn-connect btn-sm" onclick="bdui()">安装</button>
+                    </div>
                 </div>
             </div>
-                
-                <hr style="margin: 20px 0; border: 1px solid var(--line);">
-                
-                
-                <div class="watermark-container" style="margin: 16px 0; position: relative;">
-                    <div class="watermark">抖音@大伦哥的CDM</div>
-                    <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">必装软件</h4>
-                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; position: relative; z-index: 1;">
-                        <button class="btn btn-connect" onclick="yygj()" style="flex-shrink: 0;">应用管家</button>
-                        <button class="btn btn-connect" onclick="cdb()" style="flex-shrink: 0;">侧边栏</button>
-                        <button class="btn btn-connect" onclick="sfgj()" style="flex-shrink: 0;">沙发管家</button>
-                        <button class="btn btn-connect" onclick="bdui()" style="flex-shrink: 0;">布丁UI</button>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; position: relative; z-index: 1;">
-                        <button class="btn btn-connect" onclick="startGuanJia()" style="flex-shrink: 0;">启动应用管家</button>
-                        <button class="btn btn-connect" onclick="exec_shell('monkey -p com.hzsoft.sidebar -c android.intent.category.LAUNCHER 1')" style="flex-shrink: 0;">启动侧边栏</button>
-                        <button class="btn btn-connect" onclick="exec_shell('monkey -p com.shafa.markethd -c android.intent.category.LAUNCHER 1')" style="flex-shrink: 0;">启动沙发管家</button>
-                    </div>
-                    <p style="margin-top: 10px; font-size: 12px; color: var(--sub); position: relative; z-index: 1;">请先安装以上软件，以确保系统正常运行。</p>
-                </div>
+            <p class="hint">请先安装以上软件，以确保系统正常运行。</p>
+        </div>
 
-                
-                <div class="watermark-container" style="margin: 16px 0; position: relative;">
-                    <div class="watermark">抖音@大伦哥的CDM</div>
-                    <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">其他软件</h4>
-                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; position: relative; z-index: 1;">
-                        <button class="btn btn-connect" onclick="sentry()" style="flex-shrink: 0;">哨兵监控</button>
-                        <button class="btn btn-connect" onclick="hstrip()" style="flex-shrink: 0;">小横条</button>
-                        <button class="btn btn-connect" onclick="ykpip()" style="flex-shrink: 0;">易控车机PIP</button>
-                        <button class="btn btn-connect" onclick="lyyk()" style="flex-shrink: 0;">蓝牙遥控</button>
-                    </div>
-                    <p style="margin-top: 10px; font-size: 12px; color: var(--sub); position: relative; z-index: 1;">根据需要选择安装其他软件。</p>
-                </div>
-                
-                
-                <div class="watermark-container" style="margin: 16px 0; position: relative;">
-                    <div class="watermark">抖音@大伦哥的CDM</div>
-                    <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">自主安装</h4>
-                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; position: relative; z-index: 1;">
-                        <input type="file" id="apkFile" multiple accept=".apk" style="display: none;">
-                        <button class="btn btn-connect" onclick="loadApkFile()" style="flex-shrink: 0;">选择文件</button>
-                        <span id="apkFileName" style="flex: 1; min-width: 200px; padding: 8px; background-color: var(--card); border: 1px solid var(--line); border-radius: 4px;">未选择文件</span>
-                        <button class="btn btn-connect" onclick="installApkFile()" style="flex-shrink: 0;">安装所选</button>
-                    </div>
-                    <p style="margin-top: 10px; font-size: 12px; color: var(--sub); position: relative; z-index: 1;">操作点击按钮后请静候等待执行结果，切勿重复点击！</p>
-                </div>
-                
-                
-                <div class="watermark-container" style="margin: 16px 0; position: relative;">
-                    <div class="watermark">抖音@大伦哥的CDM</div>
-                    <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">手动命令</h4>
-                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; position: relative; z-index: 1;">
-                        <input type="text" id="shell" placeholder="输入命令（不用输入adb shell）" style="flex: 1; min-width: 200px; padding: 8px; border: 1px solid var(--line); border-radius: 4px;">
-                        <button class="btn btn-connect" onclick="exec_command()" style="flex-shrink: 0;">执行命令</button>
+        
+        <div class="card">
+            <h4>其他软件</h4>
+            <div class="tile-grid">
+                <div class="tile">
+                    <div class="tile-icon">📷</div>
+                    <div class="tile-name">哨兵监控</div>
+                    <div class="tile-desc">停车监控</div>
+                    <div class="tile-actions">
+                        <button class="btn btn-connect btn-sm" onclick="sentry()">安装</button>
                     </div>
                 </div>
-                
-                
-                <div class="watermark-container" style="margin: 16px 0; position: relative;">
-                    <div class="watermark">抖音@大伦哥的CDM</div>
-                    <h4 style="margin-top: 0; margin-bottom: 15px; position: relative; z-index: 1;">应用管理</h4>
-                    
-                    
-                    <button class="btn btn-connect" onclick="loadPackageList()" style="margin-bottom: 15px; position: relative; z-index: 1;">刷新用户应用列表</button>
-                    
-                    
-                    <table id="package-list" style="width: 100%; border-collapse: collapse; table-layout: fixed; position: relative; z-index: 1;">
-                        <thead>
-                            <tr style="background-color: var(--brand-soft);">
-                                <th style="padding: 8px; border: 1px solid var(--line); width: 50px;">序号</th>
-                                <th style="padding: 8px; border: 1px solid var(--line); width: 100%; word-break: break-all;">包名</th>
-                                <th style="padding: 8px; border: 1px solid var(--line); width: 80px; white-space: nowrap;">操作</th>
-                                <th style="padding: 8px; border: 1px solid var(--line); width: 80px; white-space: nowrap;">卸载</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            
-                        </tbody>
-                    </table>
-                </div>
-                
-                
-                <div id="exec-result" class="collapsed">
-                    <div id="exec-result-toggle" onclick="toggleExecResult()">▲ 点击展开执行结果</div>
-                    <h4>执行结果</h4>
-                    <div class="progress" id="progress">
-                        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
+                <div class="tile">
+                    <div class="tile-icon">▬</div>
+                    <div class="tile-name">小横条</div>
+                    <div class="tile-desc">手势导航</div>
+                    <div class="tile-actions">
+                        <button class="btn btn-connect btn-sm" onclick="hstrip()">安装</button>
                     </div>
-                    <div id="log"></div>
+                </div>
+                <div class="tile">
+                    <div class="tile-icon">🖼️</div>
+                    <div class="tile-name">易控车机PIP</div>
+                    <div class="tile-desc">画中画控制</div>
+                    <div class="tile-actions">
+                        <button class="btn btn-connect btn-sm" onclick="ykpip()">安装</button>
+                    </div>
+                </div>
+                <div class="tile">
+                    <div class="tile-icon">🎮</div>
+                    <div class="tile-name">蓝牙遥控</div>
+                    <div class="tile-desc">下载到电脑</div>
+                    <div class="tile-actions">
+                        <button class="btn btn-connect btn-sm" onclick="lyyk()">下载</button>
+                    </div>
                 </div>
             </div>
+            <p class="hint">根据需要选择安装其他软件。</p>
+        </div>
+
+        
+        <div class="duo">
+            <div class="card">
+                <h4>自主安装</h4>
+                <input type="file" id="apkFile" multiple accept=".apk" style="display: none;">
+                <div class="field-row">
+                    <button class="btn btn-ghost btn-sm" onclick="loadApkFile()">选择文件</button>
+                    <span class="file-name" id="apkFileName">未选择文件</span>
+                </div>
+                <div class="field-row" style="margin-top: 10px;">
+                    <button class="btn btn-connect btn-sm" onclick="installApkFile()">安装所选</button>
+                </div>
+                <p class="hint">操作点击按钮后请静候等待执行结果，切勿重复点击！</p>
+            </div>
+            <div class="card">
+                <h4>手动命令</h4>
+                <div class="field-row">
+                    <input type="text" id="shell" placeholder="输入命令（不用输入adb shell）">
+                </div>
+                <div class="field-row" style="margin-top: 10px;">
+                    <button class="btn btn-connect btn-sm" onclick="exec_command()">执行命令</button>
+                </div>
+                <p class="hint">高级用户使用，请确认命令无误后再执行。</p>
+            </div>
+        </div>
+
+        
+        <div class="card">
+            <h4>应用管理</h4>
+            <button class="btn btn-ghost btn-sm" onclick="loadPackageList()" style="margin-bottom: 12px;">刷新用户应用列表</button>
+            <table id="package-list" style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                <thead>
+                    <tr style="background-color: var(--brand-soft);">
+                        <th style="padding: 8px; border: 1px solid var(--line); width: 50px;">序号</th>
+                        <th style="padding: 8px; border: 1px solid var(--line);">包名</th>
+                        <th style="padding: 8px; border: 1px solid var(--line); width: 90px; white-space: nowrap;">操作</th>
+                        <th style="padding: 8px; border: 1px solid var(--line); width: 70px; white-space: nowrap;">卸载</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        
+        <div class="card thanks">
+            <div class="wm">抖音@大伦哥的CDM</div>
+            <div style="font-weight: 600; margin-bottom: 6px; color: var(--sub);">特别鸣谢</div>
+            <p style="margin: 5px 0;">迪友助手云盘：<a href="https://file.vju.cc" target="_blank">https://file.vju.cc</a></p>
+            <p style="margin: 5px 0;">其他资源下载：<a href="http://a14472357.a.328657.xyz" target="_blank">http://a14472357.a.328657.xyz</a>、<a href="https://pan.ehvip.cn/" target="_blank">恩华网盘</a></p>
         </div>
     </div>
+
     
+    <div id="exec-result" class="collapsed">
+        <div id="exec-result-toggle" onclick="toggleExecResult()">▲ 点击展开执行结果</div>
+        <h4>执行结果</h4>
+        <div class="progress" id="progress">
+            <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
+        </div>
+        <div id="log"></div>
+    </div>
+
     
     <div id="customModal" class="custom-modal">
         <div class="custom-modal-content">
@@ -320,8 +356,7 @@
             </div>
         </div>
     </div>
-    
-    
+
     
     <script src="js/lib/tango-adb.js" onerror="console.error('Failed to load tango-adb.js')"></script>
 
@@ -330,10 +365,7 @@
     <script src="js/device.js"></script>
     <script src="js/apps.js"></script>
     <script src="js/system.js"></script>
-    
-    
 
-    
     <script>
         
         window.addEventListener('DOMContentLoaded', function() {
@@ -363,15 +395,6 @@
                 toggleBtn.textContent = '▼ 点击折叠执行结果';
             }
         }
-        
     </script>
-
-
-    
-    <div style="text-align: center; margin: 30px auto; padding: 20px; background-color: var(--card); border: 1px solid var(--line); border-radius: 12px; max-width: 820px;">
-        <h4 style="margin: 0 0 10px 0; font-size: 14px; color: var(--sub);">特别鸣谢</h4>
-        <p style="margin: 5px 0; font-size: 12px; color: var(--sub);">迪友助手云盘：<a href="https://file.vju.cc" target="_blank" style="color: var(--brand);">https://file.vju.cc</a></p>
-        <p style="margin: 5px 0; font-size: 12px; color: var(--sub);">其他资源下载：<a href="http://a14472357.a.328657.xyz" target="_blank" style="color: var(--brand);">http://a14472357.a.328657.xyz</a>、<a href="https://pan.ehvip.cn/" target="_blank" style="color: var(--brand);">恩华网盘</a></p>
-    </div>
 </body>
 </html>

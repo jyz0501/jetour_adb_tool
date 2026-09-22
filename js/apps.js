@@ -293,6 +293,35 @@ let bdui = async () => {
 };
 
 
+
+
+let startBdui = async () => {
+    if (!window.adbClient) {
+        alert('未连接到设备，请先点击"开始连接"按钮连接设备');
+        return;
+    }
+
+    const pkg = 'com.sfcar.launcher';
+    const activity = 'com.sfcar.launcher.main.MainActivity';
+    const component = pkg + '/' + activity;
+
+    clear();
+    showProgress(true);
+    log('开始启动布丁UI...\n');
+    try {
+        let output = await execShellAndGetOutput('am start -n ' + component);
+        if (!output || /Error|Exception|not found|does not exist/i.test(output)) {
+            log('\nam start 未成功，改用 monkey 启动...\n');
+            output = await execShellAndGetOutput('monkey -p ' + pkg + ' -c android.intent.category.LAUNCHER 1');
+        }
+    } catch (error) {
+        console.error('启动布丁UI失败:', error);
+        log('启动失败: ' + (error.message || error.toString()));
+    }
+    showProgress(false);
+};
+
+
 let lyyk = () => {
     const downloadUrl = 'http://a14472357.a.328657.xyz/a14472357/lyyk2.0.9.apk';
     

@@ -127,13 +127,21 @@ let showConnectionTroubleshootDialog = async (errorMessage) => {
     const tipsHtml = tips.map((tip) => {
         const highlight = tip.id === issue.focus;
         return `
-            <div style="display: flex; gap: 10px; padding: 10px; border-radius: 8px; margin-bottom: 8px; background: ${highlight ? 'rgba(245, 158, 11, 0.10)' : '#fafbff'}; border: 1px solid ${highlight ? 'rgba(245, 158, 11, 0.35)' : 'var(--line)'}; ${highlight ? 'border-left: 3px solid var(--accent);' : ''}">
-                <div style="font-size: 18px; line-height: 1.3;">${tip.icon}</div>
-                <div>
-                    <div style="font-size: 13px; font-weight: bold; color: var(--txt); margin-bottom: 3px;">
+            <div class="ts-item" style="margin-bottom: 8px; border-radius: 8px; overflow: hidden; background: ${highlight ? 'rgba(245, 158, 11, 0.10)' : '#fafbff'}; border: 1px solid ${highlight ? 'rgba(245, 158, 11, 0.35)' : 'var(--line)'}; ${highlight ? 'border-left: 3px solid var(--accent);' : ''}">
+                <div class="ts-head" style="display: flex; align-items: center; gap: 8px; padding: 11px 12px; cursor: pointer; user-select: none;">
+                    <span style="font-size: 16px; line-height: 1;">${tip.icon}</span>
+                    <span style="flex: 1; font-size: 13px; font-weight: bold; color: var(--txt); line-height: 1.4;">
                         ${tip.title}${highlight ? '<span style="font-size: 11px; font-weight: normal; color: var(--accent); margin-left: 5px;">（疑似原因）</span>' : ''}
-                    </div>
-                    <div style="font-size: 12px; color: var(--sub); line-height: 1.6;">${tip.desc}</div>
+                    </span>
+                    <span class="ts-arrow" style="font-size: 11px; color: var(--sub);">${highlight ? '▾' : '▸'}</span>
+                </div>
+                <div class="ts-body" style="display: ${highlight ? 'block' : 'none'}; padding: 0 12px 12px 36px;">
+                    <div style="font-size: 12px; color: var(--sub); line-height: 1.7;">${tip.desc}</div>
+                    ${tip.id === 'usb' ? `
+                    <div style="margin-top: 10px; background: var(--card); border: 1px dashed var(--line); padding: 10px; border-radius: 6px; font-family: monospace; font-size: 12px; color: var(--txt); display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                        <code style="margin: 0;">${command}</code>
+                        <button id="conn-trouble-copy" style="background: var(--brand); color: white; border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; white-space: nowrap;">复制命令</button>
+                    </div>` : ''}
                 </div>
             </div>
         `;
@@ -146,14 +154,20 @@ let showConnectionTroubleshootDialog = async (errorMessage) => {
                 <h3 style="margin: 0 0 8px 0; color: var(--txt); font-size: 18px;">连接失败 · 排错指引</h3>
                 <p style="color: var(--sub); font-size: 13px; line-height: 1.6; margin: 0;">${issue.reason}</p>
             </div>
-            <div style="background: rgba(225, 29, 72, 0.08); border: 1px solid rgba(225, 29, 72, 0.25); border-left: 3px solid var(--bad); padding: 10px 12px; border-radius: 6px; margin-bottom: 14px; font-family: monospace; font-size: 12px; color: var(--txt); word-break: break-all;">
-                ${errorMessage ? errorMessage : '未知错误'}
+            <div class="ts-item" style="margin-bottom: 12px; border-radius: 6px; overflow: hidden; background: rgba(225, 29, 72, 0.08); border: 1px solid rgba(225, 29, 72, 0.25);">
+                <div class="ts-head" style="display: flex; align-items: center; gap: 8px; padding: 9px 12px; cursor: pointer; user-select: none;">
+                    <span style="flex: 1; font-size: 12px; font-weight: bold; color: var(--bad);">查看原始错误信息</span>
+                    <span class="ts-arrow" style="font-size: 11px; color: var(--sub);">▸</span>
+                </div>
+                <div class="ts-body" style="display: none; padding: 0 12px 10px 12px; font-family: monospace; font-size: 12px; color: var(--txt); word-break: break-all; line-height: 1.6;">
+                    ${errorMessage ? errorMessage : '未知错误'}
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-size: 13px; font-weight: bold; color: var(--txt);">排查步骤（点击标题展开）</span>
+                <button id="conn-trouble-toggle-all" style="background: none; border: 1px solid var(--line); color: var(--brand); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;">展开全部</button>
             </div>
             ${tipsHtml}
-            <div style="background: #fafbff; border: 1px solid var(--line); padding: 12px; border-radius: 8px; margin: 12px 0; font-family: monospace; font-size: 13px; color: var(--txt); display: flex; justify-content: space-between; align-items: center; gap: 10px;">
-                <code style="margin: 0;">${command}</code>
-                <button id="conn-trouble-copy" style="background: var(--brand); color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; white-space: nowrap;">复制命令</button>
-            </div>
             <div style="display: flex; gap: 10px;">
                 <button id="conn-trouble-retry" style="flex: 1; background: var(--ok); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 500;">
                     我已排查，重试连接
@@ -182,6 +196,34 @@ let showConnectionTroubleshootDialog = async (errorMessage) => {
         const copyBtn = document.getElementById('conn-trouble-copy');
         const retryBtn = document.getElementById('conn-trouble-retry');
         const closeBtn = document.getElementById('conn-trouble-close');
+        const toggleAllBtn = document.getElementById('conn-trouble-toggle-all');
+        const dialogEl = document.getElementById('conn-trouble-dialog');
+
+        
+        let expandAll = false;
+        const setItemExpanded = (item, expanded) => {
+            const body = item.querySelector('.ts-body');
+            const arrow = item.querySelector('.ts-arrow');
+            if (body) body.style.display = expanded ? 'block' : 'none';
+            if (arrow) arrow.textContent = expanded ? '▾' : '▸';
+        };
+
+        dialogEl.addEventListener('click', (ev) => {
+            const head = ev.target.closest ? ev.target.closest('.ts-head') : null;
+            if (!head) return;
+            const item = head.parentElement;
+            if (!item) return;
+            const body = item.querySelector('.ts-body');
+            setItemExpanded(item, !body || body.style.display === 'none');
+        });
+
+        toggleAllBtn.addEventListener('click', () => {
+            expandAll = !expandAll;
+            dialogEl.querySelectorAll('.ts-item').forEach((item) => {
+                setItemExpanded(item, expandAll);
+            });
+            toggleAllBtn.textContent = expandAll ? '收起全部' : '展开全部';
+        });
 
         function closeDialog() {
             const dialog = document.getElementById('conn-trouble-dialog');

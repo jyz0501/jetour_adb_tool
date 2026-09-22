@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+
     
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'">
     
+
     <title>大伦车机工具箱 - 在线 ADB 调试工具 | WebADB 车机助手</title>
     <meta name="description" content="大伦车机工具箱是一款基于 WebADB 技术的在线车机调试工具，支持 USB 连接、应用安装、系统修改、数据备份恢复等功能，为车机用户提供便捷的设备管理解决方案，无需安装任何软件即可使用。">
     <meta name="keywords" content="ADB工具,车机调试,WebADB,车机工具箱,车载系统,安卓调试,USB连接,应用安装,车机管理,Jetour,捷途,大伦哥,纵横,G700">
@@ -371,8 +374,43 @@
         
         window.addEventListener('DOMContentLoaded', function() {
             
+            applyProtocolGuard();
             checkWebUSBSupport();
         });
+
+        
+        let isTrustedOrigin = () => {
+            const host = location.hostname;
+            return location.protocol === 'https:' ||
+                location.protocol === 'file:' ||
+                host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+        };
+
+        
+        function applyProtocolGuard() {
+            if (isTrustedOrigin()) {
+                return;
+            }
+
+            
+            document.querySelectorAll('.card button, .card input').forEach(function (ctrl) {
+                ctrl.disabled = true;
+                ctrl.style.opacity = '.55';
+                ctrl.style.cursor = 'not-allowed';
+                ctrl.style.filter = 'grayscale(.6)';
+            });
+
+            
+            const hero = document.querySelector('.hero');
+            if (hero) {
+                hero.insertAdjacentHTML('afterend',
+                    '<div class="insecure-banner">' +
+                        '<div class="insecure-title">⚠️ 连接不安全，车机功能已锁定</div>' +
+                        '<div class="insecure-text">本页面正通过 <b>HTTP 明文</b>加载，可能被第三方劫持并注入恶意指令操控车机。</div>' +
+                        '<a class="insecure-link" href="https://' + location.hostname + location.pathname + '">点击切换到 HTTPS 安全版后继续使用</a>' +
+                    '</div>');
+            }
+        }
 
         
         function toggleExecResult() {

@@ -9,6 +9,14 @@ window.browserSupport = null;
 window.isMobile = null;
 
 
+let isTrustedOrigin = () => {
+    const host = location.hostname;
+    return location.protocol === 'https:' ||
+        location.protocol === 'file:' ||
+        host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+};
+
+
 let getBrowserInfo = () => {
     const ua = navigator.userAgent;
     let browserName = 'Unknown';
@@ -522,6 +530,13 @@ let disconnectSilently = async () => {
 
 
 let connectDevice = async () => {
+    
+    if (!isTrustedOrigin()) {
+        logDevice('⚠️ 当前页面通过不安全的 HTTP 明文加载，已阻止连接设备');
+        logDevice('请使用 https://' + location.hostname + location.pathname + ' 打开本页面');
+        return;
+    }
+
     if (window.isConnecting) {
         logDevice('正在连接中...');
         return;
@@ -656,6 +671,12 @@ let setDeviceName = async (name) => {
 
 let initDeviceDetection = async () => {
     try {
+        
+        if (!isTrustedOrigin()) {
+            logDevice('⚠️ 检测到非安全来源（HTTP 明文），已禁用 ADB 相关功能，请使用 HTTPS 访问');
+            return;
+        }
+
         if (!navigator.usb) {
             logDevice('浏览器不支持 WebUSB，请使用 Chrome 或 Edge');
             return;

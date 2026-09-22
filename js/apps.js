@@ -295,30 +295,57 @@ let bdui = async () => {
 
 
 
-let startBdui = async () => {
-    if (!window.adbClient) {
-        alert('未连接到设备，请先点击"开始连接"按钮连接设备');
-        return;
-    }
+let adbmanager = async () => {
+    const downloadUrl = 'http://a14472357.a.328657.xyz/a14472357/ADBManager_v1.9.0_20260923.apk';
+    const backupUrl = null;
+    const savePath = '/storage/emulated/0/Download/adbmanager.apk';
+    await downloadToPhoneAndPush('ADB Manager', downloadUrl, savePath, backupUrl, 'com.qianxian.adbmanager');
+};
 
-    const pkg = 'com.sfcar.launcher';
-    const activity = 'com.sfcar.launcher.main.MainActivity';
-    const component = pkg + '/' + activity;
 
-    clear();
-    showProgress(true);
-    log('开始启动布丁UI...\n');
+let adbzs = async () => {
+    const repoPath = 'https://gitee.com/reathin-apps/app/raw/master/ADB%E5%8A%A9%E6%89%8B/';
+    const fallbackName = 'ADB助手-1.1.0-11.apk';
+    let fileName = fallbackName;
+
     try {
-        let output = await execShellAndGetOutput('am start -n ' + component);
-        if (!output || /Error|Exception|not found|does not exist/i.test(output)) {
-            log('\nam start 未成功，改用 monkey 启动...\n');
-            output = await execShellAndGetOutput('monkey -p ' + pkg + ' -c android.intent.category.LAUNCHER 1');
+        const apiUrl = 'https://gitee.com/api/v5/repos/reathin-apps/app/contents/ADB%E5%8A%A9%E6%89%8B?ref=master';
+        const resp = await fetch(apiUrl, { headers: { 'Accept': 'application/json' } });
+        const list = await resp.json();
+        if (Array.isArray(list)) {
+            const verOf = (name) => {
+                const m = name.match(/(\d+)\.(\d+)\.(\d+)(?:-(\d+))?/);
+                return m ? [+m[1], +m[2], +m[3], +(m[4] || 0)] : [0, 0, 0, 0];
+            };
+            const apks = list.filter(f => f.type === 'file' && /\.apk$/i.test(f.name));
+            apks.sort((a, b) => {
+                const va = verOf(a.name);
+                const vb = verOf(b.name);
+                for (let i = 0; i < 4; i++) {
+                    if (va[i] !== vb[i]) {
+                        return va[i] - vb[i];
+                    }
+                }
+                return 0;
+            });
+            if (apks.length) {
+                fileName = apks[apks.length - 1].name;
+            }
         }
-    } catch (error) {
-        console.error('启动布丁UI失败:', error);
-        log('启动失败: ' + (error.message || error.toString()));
+    } catch (e) {
+        console.warn('探测 Gitee 最新版失败，使用兜底版本', e);
     }
-    showProgress(false);
+
+    const downloadUrl = repoPath + encodeURIComponent(fileName);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = fileName;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    log('ADB 助手 ' + fileName + ' 下载已开始，请检查下载文件夹');
 };
 
 

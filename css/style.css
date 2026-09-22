@@ -565,6 +565,45 @@ input[type="text"]::placeholder,
     flex-wrap: wrap;
 }
 
+/* 不安全来源警示条 */
+.insecure-banner {
+    background: rgba(225, 29, 72, .08);
+    border: 1px solid var(--bad);
+    border-left: 4px solid var(--bad);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+}
+
+.insecure-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--bad);
+    margin-bottom: 6px;
+}
+
+.insecure-text {
+    font-size: 13px;
+    color: var(--txt);
+    line-height: 1.6;
+}
+
+.insecure-link {
+    display: inline-block;
+    margin-top: 10px;
+    background: var(--ok);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.insecure-link:hover {
+    text-decoration: none;
+    filter: brightness(1.06);
+}
+
 /* 双列工具区 */
 .duo {
     display: grid;

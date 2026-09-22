@@ -268,6 +268,63 @@ let showConnectionTroubleshootDialog = async (errorMessage) => {
 };
 
 
+
+let authWaitingTimer = null;
+
+
+let showAuthWaitingDialog = () => {
+    closeAuthWaitingDialog();
+
+    
+    
+    authWaitingTimer = setTimeout(() => {
+        authWaitingTimer = null;
+
+        const dialogHtml = `
+            <div id="auth-waiting-dialog" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; background: var(--card); border: 1px solid var(--line); padding: 24px; border-radius: 14px; box-shadow: 0 8px 24px var(--shadow); max-width: 380px; width: 90%; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                <div style="font-size: 44px; margin-bottom: 8px;">📱</div>
+                <h3 style="margin: 0 0 10px 0; font-size: 18px; color: var(--txt);">请在车机允许 ADB 调试授权</h3>
+                <p style="font-size: 13px; color: var(--sub); line-height: 1.7; margin: 0 0 14px 0;">
+                    请在车机屏幕上点击「<strong style="color: var(--txt);">允许 USB 调试</strong>」<br/>
+                    建议勾选「一律允许此计算机」后再点确定
+                </p>
+                <div style="padding: 10px; background: rgba(91, 91, 214, 0.08); border: 1px solid rgba(91, 91, 214, 0.25); border-radius: 8px; font-size: 12px; color: var(--brand);">
+                    正在等待车机确认…
+                </div>
+                <button id="auth-waiting-close" style="margin-top: 14px; width: 100%; background: var(--sub); color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 14px;">
+                    关闭提示（连接继续）
+                </button>
+            </div>
+            <div id="auth-waiting-mask" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--mask); z-index: 9998;"></div>
+        `;
+
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = dialogHtml;
+        document.body.appendChild(tempDiv.firstElementChild);
+        document.body.appendChild(tempDiv.lastElementChild);
+
+        const closeBtn = document.getElementById('auth-waiting-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                closeAuthWaitingDialog();
+            });
+        }
+    }, 400);
+};
+
+
+let closeAuthWaitingDialog = () => {
+    if (authWaitingTimer) {
+        clearTimeout(authWaitingTimer);
+        authWaitingTimer = null;
+    }
+    const dialog = document.getElementById('auth-waiting-dialog');
+    const mask = document.getElementById('auth-waiting-mask');
+    if (dialog) dialog.remove();
+    if (mask) mask.remove();
+};
+
+
 function logDevice(message) {
     console.log(message);
     const deviceLogElement = document.getElementById('device-log');
@@ -339,6 +396,9 @@ let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
         
         const connection = await webusbDevice.connect();
         logDevice('WebUSB 连接已建立');
+
+        
+        showAuthWaitingDialog();
         
         
         const credentialStore = new AdbCredentialStore('Jetour ADB Tool');
@@ -357,6 +417,9 @@ let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
             credentialStore: credentialStore
         });
         logDevice('ADB 传输层已建立（RSA 鉴权成功）');
+
+        
+        closeAuthWaitingDialog();
         
         
         logDevice('正在创建 ADB 客户端...');
@@ -405,6 +468,7 @@ let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
         window.isConnecting = false;
         
     } catch (e) {
+        closeAuthWaitingDialog();
         logDevice('连接失败: ' + e.message);
         console.error('ADB connection error:', e);
         
@@ -421,6 +485,8 @@ let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
 
 
 let disconnectSilently = async () => {
+    closeAuthWaitingDialog();
+
     try {
         if (window.adbClient) {
             logDevice('检测到已有连接，正在断开旧连接...');

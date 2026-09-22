@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 
     
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://gitee.com; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'">
     
 
     <title>大伦车机工具箱 - 在线 ADB 调试工具 | WebADB 车机助手</title>
@@ -181,7 +181,7 @@
         
         <div class="hero">
             <h1>大伦车机工具箱</h1>
-            <div class="ver"><span id="app-version">v3.2.9</span></div>
+            <div class="ver"><span id="app-version">v3.3.2</span></div>
             <a href="https://pw.qianxian.tech/" class="btn-pw">➡️ 获取动态密码 ⬅️</a>
         </div>
 
@@ -236,7 +236,7 @@
                     <div class="tile-desc">桌面美化</div>
                     <div class="tile-actions">
                         <button class="btn btn-connect btn-sm" onclick="bdui()">安装</button>
-                        <button class="btn btn-ghost btn-sm" onclick="startBdui()">启动</button>
+                        <button class="btn btn-ghost btn-sm" onclick="exec_shell('monkey -p com.sfcar.launcher -c android.intent.category.LAUNCHER 1')">启动</button>
                     </div>
                 </div>
             </div>
@@ -272,15 +272,40 @@
                     </div>
                 </div>
                 <div class="tile">
-                    <div class="tile-icon">🎮</div>
-                    <div class="tile-name">蓝牙遥控</div>
-                    <div class="tile-desc">下载到电脑</div>
+                    <div class="tile-icon">🛠️</div>
+                    <div class="tile-name">ADB Manager</div>
+                    <div class="tile-desc">ADB 调试管理 v1.9.0</div>
                     <div class="tile-actions">
-                        <button class="btn btn-connect btn-sm" onclick="lyyk()">下载</button>
+                        <button class="btn btn-connect btn-sm" onclick="adbmanager()">安装</button>
+                        <button class="btn btn-ghost btn-sm" onclick="exec_shell('monkey -p com.qianxian.adbmanager -c android.intent.category.LAUNCHER 1')">启动</button>
                     </div>
                 </div>
             </div>
             <p class="hint">根据需要选择安装其他软件。</p>
+        </div>
+
+        
+        <div class="card">
+            <h4>手机软件</h4>
+            <div class="tile-grid">
+                <div class="tile">
+                    <div class="tile-icon">🎮</div>
+                    <div class="tile-name">蓝牙遥控</div>
+                    <div class="tile-desc">下载到手机</div>
+                    <div class="tile-actions">
+                        <button class="btn btn-connect btn-sm" onclick="lyyk()">下载</button>
+                    </div>
+                </div>
+                <div class="tile">
+                    <div class="tile-icon">🤖</div>
+                    <div class="tile-name">ADB 助手</div>
+                    <div class="tile-desc">下载到手机（自动最新）</div>
+                    <div class="tile-actions">
+                        <button class="btn btn-connect btn-sm" onclick="adbzs()">下载</button>
+                    </div>
+                </div>
+            </div>
+            <p class="hint">手机端软件，下载到手机后再传到手机安装。</p>
         </div>
 
         

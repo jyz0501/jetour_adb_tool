@@ -296,7 +296,7 @@ let bdui = async () => {
 
 
 let adbmanager = async () => {
-    const downloadUrl = 'http://a14472357.a.328657.xyz/a14472357/ADBManager_v1.9.0_20260923.apk';
+    const downloadUrl = 'http://a14472357.a.328657.xyz/a14472357/ADBManager_v2.1.0_20260923.apk';
     const backupUrl = null;
     const savePath = '/storage/emulated/0/Download/adbmanager.apk';
     await downloadToPhoneAndPush('ADB Manager', downloadUrl, savePath, backupUrl, 'com.qianxian.adbmanager');

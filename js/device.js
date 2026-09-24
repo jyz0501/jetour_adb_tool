@@ -54,43 +54,112 @@ let isMobileDevice = () => {
 
 
 let detectUsbIssue = (message) => {
-    const msg = (message || '').toLowerCase();
+    const msg = (message || '').toString().toLowerCase();
 
     
-    if (msg.includes('unable to claim interface') || msg.includes('claim') || msg.includes('busy') || msg.includes('in use') || msg.includes('already')) {
+    const rules = [
+        {
+            id: 'usb',
+            strong: [
+                /unable to claim interface/,
+                /unable to claim/,
+                /interface (?:is )?(?:already )?(?:busy|in use)/,
+                /(?:device|resource) (?:is )?busy/,
+                /libusb[_\s]?error[_\s]?busy/,
+                /already (?:claimed|in use)/,
+                /claimed by (?:another|other)/
+            ],
+            weak: [
+                /claim/,
+                /busy/,
+                /in use/,
+                /access denied/,
+                /permission denied/
+            ]
+        },
+        {
+            id: 'auth',
+            strong: [
+                /unauthorized/,
+                /auth(?:orization)? (?:fail|error|reject)/,
+                /insufficient permissions for device/,
+                /rsa key/,
+                /key reject/
+            ],
+            weak: [
+                /\bauth\b/,
+                /denied/
+            ]
+        },
+        {
+            id: 'cable',
+            strong: [
+                /transfer(?:out|in)/,
+                /transfer (?:fail|error|abort)/,
+                /pipe error/,
+                /the device was disconnected/,
+                /babble/,
+                /(?:crc|checksum) error/
+            ],
+            weak: [
+                /disconnect/,
+                /\bstall\b/,
+                /timeout/,
+                /epipe/
+            ]
+        },
+        {
+            id: 'debug',
+            strong: [
+                /no (?:device|devices) (?:found|selected|available)/,
+                /device not (?:found|available)/,
+                /no compatible device/,
+                /please connect (?:a|the|an) device/,
+                /not ?found/,
+                /adb 库未加载/,
+                /浏览器不支持 webusb/,
+                /webusb 不可用/
+            ],
+            weak: [
+                /no device/
+            ]
+        }
+    ];
+
+    
+    const scored = rules.map((rule) => {
+        let score = 0;
+        rule.strong.forEach((p) => { if (p.test(msg)) score += 2; });
+        (rule.weak || []).forEach((p) => { if (p.test(msg)) score += 1; });
+        return { id: rule.id, score };
+    }).filter((item) => item.score > 0).sort((a, b) => b.score - a.score);
+
+    if (scored.length === 0) {
         return {
-            reason: '检测到 USB 接口被占用，电脑端可能正在运行 ADB 服务、手机助手或模拟器。',
-            focus: 'usb'
+            reason: '未能自动定位原因，请按以下步骤逐一排查。',
+            focus: null,
+            focuses: [],
+            recognized: false
         };
     }
 
-    
-    if (msg.includes('auth') || msg.includes('unauthorized') || msg.includes('key')) {
-        return {
-            reason: '车机未授权本次 USB 调试请求（RSA 鉴权失败）。',
-            focus: 'auth'
-        };
-    }
+    const mobile = isMobileDevice();
+    const reasonByFocus = {
+        usb: mobile
+            ? 'USB 接口被占用：手机上可能正在运行其它 OTG/ADB 调试类 App，或该接口已被系统占用。'
+            : 'USB 接口被占用：电脑端可能正在运行 ADB 服务、手机助手或模拟器，浏览器无法独占该接口。',
+        auth: '车机未授权本次 USB 调试请求（RSA 鉴权失败）。',
+        cable: 'USB 数据传输中断，通常是数据线仅充电不传数据、接口接触不良或供电不足。',
+        debug: '未检测到可用的 USB 调试设备。'
+    };
 
-    
-    if (msg.includes('transferout') || msg.includes('transfer') || msg.includes('pipe') || msg.includes('disconnect')) {
-        return {
-            reason: 'USB 数据传输中断，通常是数据线或接口接触不良、供电不足导致。',
-            focus: 'cable'
-        };
-    }
-
-    
-    if (msg.includes('notfound') || msg.includes('not found') || msg.includes('no device')) {
-        return {
-            reason: '未检测到可用的 USB 调试设备。',
-            focus: 'debug'
-        };
-    }
+    const focuses = scored.map((item) => item.id);
 
     return {
-        reason: '连接过程中发生异常，请按以下步骤逐一排查。',
-        focus: 'debug'
+        reason: reasonByFocus[focuses[0]],
+        focus: focuses[0],
+        focuses: focuses,
+        recognized: true
     };
 };
 
@@ -99,30 +168,36 @@ let showConnectionTroubleshootDialog = async (errorMessage) => {
     const issue = detectUsbIssue(errorMessage);
     const command = 'adb kill-server';
 
+    if (typeof logDevice === 'function') {
+        logDevice('自动判定原因: ' + (issue.recognized ? issue.focuses.join(' > ') : '未识别') + '（原错误: ' + (errorMessage || '未知错误') + '）');
+    }
+
     const tips = [
         {
             id: 'debug',
             icon: '🔧',
-            title: '开启开发者模式与 USB 调试',
-            desc: '进入车机「设置 → 关于本机 / 系统信息」，连续点击「版本号」7 次进入开发者模式，再进入「开发者选项」打开「USB 调试」。'
+            title: '开启ADB权限',
+            desc: '进入车机「工程模式 —— 加密设置」打开「ADB权限」。'
         },
         {
             id: 'auth',
             icon: '📱',
             title: '在车机上允许 USB 调试授权',
-            desc: '连接时车机会弹出「是否允许 USB 调试」，请勾选「一律允许」后点击「允许」。若曾误点拒绝，请在开发者选项中「撤销 USB 调试授权」后重新连接。'
+            desc: '连接时车机会弹出「是否允许 USB 调试」，请勾选「一律允许」后点击「允许」。若曾误点拒绝，重新拔插车机端OTG线。'
         },
         {
             id: 'cable',
             icon: '🔌',
             title: '更换 OTG 线材与 USB 端口',
-            desc: '部分线材仅能充电、无法传输数据，请更换原装或优质数据线；并换一个 USB 端口（优先使用电脑后置 USB 直插，避免经过 USB Hub 或扩展坞）。'
+            desc: '部分线材仅能充电、无法传输数据，请更换OTG数据线，电脑用户请直连设备，避免经过USBHub或扩展坞）。'
         },
         {
             id: 'usb',
             icon: '🖥️',
-            title: '解除电脑端 USB 端口占用',
-            desc: '关闭手机助手、模拟器、豌豆荚及其它 ADB 调试工具等程序，并在终端 / PowerShell 中执行下方命令，释放被占用的 ADB 服务。'
+            title: isMobileDevice() ? '解除手机端 OTG 接口占用' : '解除电脑端 USB 接口占用',
+            desc: isMobileDevice()
+                ? '关闭手机上正在运行的 OTG 调试、ADB 工具类 App，拔插 OTG 线后重试。'
+                : '关闭手机助手、模拟器、豌豆荚及其它 ADB 调试工具等程序，并在终端 / PowerShell 中执行下方命令，释放被占用的 ADB 服务。'
         },
         {
             id: 'refresh',
@@ -133,7 +208,7 @@ let showConnectionTroubleshootDialog = async (errorMessage) => {
     ];
 
     const tipsHtml = tips.map((tip) => {
-        const highlight = tip.id === issue.focus;
+        const highlight = issue.focuses.indexOf(tip.id) !== -1;
         return `
             <div class="ts-item" style="margin-bottom: 8px; border-radius: 8px; overflow: hidden; background: ${highlight ? 'rgba(245, 158, 11, 0.10)' : '#fafbff'}; border: 1px solid ${highlight ? 'rgba(245, 158, 11, 0.35)' : 'var(--line)'}; ${highlight ? 'border-left: 3px solid var(--accent);' : ''}">
                 <div class="ts-head" style="display: flex; align-items: center; gap: 8px; padding: 11px 12px; cursor: pointer; user-select: none;">
@@ -145,7 +220,7 @@ let showConnectionTroubleshootDialog = async (errorMessage) => {
                 </div>
                 <div class="ts-body" style="display: ${highlight ? 'block' : 'none'}; padding: 0 12px 12px 36px;">
                     <div style="font-size: 12px; color: var(--sub); line-height: 1.7;">${tip.desc}</div>
-                    ${tip.id === 'usb' ? `
+                    ${tip.id === 'usb' && !isMobileDevice() ? `
                     <div style="margin-top: 10px; background: var(--card); border: 1px dashed var(--line); padding: 10px; border-radius: 6px; font-family: monospace; font-size: 12px; color: var(--txt); display: flex; justify-content: space-between; align-items: center; gap: 10px;">
                         <code style="margin: 0;">${command}</code>
                         <button id="conn-trouble-copy" style="background: var(--brand); color: white; border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; white-space: nowrap;">复制命令</button>

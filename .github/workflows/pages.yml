@@ -20,9 +20,19 @@ jobs:
           chmod +x update-version.sh
           ./update-version.sh
 
+      # 只发布站点资源：避免把 README / package.json / 工作流配置一并公开
+      - name: 组装发布目录
+        run: |
+          set -euo pipefail
+          rm -rf _site && mkdir -p _site
+          cp index.html og-image.png robots.txt sitemap.xml CNAME _site/
+          cp -r css js _site/
+          echo "--- 发布内容 ---"
+          find _site -type f | sort
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
+          publish_dir: ./_site
           keep_files: false

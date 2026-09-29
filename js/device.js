@@ -426,8 +426,9 @@ function clearDeviceLog() {
 
 
 let disconnect = async () => {
-    if (!window.adbClient) {
+    if (!window.adbClient && !window.adbTransport && !window.adbDevice) {
         logDevice('没有设备需要断开');
+        updateConnectionButtons();
         return;
     }
     
@@ -439,17 +440,10 @@ let disconnect = async () => {
     try {
         logDevice('正在断开连接...');
         
-        if (window.adbClient) {
-            await window.adbClient.close();
-            window.adbClient = null;
-        }
         
-        window.adbDevice = null;
-        window.adbTransport = null;
+        await disconnectSilently();
         
-        setDeviceName(null);
         logDevice('===== 设备已断开连接 =====');
-        stopDeviceMonitoring();
     } catch (error) {
         console.error('Disconnect error:', error);
         logDevice('断开连接失败: ' + (error.message || error.toString()));
@@ -459,6 +453,7 @@ let disconnect = async () => {
         window.adbDevice = null;
         window.adbTransport = null;
         setDeviceName(null);
+        stopDeviceMonitoring();
     }
 };
 
@@ -549,6 +544,7 @@ let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
         
         
         window.isConnecting = false;
+        updateConnectionButtons();
         
     } catch (e) {
         closeAuthWaitingDialog();
@@ -557,6 +553,7 @@ let connectWithDevice = async (webusbDevice, adbApi, adbCredentialWeb) => {
         
         
         window.isConnecting = false;
+        updateConnectionButtons();
         
         
         const result = await showConnectionTroubleshootDialog(e.message);
@@ -618,6 +615,7 @@ let connectDevice = async () => {
     }
     
     window.isConnecting = true;
+    updateConnectionButtons();
     
     try {
         
@@ -673,6 +671,7 @@ let connectDevice = async () => {
             if (!device) {
                 logDevice('已取消');
                 window.isConnecting = false;
+                updateConnectionButtons();
                 return;
             }
             devices = [device];
@@ -683,12 +682,14 @@ let connectDevice = async () => {
         logDevice('建立 ADB 连接...');
         await connectWithDevice(devices[0], adbApi, adbCredentialWeb);
         window.isConnecting = false;
+        updateConnectionButtons();
         
     } catch (error) {
         const msg = error.message || error.toString();
         logDevice('连接失败: ' + msg);
         
         window.isConnecting = false;
+        updateConnectionButtons();
         
         
         if (msg.includes('NotFoundError')) {
@@ -733,6 +734,30 @@ let stopDeviceMonitoring = () => {
 };
 
 
+
+let updateConnectionButtons = () => {
+    
+    const busy = !!window.isConnecting;
+    
+    const hasSession = !!window.adbClient;
+    
+    const hasResidue = hasSession || !!window.adbDevice || !!window.adbTransport;
+    
+    
+    const connectBtn = document.getElementById('connect-btn');
+    if (connectBtn) {
+        connectBtn.disabled = busy || hasSession;
+        connectBtn.textContent = busy ? '连接中...' : (hasSession ? '已连接' : '开始连接');
+    }
+    
+    
+    const disconnectBtn = document.getElementById('disconnect-btn');
+    if (disconnectBtn) {
+        disconnectBtn.disabled = busy || !hasResidue;
+    }
+};
+
+
 let setDeviceName = async (name) => {
     if (!name) {
         name = '🚗 未连接';
@@ -741,6 +766,7 @@ let setDeviceName = async (name) => {
     if (statusElement) {
         statusElement.textContent = name;
     }
+    updateConnectionButtons();
 };
 
 
@@ -958,6 +984,7 @@ try {
     
     if (typeof window !== 'undefined') {
         window.connectDevice = connectDevice;
+        window.disconnect = disconnect;
     }
 } catch (e) {
     

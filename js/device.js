@@ -739,21 +739,21 @@ let updateConnectionButtons = () => {
     
     const busy = !!window.isConnecting;
     
-    const hasSession = !!window.adbClient;
-    
-    const hasResidue = hasSession || !!window.adbDevice || !!window.adbTransport;
+    const connected = !!window.adbClient;
     
     
     const connectBtn = document.getElementById('connect-btn');
     if (connectBtn) {
-        connectBtn.disabled = busy || hasSession;
-        connectBtn.textContent = busy ? '连接中...' : (hasSession ? '已连接' : '开始连接');
+        connectBtn.style.display = connected ? 'none' : '';
+        connectBtn.disabled = busy;
+        connectBtn.textContent = busy ? '连接中...' : '开始连接';
     }
     
     
     const disconnectBtn = document.getElementById('disconnect-btn');
     if (disconnectBtn) {
-        disconnectBtn.disabled = busy || !hasResidue;
+        disconnectBtn.style.display = connected ? '' : 'none';
+        disconnectBtn.disabled = busy;
     }
 };
 

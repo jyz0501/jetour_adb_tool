@@ -151,6 +151,14 @@ hr {
     user-select: none;
 }
 
+.btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+    filter: grayscale(.6);
+}
+
 .btn-connect {
     background: var(--brand-grad);
     color: #fff;

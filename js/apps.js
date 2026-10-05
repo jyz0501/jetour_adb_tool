@@ -269,8 +269,8 @@ let hstrip = async () => {
 
 
 let ykpip = async () => {
-    const downloadUrl = 'http://a14472357.a.328657.xyz/a14472357/%E6%98%93%E6%8E%A7%E8%BD%A6%E6%9C%BA%E7%89%88V1.6.10_PIP.apk';
-    const backupUrl = null;
+    const downloadUrl = 'https://w.wangmeipo.cn/api/v4/slave/file/content/0/VC9QLzcyODMvb0tFdDhOeEJfeWtWMS42LjEwX1BJUC5hcGs=/0/ykV1.6.10_PIP.apk?download=true&sign=_czJCOM_enDbpdNIZ1y6o-gAuJB3yY0Oo_Yi9kH0Y5A%3D%3A1791212285';
+    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/%E6%98%93%E6%8E%A7%E8%BD%A6%E6%9C%BA%E7%89%88V1.6.10_PIP.apk';
     const savePath = '/storage/emulated/0/Download/ykpip.apk';
     await downloadToPhoneAndPush('易控车机PIP', downloadUrl, savePath, backupUrl);
 };

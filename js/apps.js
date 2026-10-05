@@ -303,6 +303,14 @@ let adbmanager = async () => {
 };
 
 
+let hld = async () => {
+    const downloadUrl = 'https://w.wangmeipo.cn/api/v4/slave/file/content/0/VC9QLzcyODMvMENOeDFMYnNfaGxkX3YyLjcuMC5hcGs=/0/hld_v2.7.0.apk?download=true&sign=CEUsjrWskA9RkUgzwYXmJIoLZo9r3UDwBp_zekOt978%3D%3A1791212560';
+    const backupUrl = null;
+    const savePath = '/storage/emulated/0/Download/hld.apk';
+    await downloadToPhoneAndPush('红绿灯领航', downloadUrl, savePath, backupUrl);
+};
+
+
 let adbzs = async () => {
     const repoPath = 'https://gitee.com/reathin-apps/app/raw/master/ADB%E5%8A%A9%E6%89%8B/';
     const fallbackName = 'ADB助手-1.1.0-11.apk';

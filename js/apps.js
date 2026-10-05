@@ -279,7 +279,7 @@ let ykpip = async () => {
 
 let cdb = async () => {
     const downloadUrl = 'https://gjx.cheji.cc/apk/cbl.apk';
-    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/cbl_1.0.apk';
+    const backupUrl = 'https://w.wangmeipo.cn/api/v4/slave/file/content/0/VC9QLzcyODMveU1zS0phOTZfY2JsLmFwaw==/0/cbl.apk?download=true&sign=KV5zkW4aVd77tx7UU3RiIsw0Vkil1SFlCD1QgPHSBew%3D%3A1791212325';
     const savePath = '/storage/emulated/0/Download/cdb.apk';
     await downloadToPhoneAndPush('侧边栏', downloadUrl, savePath, backupUrl, 'com.hzsoft.sidebar');
 };

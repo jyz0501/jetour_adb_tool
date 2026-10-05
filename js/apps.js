@@ -261,8 +261,8 @@ let sentry = async () => {
 
 
 let hstrip = async () => {
-    const downloadUrl = 'http://a14472357.a.328657.xyz/a14472357/Gesture_2.0.0.apk';
-    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/小横条_2.0.1_signed.apk';
+    const downloadUrl = 'https://w.wangmeipo.cn/api/v4/slave/file/content/0/VC9QLzcyODMvRHEwWTdwazdfeGlhb2hlbmd0aWFvXzIuMC4xX3NpZ25lZC5hcGs=/0/xiaohengtiao_2.0.1_signed.apk?download=true&sign=ODPxzTYmyI_KCeGXQrAvblS2ZKDfIot1iOHd74D8Px0%3D%3A1791212201';
+    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/Gesture_2.0.0.apk';
     const savePath = '/storage/emulated/0/Download/Gesture.apk';
     await downloadToPhoneAndPush('小横条', downloadUrl, savePath, backupUrl, 'com.omarea.gesture');
 };

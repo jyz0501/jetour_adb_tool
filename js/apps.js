@@ -303,6 +303,22 @@ let adbmanager = async () => {
 };
 
 
+let ovital = async () => {
+    const downloadUrl = 'https://cdn.ovital.com/pub/omapAndroidV1073.apk';
+    const backupUrl = null;
+    const savePath = '/storage/emulated/0/Download/ovital.apk';
+    await downloadToPhoneAndPush('奥维地图', downloadUrl, savePath, backupUrl);
+};
+
+
+let ovitalMod = async () => {
+    const downloadUrl = 'https://w.wangmeipo.cn/api/v4/slave/file/content/0/VC9QLzcyODMvc2xDdklMVEtf5aWl57u05LqS5Yqo5Zyw5Zu-djEwLjMuN-ino-mUgeeJiC5hcGs=/0/%E5%A5%A5%E7%BB%B4%E4%BA%92%E5%8A%A8%E5%9C%B0%E5%9B%BEv10.3.7%E8%A7%A3%E9%94%81%E7%89%88.apk?download=true&sign=dp81i2pwJn4b2dODKKlw-S8ALrsqLSS4ivEmak1go-s%3D%3A1791214435';
+    const backupUrl = null;
+    const savePath = '/storage/emulated/0/Download/ovital_mod.apk';
+    await downloadToPhoneAndPush('奥维地图修改版', downloadUrl, savePath, backupUrl);
+};
+
+
 let hld = async () => {
     const downloadUrl = 'https://w.wangmeipo.cn/api/v4/slave/file/content/0/VC9QLzcyODMvMENOeDFMYnNfaGxkX3YyLjcuMC5hcGs=/0/hld_v2.7.0.apk?download=true&sign=CEUsjrWskA9RkUgzwYXmJIoLZo9r3UDwBp_zekOt978%3D%3A1791212560';
     const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/hld_v2.7.0.apk';

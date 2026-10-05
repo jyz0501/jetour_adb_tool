@@ -253,8 +253,8 @@ let yygj = async () => {
 
 
 let sentry = async () => {
-    const downloadUrl = 'http://a14472357.a.328657.xyz/a14472357/sbcamerav1.1.8.apk';
-    const backupUrl = null;
+    const downloadUrl = 'https://w.wangmeipo.cn/api/v4/slave/file/content/0/VC9QLzcyODMvOFBjcUxDYk9fc2JjYW1lcmF2MS4xLjguYXBr/0/sbcamerav1.1.8.apk?download=true&sign=_bWM4deByWhMHaAHzb6WYaY12qzyq4CX3cLQuhsmGBg%3D%3A1791212173';
+    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/sbcamerav1.1.8.apk';
     const savePath = '/storage/emulated/0/Download/sentry.apk';
     await downloadToPhoneAndPush('哨兵监控', downloadUrl, savePath, backupUrl);
 };

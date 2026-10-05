@@ -286,8 +286,8 @@ let cdb = async () => {
 
 
 let bdui = async () => {
-    const downloadUrl = 'https://file.vju.cc/%E5%B8%83%E4%B8%81UI%E6%A1%8C%E9%9D%A2/%E5%B8%83%E4%B8%81UI2.2.7.apk';
-    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/bdUI_2.2.7.apk'; 
+    const downloadUrl = 'https://w.wangmeipo.cn/api/v4/slave/file/content/0/VC9QLzcyODMveDB2RHdObElfYmRVSV8yLjIuNy5hcGs=/0/bdUI_2.2.7.apk?download=true&sign=x6B-s8j_iuxwZOHQCQrX2Y_t0nZOY1EP_XvCMMY793U%3D%3A1791212359';
+    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/bdUI_2.2.7.apk';
     const savePath = '/storage/emulated/0/Download/bdui.apk';
     await downloadToPhoneAndPush('布丁UI', downloadUrl, savePath, backupUrl, 'com.sfcar.launcher');
 };
@@ -350,7 +350,7 @@ let adbzs = async () => {
 
 
 let lyyk = () => {
-    const downloadUrl = 'http://a14472357.a.328657.xyz/a14472357/lyyk2.0.9.apk';
+    const downloadUrl = 'https://w.wangmeipo.cn/api/v4/slave/file/content/0/VC9QLzcyODMvVDF6czFkUkNfbHl5azIuMC45LmFwaw==/0/lyyk2.0.9.apk?download=true&sign=3LHHU7VKnGOPyHrwEz4W145SIaoLUFtrqD6ACmC5seA%3D%3A1791212378';
     
     
     const link = document.createElement('a');

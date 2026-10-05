@@ -235,8 +235,8 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
 
 
 let sfgj = async () => {
-    const downloadUrl = 'https://w.wangmeipo.cn/api/v4/slave/file/content/0/VC9QLzcyODMvVmJaZzAxZ2xfcGFkX3NmZ2pfNC45Ljg5LmFwaw==/0/pad_sfgj_4.9.89.apk?download=true&sign=xkR8dI6WiwVtWBZneqcX70m8UpZlmhCeL5JljQ4sQQI%3D%3A1791210845';
-    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/sfgj4.9.54.apk';
+    const downloadUrl = 'https://zero.shafa.com/file/pad_webwww/shafa_market/latest';
+    const backupUrl = 'https://w.wangmeipo.cn/api/v4/slave/file/content/0/VC9QLzcyODMvVmJaZzAxZ2xfcGFkX3NmZ2pfNC45Ljg5LmFwaw==/0/pad_sfgj_4.9.89.apk?download=true&sign=xkR8dI6WiwVtWBZneqcX70m8UpZlmhCeL5JljQ4sQQI%3D%3A1791210845';
     const savePath = '/storage/emulated/0/Download/sfgj.apk';
     await downloadToPhoneAndPush('沙发管家', downloadUrl, savePath, backupUrl, 'com.shafa.markethd');
 };

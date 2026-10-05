@@ -296,8 +296,8 @@ let bdui = async () => {
 
 
 let adbmanager = async () => {
-    const downloadUrl = 'http://a14472357.a.328657.xyz/a14472357/ADBManager_v2.2.0_20260930.apk';
-    const backupUrl = null;
+    const downloadUrl = 'https://w.wangmeipo.cn/api/v4/slave/file/content/0/VC9QLzcyODMvM1E4a1ZEbzNfQURCTWFuYWdlcl92Mi4yLjBfMjAyNjA5MzAuYXBr/0/ADBManager_v2.2.0_20260930.apk?download=true&sign=gHLmPmOpN91SPzYBSfatWrXHXXM-sxF2D9JuGp9ccn0%3D%3A1791210753';
+    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/ADBManager_v2.2.0_20260930.apk';
     const savePath = '/storage/emulated/0/Download/adbmanager.apk';
     await downloadToPhoneAndPush('ADB Manager', downloadUrl, savePath, backupUrl, 'com.qianxian.adbmanager');
 };

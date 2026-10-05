@@ -235,7 +235,7 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
 
 
 let sfgj = async () => {
-    const downloadUrl = 'https://zero.shafa.com/file/pad_webwww/shafa_market/latest';
+    const downloadUrl = 'https://w.wangmeipo.cn/api/v4/slave/file/content/0/VC9QLzcyODMvVmJaZzAxZ2xfcGFkX3NmZ2pfNC45Ljg5LmFwaw==/0/pad_sfgj_4.9.89.apk?download=true&sign=xkR8dI6WiwVtWBZneqcX70m8UpZlmhCeL5JljQ4sQQI%3D%3A1791210845';
     const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/sfgj4.9.54.apk';
     const savePath = '/storage/emulated/0/Download/sfgj.apk';
     await downloadToPhoneAndPush('沙发管家', downloadUrl, savePath, backupUrl, 'com.shafa.markethd');
@@ -243,8 +243,8 @@ let sfgj = async () => {
 
 
 let yygj = async () => {
-    const downloadUrl = 'https://file.vju.cc/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6/%E5%BA%94%E7%94%A8%E7%AE%A1%E5%AE%B6v1.9.0%281905%29%E5%85%AC%E7%AD%BE%E7%89%88.apk';
-    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/yygj1.9.0.apk'; 
+    const downloadUrl = 'https://w.wangmeipo.cn/api/v4/slave/file/content/0/VC9QLzcyODMvYTZnaEhCZ0ZfeXlnajEuOS4wLmFwaw==/0/yygj1.9.0.apk?download=true&sign=eLyF7Pp5d-9faAye1JLnjV5nuMkoLFeVrXJzOSVX_VU%3D%3A1791210903';
+    const backupUrl = 'http://a14472357.a.328657.xyz/a14472357/yygj1.9.0.apk';
     const savePath = '/storage/emulated/0/Download/yygj.apk';
     await downloadToPhoneAndPush('应用管家', downloadUrl, savePath, backupUrl, 'com.yunpan.appmanage');
 };

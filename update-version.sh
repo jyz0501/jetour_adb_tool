@@ -15,7 +15,7 @@ PATCH="${PADDED_COUNT:2}"
 VERSION="v${MAJOR}.${MINOR}.${PATCH}"
 
 
-sed -i '' "s/<span id=\"app-version\">.*<\/span>/<span id=\"app-version\">${VERSION}<\/span>/" index.html
+sed -i "s/<span id=\"app-version\">.*<\/span>/<span id=\"app-version\">${VERSION}<\/span>/" index.html
 
 
 echo "提交次数: ${COMMIT_COUNT}"

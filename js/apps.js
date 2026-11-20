@@ -110,6 +110,76 @@ function removeBlockingModal() {
 }
 
 
+const APK_STATE_KEY = 'jetour_apk_cleanup_state_v1';
+const MIN_APK_SIZE = 51200;
+
+let apkState = (() => {
+    try {
+        const saved = localStorage.getItem(APK_STATE_KEY);
+        return saved ? (JSON.parse(saved) || {}) : {};
+    } catch (e) {
+        return {};
+    }
+})();
+
+function persistApkState() {
+    try {
+        localStorage.setItem(APK_STATE_KEY, JSON.stringify(apkState));
+    } catch (e) {
+        console.warn('无法保存安装文件状态', e);
+    }
+}
+
+function setApkState(path, status, size = null) {
+    apkState[path] = { status: status, size: size, updatedAt: Date.now() };
+    persistApkState();
+}
+
+function clearApkState(path) {
+    delete apkState[path];
+    persistApkState();
+}
+
+async function removeApkFile(path) {
+    await execShellAndGetOutput('rm -f "' + path + '"');
+}
+
+async function readApkSize(path) {
+    const output = await execShellAndGetOutput('stat -c %s "' + path + '"');
+    const size = parseInt(String(output).trim(), 10);
+    return Number.isFinite(size) && size >= 0 ? size : null;
+}
+
+async function cleanupLeftoverApks() {
+    const reasons = {
+        download_failed: '下载未完成',
+        size_mismatch: '文件大小不一致',
+        install_failed: '安装失败',
+        downloaded: '上次安装未完成'
+    };
+    let cleaned = 0;
+    for (const path of Object.keys(apkState)) {
+        const info = apkState[path];
+        if (!info || !reasons[info.status]) {
+            continue;
+        }
+        const size = await readApkSize(path);
+        if (size === null) {
+            continue;
+        }
+        let reason = reasons[info.status];
+        if (info.status === 'downloaded' && info.size != null && size !== info.size) {
+            reason = '文件大小不一致';
+        }
+        await removeApkFile(path);
+        log('已清理' + reason + '遗留文件: ' + path);
+        clearApkState(path);
+        cleaned++;
+    }
+    return cleaned;
+}
+
+
 let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = null, packageName = null) => {
     if (!checkBrowserSupport()) {
         return;
@@ -132,9 +202,18 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
         await execShellAndGetOutput("setprop persist.sv.enable_adb_install 1");
         
         
-        log('正在清空download目录...');
-        await execShellAndGetOutput('rm -f /storage/emulated/0/Download/*.apk');
-        log('download目录已清空');
+        log('正在检查遗留安装文件...');
+        const leftoverCount = await cleanupLeftoverApks();
+        if (leftoverCount === 0) {
+            log('未发现遗留安装文件');
+        }
+        
+        const oldSize = await readApkSize(savePath);
+        if (oldSize !== null) {
+            await removeApkFile(savePath);
+            log('已清理同名旧文件: ' + savePath);
+        }
+        setApkState(savePath, 'download_failed');
         
         let downloadSuccess = false;
         let currentUrl = downloadUrl;
@@ -149,22 +228,26 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             }
             
             log(`尝试下载 (${attempt}/2)...`);
+            await removeApkFile(savePath);
             
             const downloadPromise = execShellAndGetOutput('curl -L --connect-timeout 30 --max-time 60 --retry 3 --insecure --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" -o ' + savePath + ' "' + currentUrl + '"');
             
             try {
                 await downloadPromise;
                 
-                const sizeCheck = await execShellAndGetOutput('stat -c %s ' + savePath);
-                const fileSize = parseInt(sizeCheck.trim());
-                if (!isNaN(fileSize) && fileSize > 51200) {
+                const fileSize = await readApkSize(savePath);
+                if (fileSize !== null && fileSize > MIN_APK_SIZE) {
+                    setApkState(savePath, 'downloaded', fileSize);
                     downloadSuccess = true;
                     break;
-                } else {
-                    log('文件不存在或太小，可能下载不完整');
                 }
+                log('文件不存在或太小，可能下载不完整');
+                setApkState(savePath, fileSize === null ? 'download_failed' : 'size_mismatch', fileSize);
+                await removeApkFile(savePath);
             } catch (e) {
                 log('下载失败: ' + e.message);
+                setApkState(savePath, 'download_failed');
+                await removeApkFile(savePath);
             }
         }
         
@@ -180,8 +263,9 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
             if (installOutput.includes('Success')) {
                 log('安装成功！');
                 alert(appName + " 安装成功！");
-                await execShellAndGetOutput('rm -f ' + savePath);
-                log('已删除安装文件: ' + savePath);
+                await removeApkFile(savePath);
+                setApkState(savePath, 'installed');
+                log('已清理安装文件');
                 
                 
                 if (packageName) {
@@ -192,6 +276,9 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
                 }
             } else {
                 log('安装失败: ' + installOutput);
+                setApkState(savePath, 'install_failed');
+                await removeApkFile(savePath);
+                log('已清理安装失败遗留文件');
                 alert(appName + ' 安装失败！\n\n' + installOutput);
             }
         } else {
@@ -226,6 +313,9 @@ let downloadToPhoneAndPush = async (appName, downloadUrl, savePath, backupUrl = 
         }
     } catch (error) {
         log('安装过程出错: ' + error.message);
+        setApkState(savePath, 'download_failed');
+        await removeApkFile(savePath);
+        log('已清理未完成的安装文件');
         alert('安装失败: ' + error.message);
     }
     
@@ -566,10 +656,13 @@ let installApkFile = async () => {
     log(`开始安装 ${validFiles.length} 个 APK 文件...\n`);
     let successCount = 0;
     let failCount = 0;
+    let currentRemotePath = null;
     try {
         for (let i = 0; i < validFiles.length; i++) {
             const file = validFiles[i];
             const remotePath = `/storage/emulated/0/Download/upload_${Date.now()}_${i}.apk`;
+            currentRemotePath = remotePath;
+            setApkState(remotePath, 'download_failed');
             log(`[${i + 1}/${validFiles.length}] 推送: ${file.name}`);
             await push(remotePath, file);
             
@@ -578,10 +671,15 @@ let installApkFile = async () => {
             if (output.includes('Success')) {
                 successCount++;
                 log(`✅ ${file.name} 安装成功\n`);
+                setApkState(remotePath, 'installed');
             } else {
                 failCount++;
                 log(`❌ ${file.name} 安装失败\n`);
+                setApkState(remotePath, 'install_failed');
             }
+            await removeApkFile(remotePath);
+            clearApkState(remotePath);
+            currentRemotePath = null;
         }
         alert(`🎉 安装完成！成功 ${successCount} 个，失败 ${failCount} 个`);
         loadPackageList();
@@ -590,6 +688,11 @@ let installApkFile = async () => {
         log("❌ 批量安装过程中发生错误，请查看控制台。");
         alert("安装过程中出错，请查看日志。");
     } finally {
+        if (currentRemotePath) {
+            setApkState(currentRemotePath, 'download_failed');
+            await removeApkFile(currentRemotePath);
+            clearApkState(currentRemotePath);
+        }
         showProgress(false);
     }
 };
